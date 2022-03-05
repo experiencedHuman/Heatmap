@@ -3,38 +3,52 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
 )
 
-func main() {
-	csvStr := "row1,value1,value2\nrow2,value1,value2"
-	fmt.Println("csv content: \n", csvStr)
-	req, err := http.NewRequest("GET", "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-700days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv", strings.NewReader(csvStr))
+func readCSVFromUrl(url string) ([][]string, error) {
+	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("Error: could not get csv data from URL!")
+		fmt.Println("Could not retrieve csv data from URL!")
+		return nil, err
+	} else {
+		fmt.Println("Successfully retrieved data from URL!")
 	}
-	results, _ := ReadCSVFromHttpRequest(req)
-	fmt.Println("parsed csv: \n", results)
-}
 
-func ReadCSVFromHttpRequest(req *http.Request) ([][]string, error) {
-	// parse POST body as csv
-	reader := csv.NewReader(req.Body)
-	var results [][]string
-	for {
-		// read one row from csv
-		record, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
+	defer resp.Body.Close()
+	csvReader := csv.NewReader(resp.Body)
+	csvReader.Comma = ','
+	var data []string
+	for i := 0; i < 20; i++ {
+		data, err = csvReader.Read()
 		if err != nil {
 			return nil, err
+		} else {
+			fmt.Println("%+v", data)
+		}
+	}
+	return make([][]string, 0), nil
+}
+
+func main() {
+	
+	url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-700days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
+
+	data, err := readCSVFromUrl(url)
+	if err != nil {
+		panic(err)
+	}
+
+	for idx, row := range data {
+		// skip header
+		if idx == 0 {
+			continue
 		}
 
-		// add record to result set
-		results = append(results, record)
+		if idx == 6 {
+			break
+		}
+
+		fmt.Println(row[2])
 	}
-	return results, nil
 }
