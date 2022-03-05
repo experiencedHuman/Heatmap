@@ -19,12 +19,12 @@ func readCSVFromUrl(url string) ([][]string, error) {
 	csvReader := csv.NewReader(resp.Body)
 	csvReader.Comma = ','
 	var data []string
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 5; i++ {
 		data, err = csvReader.Read()
 		if err != nil {
 			return nil, err
 		} else {
-			fmt.Println("%+v", data)
+			fmt.Printf("%+v\n", data)
 		}
 	}
 	return make([][]string, 0), nil
@@ -32,7 +32,7 @@ func readCSVFromUrl(url string) ([][]string, error) {
 
 func main() {
 	
-	url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-700days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
+	url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-5days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
 
 	data, err := readCSVFromUrl(url)
 	if err != nil {
