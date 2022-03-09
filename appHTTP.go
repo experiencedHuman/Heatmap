@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"net/http"
+	"github.com/gocolly/colly"
 )
 
 func readCSVFromUrl(url string) ([][]string, error) {
