@@ -1,4 +1,4 @@
-APP_NAME=appHTTP
+APP_NAME=heatmap
 BINARY_NAME=${APP_NAME}.out
 
 build:
