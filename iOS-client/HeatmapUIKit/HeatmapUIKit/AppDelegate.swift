@@ -14,7 +14,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        AzureMaps.configure(accessToken: "9g_Nd80y0xdLKe5Mv9ZsChjVEiTs0sTw8nHfFYE25_g")
+        if let azureToken = Bundle.main.infoDictionary?["Azure_Token"] as? String {
+            AzureMaps.configure(accessToken: azureToken)
+        }
         return true
     }
 

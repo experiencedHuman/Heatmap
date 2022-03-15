@@ -27,6 +27,7 @@
 		AA8C0E7B27E0F4C500D054C1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AA8C0E7D27E0F4C500D054C1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
+		AA8C0E8927E0FD6000D054C1 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +70,7 @@
 				AA8C0E7827E0F4C500D054C1 /* Assets.xcassets */,
 				AA8C0E7A27E0F4C500D054C1 /* LaunchScreen.storyboard */,
 				AA8C0E7D27E0F4C500D054C1 /* Info.plist */,
+				AA8C0E8927E0FD6000D054C1 /* Config.xcconfig */,
 			);
 			path = HeatmapUIKit;
 			sourceTree = "<group>";
@@ -188,6 +190,7 @@
 /* Begin XCBuildConfiguration section */
 		AA8C0E7E27E0F4C500D054C1 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA8C0E8927E0FD6000D054C1 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
