@@ -47,7 +47,6 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
     mapView.delegate = self
     self.view = mapView
-    makeButton()
   }
 
   override func viewDidLoad() {
@@ -69,7 +68,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     var list = [GMUWeightedLatLng]()
     do {
       // Get the data: latitude/longitude positions of police stations.
-      if let path = Bundle.main.url(forResource: "police_stations", withExtension: "json") {
+      if let path = Bundle.main.url(forResource: "data", withExtension: "json") {
         let data = try Data(contentsOf: path)
         let json = try JSONSerialization.jsonObject(with: data, options: [])
         if let object = json as? [[String: Any]] {
@@ -80,8 +79,10 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
             list.append(coords)
           }
         } else {
-          print("Could not read the JSON.")
+          print("Could not cast data from JSON")
         }
+      } else {
+          print("Could not read JSON data")
       }
     } catch {
       print(error.localizedDescription)
@@ -102,14 +103,4 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     print("You tapped at \(coordinate.latitude), \(coordinate.longitude)")
   }
 
-  // Add a button to the view.
-  func makeButton() {
-    // A button to test removing the heatmap.
-    button = UIButton(frame: CGRect(x: 5, y: 150, width: 200, height: 35))
-    button.backgroundColor = .blue
-    button.alpha = 0.5
-    button.setTitle("Remove heatmap", for: .normal)
-    button.addTarget(self, action: #selector(removeHeatmap), for: .touchUpInside)
-    self.mapView.addSubview(button)
-  }
 }

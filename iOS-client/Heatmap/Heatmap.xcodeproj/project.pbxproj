@@ -33,6 +33,7 @@
 		AA2E855927E06E5C00709BC7 /* HeatmapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2E855827E06E5C00709BC7 /* HeatmapViewController.swift */; };
 		AA2E855C27E06E8400709BC7 /* GoogleMapsUtils in Frameworks */ = {isa = PBXBuildFile; productRef = AA2E855B27E06E8400709BC7 /* GoogleMapsUtils */; };
 		AA2E855D27E0730F00709BC7 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059B27E06CB200E4930B /* CoreTelephony.framework */; };
+		AA8C0E5F27E07E9D00D054C1 /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E5E27E07E9D00D054C1 /* data.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		AA2C05AD27E06D0900E4930B /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		AA2C05AF27E06D1100E4930B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		AA2E855827E06E5C00709BC7 /* HeatmapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapViewController.swift; sourceTree = "<group>"; };
+		AA8C0E5E27E07E9D00D054C1 /* data.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = data.json; path = "../../../../../Heatmap/google-maps-ios-utils/samples/SwiftDemoApp/SwiftDemoApp/data.json"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,7 @@
 		AA2C057527E0692000E4930B /* Heatmap */ = {
 			isa = PBXGroup;
 			children = (
+				AA8C0E5E27E07E9D00D054C1 /* data.json */,
 				AA2C057627E0692000E4930B /* HeatmapApp.swift */,
 				AA2C057827E0692000E4930B /* ContentView.swift */,
 				AA2C057A27E0692100E4930B /* Assets.xcassets */,
@@ -223,6 +226,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA8C0E5F27E07E9D00D054C1 /* data.json in Resources */,
 				AA2C059027E06C5900E4930B /* GoogleMaps.bundle in Resources */,
 				AA2C057E27E0692100E4930B /* Preview Assets.xcassets in Resources */,
 				AA2C057B27E0692100E4930B /* Assets.xcassets in Resources */,
@@ -282,6 +286,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -344,6 +349,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -355,6 +361,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				"OTHER_LDFLAGS[arch=*]" = "-ObjC";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
