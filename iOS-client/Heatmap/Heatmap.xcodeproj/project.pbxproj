@@ -34,6 +34,7 @@
 		AA2E855C27E06E8400709BC7 /* GoogleMapsUtils in Frameworks */ = {isa = PBXBuildFile; productRef = AA2E855B27E06E8400709BC7 /* GoogleMapsUtils */; };
 		AA2E855D27E0730F00709BC7 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059B27E06CB200E4930B /* CoreTelephony.framework */; };
 		AA8C0E5F27E07E9D00D054C1 /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E5E27E07E9D00D054C1 /* data.json */; };
+		AA8C0E6227E093E600D054C1 /* AzureMapsControl in Frameworks */ = {isa = PBXBuildFile; productRef = AA8C0E6127E093E600D054C1 /* AzureMapsControl */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -75,6 +76,7 @@
 				AA2C05AE27E06D0900E4930B /* SystemConfiguration.framework in Frameworks */,
 				AA2C05AC27E06D0000E4930B /* QuartzCore.framework in Frameworks */,
 				AA2C05AA27E06CF800E4930B /* OpenGLES.framework in Frameworks */,
+				AA8C0E6227E093E600D054C1 /* AzureMapsControl in Frameworks */,
 				AA2C05A827E06CF100E4930B /* Metal.framework in Frameworks */,
 				AA2C05A627E06CE700E4930B /* libz.tbd in Frameworks */,
 				AA2C05A427E06CDC00E4930B /* libc++.tbd in Frameworks */,
@@ -180,6 +182,7 @@
 			name = Heatmap;
 			packageProductDependencies = (
 				AA2E855B27E06E8400709BC7 /* GoogleMapsUtils */,
+				AA8C0E6127E093E600D054C1 /* AzureMapsControl */,
 			);
 			productName = Heatmap;
 			productReference = AA2C057327E0692000E4930B /* Heatmap.app */;
@@ -211,6 +214,7 @@
 			mainGroup = AA2C056A27E0692000E4930B;
 			packageReferences = (
 				AA2E855A27E06E8400709BC7 /* XCRemoteSwiftPackageReference "google-maps-ios-utils" */,
+				AA8C0E6027E093E600D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */,
 			);
 			productRefGroup = AA2C057427E0692000E4930B /* Products */;
 			projectDirPath = "";
@@ -286,7 +290,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -349,7 +352,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -458,6 +460,14 @@
 				kind = branch;
 			};
 		};
+		AA8C0E6027E093E600D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Azure/azure-maps-ios-sdk-distribution.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = "1.0.0-pre.1";
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -465,6 +475,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = AA2E855A27E06E8400709BC7 /* XCRemoteSwiftPackageReference "google-maps-ios-utils" */;
 			productName = GoogleMapsUtils;
+		};
+		AA8C0E6127E093E600D054C1 /* AzureMapsControl */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA8C0E6027E093E600D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */;
+			productName = AzureMapsControl;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

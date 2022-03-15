@@ -1,0 +1,402 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 55;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA8C0E7027E0F4C300D054C1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */; };
+		AA8C0E7227E0F4C300D054C1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E7127E0F4C300D054C1 /* SceneDelegate.swift */; };
+		AA8C0E7427E0F4C300D054C1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E7327E0F4C300D054C1 /* ViewController.swift */; };
+		AA8C0E7727E0F4C300D054C1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E7527E0F4C300D054C1 /* Main.storyboard */; };
+		AA8C0E7927E0F4C500D054C1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E7827E0F4C500D054C1 /* Assets.xcassets */; };
+		AA8C0E7C27E0F4C500D054C1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E7A27E0F4C500D054C1 /* LaunchScreen.storyboard */; };
+		AA8C0E8527E0F6B800D054C1 /* AzureMapsControl in Frameworks */ = {isa = PBXBuildFile; productRef = AA8C0E8427E0F6B800D054C1 /* AzureMapsControl */; };
+		AA8C0E8827E0F85600D054C1 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA8C0E6C27E0F4C300D054C1 /* HeatmapUIKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeatmapUIKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AA8C0E7127E0F4C300D054C1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		AA8C0E7327E0F4C300D054C1 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		AA8C0E7627E0F4C300D054C1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		AA8C0E7827E0F4C500D054C1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA8C0E7B27E0F4C500D054C1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		AA8C0E7D27E0F4C500D054C1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA8C0E6927E0F4C300D054C1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA8C0E8827E0F85600D054C1 /* CoreTelephony.framework in Frameworks */,
+				AA8C0E8527E0F6B800D054C1 /* AzureMapsControl in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA8C0E6327E0F4C300D054C1 = {
+			isa = PBXGroup;
+			children = (
+				AA8C0E6E27E0F4C300D054C1 /* HeatmapUIKit */,
+				AA8C0E6D27E0F4C300D054C1 /* Products */,
+				AA8C0E8627E0F85600D054C1 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		AA8C0E6D27E0F4C300D054C1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA8C0E6C27E0F4C300D054C1 /* HeatmapUIKit.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AA8C0E6E27E0F4C300D054C1 /* HeatmapUIKit */ = {
+			isa = PBXGroup;
+			children = (
+				AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */,
+				AA8C0E7127E0F4C300D054C1 /* SceneDelegate.swift */,
+				AA8C0E7327E0F4C300D054C1 /* ViewController.swift */,
+				AA8C0E7527E0F4C300D054C1 /* Main.storyboard */,
+				AA8C0E7827E0F4C500D054C1 /* Assets.xcassets */,
+				AA8C0E7A27E0F4C500D054C1 /* LaunchScreen.storyboard */,
+				AA8C0E7D27E0F4C500D054C1 /* Info.plist */,
+			);
+			path = HeatmapUIKit;
+			sourceTree = "<group>";
+		};
+		AA8C0E8627E0F85600D054C1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA8C0E6B27E0F4C300D054C1 /* HeatmapUIKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA8C0E8027E0F4C500D054C1 /* Build configuration list for PBXNativeTarget "HeatmapUIKit" */;
+			buildPhases = (
+				AA8C0E6827E0F4C300D054C1 /* Sources */,
+				AA8C0E6927E0F4C300D054C1 /* Frameworks */,
+				AA8C0E6A27E0F4C300D054C1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HeatmapUIKit;
+			packageProductDependencies = (
+				AA8C0E8427E0F6B800D054C1 /* AzureMapsControl */,
+			);
+			productName = HeatmapUIKit;
+			productReference = AA8C0E6C27E0F4C300D054C1 /* HeatmapUIKit.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA8C0E6427E0F4C300D054C1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1310;
+				LastUpgradeCheck = 1310;
+				TargetAttributes = {
+					AA8C0E6B27E0F4C300D054C1 = {
+						CreatedOnToolsVersion = 13.1;
+					};
+				};
+			};
+			buildConfigurationList = AA8C0E6727E0F4C300D054C1 /* Build configuration list for PBXProject "HeatmapUIKit" */;
+			compatibilityVersion = "Xcode 13.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA8C0E6327E0F4C300D054C1;
+			packageReferences = (
+				AA8C0E8327E0F6B800D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */,
+			);
+			productRefGroup = AA8C0E6D27E0F4C300D054C1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA8C0E6B27E0F4C300D054C1 /* HeatmapUIKit */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA8C0E6A27E0F4C300D054C1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA8C0E7C27E0F4C500D054C1 /* LaunchScreen.storyboard in Resources */,
+				AA8C0E7927E0F4C500D054C1 /* Assets.xcassets in Resources */,
+				AA8C0E7727E0F4C300D054C1 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA8C0E6827E0F4C300D054C1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA8C0E7427E0F4C300D054C1 /* ViewController.swift in Sources */,
+				AA8C0E7027E0F4C300D054C1 /* AppDelegate.swift in Sources */,
+				AA8C0E7227E0F4C300D054C1 /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		AA8C0E7527E0F4C300D054C1 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AA8C0E7627E0F4C300D054C1 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		AA8C0E7A27E0F4C500D054C1 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AA8C0E7B27E0F4C500D054C1 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		AA8C0E7E27E0F4C500D054C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA8C0E7F27E0F4C500D054C1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AA8C0E8127E0F4C500D054C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HeatmapUIKit/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kambervogli.HeatmapUIKit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA8C0E8227E0F4C500D054C1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HeatmapUIKit/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kambervogli.HeatmapUIKit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA8C0E6727E0F4C300D054C1 /* Build configuration list for PBXProject "HeatmapUIKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA8C0E7E27E0F4C500D054C1 /* Debug */,
+				AA8C0E7F27E0F4C500D054C1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA8C0E8027E0F4C500D054C1 /* Build configuration list for PBXNativeTarget "HeatmapUIKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA8C0E8127E0F4C500D054C1 /* Debug */,
+				AA8C0E8227E0F4C500D054C1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AA8C0E8327E0F6B800D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Azure/azure-maps-ios-sdk-distribution.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = "1.0.0-pre.1";
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA8C0E8427E0F6B800D054C1 /* AzureMapsControl */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA8C0E8327E0F6B800D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */;
+			productName = AzureMapsControl;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = AA8C0E6427E0F4C300D054C1 /* Project object */;
+}
