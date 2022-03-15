@@ -7,18 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA1F75DA27E11612006377B5 /* MapboxViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1F75D927E11612006377B5 /* MapboxViewController.swift */; };
 		AA8C0E9B27E1090800D054C1 /* HeatmapMapboxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E9A27E1090800D054C1 /* HeatmapMapboxApp.swift */; };
 		AA8C0E9D27E1090800D054C1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E9C27E1090800D054C1 /* ContentView.swift */; };
 		AA8C0E9F27E1090B00D054C1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E9E27E1090B00D054C1 /* Assets.xcassets */; };
 		AA8C0EA227E1090B00D054C1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0EA127E1090B00D054C1 /* Preview Assets.xcassets */; };
+		D24060ACEAAD0B0221E95739 /* Pods_HeatmapMapbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F0234EC63BEAE0E9E60346F /* Pods_HeatmapMapbox.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5F0234EC63BEAE0E9E60346F /* Pods_HeatmapMapbox.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HeatmapMapbox.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA1F75D927E11612006377B5 /* MapboxViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapboxViewController.swift; sourceTree = "<group>"; };
 		AA8C0E9727E1090800D054C1 /* HeatmapMapbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeatmapMapbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA8C0E9A27E1090800D054C1 /* HeatmapMapboxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapMapboxApp.swift; sourceTree = "<group>"; };
 		AA8C0E9C27E1090800D054C1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AA8C0E9E27E1090B00D054C1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA8C0EA127E1090B00D054C1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		AA8C0EA827E112C700D054C1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C846F0F951421D28A672F6F9 /* Pods-HeatmapMapbox.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HeatmapMapbox.release.xcconfig"; path = "Target Support Files/Pods-HeatmapMapbox/Pods-HeatmapMapbox.release.xcconfig"; sourceTree = "<group>"; };
+		E2208E1AF7A6679E51C12B8F /* Pods-HeatmapMapbox.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HeatmapMapbox.debug.xcconfig"; path = "Target Support Files/Pods-HeatmapMapbox/Pods-HeatmapMapbox.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -26,17 +33,28 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D24060ACEAAD0B0221E95739 /* Pods_HeatmapMapbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7B1554115269C02404B70495 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5F0234EC63BEAE0E9E60346F /* Pods_HeatmapMapbox.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		AA8C0E8E27E1090800D054C1 = {
 			isa = PBXGroup;
 			children = (
 				AA8C0E9927E1090800D054C1 /* HeatmapMapbox */,
 				AA8C0E9827E1090800D054C1 /* Products */,
+				FCC1C3F90E424ED94D8C6DA7 /* Pods */,
+				7B1554115269C02404B70495 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -51,10 +69,12 @@
 		AA8C0E9927E1090800D054C1 /* HeatmapMapbox */ = {
 			isa = PBXGroup;
 			children = (
+				AA8C0EA827E112C700D054C1 /* Info.plist */,
 				AA8C0E9A27E1090800D054C1 /* HeatmapMapboxApp.swift */,
 				AA8C0E9C27E1090800D054C1 /* ContentView.swift */,
 				AA8C0E9E27E1090B00D054C1 /* Assets.xcassets */,
 				AA8C0EA027E1090B00D054C1 /* Preview Content */,
+				AA1F75D927E11612006377B5 /* MapboxViewController.swift */,
 			);
 			path = HeatmapMapbox;
 			sourceTree = "<group>";
@@ -67,6 +87,15 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		FCC1C3F90E424ED94D8C6DA7 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E2208E1AF7A6679E51C12B8F /* Pods-HeatmapMapbox.debug.xcconfig */,
+				C846F0F951421D28A672F6F9 /* Pods-HeatmapMapbox.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -74,9 +103,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AA8C0EA527E1090B00D054C1 /* Build configuration list for PBXNativeTarget "HeatmapMapbox" */;
 			buildPhases = (
+				5F87B076B50954BB562DB681 /* [CP] Check Pods Manifest.lock */,
 				AA8C0E9327E1090800D054C1 /* Sources */,
 				AA8C0E9427E1090800D054C1 /* Frameworks */,
 				AA8C0E9527E1090800D054C1 /* Resources */,
+				09714ED88122ADECDACCC09B /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -132,6 +163,48 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		09714ED88122ADECDACCC09B /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-HeatmapMapbox/Pods-HeatmapMapbox-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-HeatmapMapbox/Pods-HeatmapMapbox-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HeatmapMapbox/Pods-HeatmapMapbox-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		5F87B076B50954BB562DB681 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-HeatmapMapbox-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		AA8C0E9327E1090800D054C1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -139,6 +212,7 @@
 			files = (
 				AA8C0E9D27E1090800D054C1 /* ContentView.swift in Sources */,
 				AA8C0E9B27E1090800D054C1 /* HeatmapMapboxApp.swift in Sources */,
+				AA1F75DA27E11612006377B5 /* MapboxViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,6 +337,7 @@
 		};
 		AA8C0EA627E1090B00D054C1 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E2208E1AF7A6679E51C12B8F /* Pods-HeatmapMapbox.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -271,6 +346,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"HeatmapMapbox/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HeatmapMapbox/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -291,6 +367,7 @@
 		};
 		AA8C0EA727E1090B00D054C1 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C846F0F951421D28A672F6F9 /* Pods-HeatmapMapbox.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -299,6 +376,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"HeatmapMapbox/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HeatmapMapbox/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

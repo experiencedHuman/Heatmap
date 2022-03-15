@@ -1,0 +1,5 @@
+use_frameworks!
+
+target 'HeatmapMapbox' do
+  pod 'Mapbox-iOS-SDK', '~> 6.4.1'
+end
