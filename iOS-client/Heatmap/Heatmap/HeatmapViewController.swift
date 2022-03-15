@@ -15,8 +15,24 @@
 
 import Foundation
 import GoogleMaps
+import SwiftUI
 import UIKit
 import GoogleMapsUtils
+
+struct HeatmapControllerRepresentable: UIViewControllerRepresentable {
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIViewController(context: Context) -> HeatmapViewController {
+        let heatmapViewController = HeatmapViewController()
+        return heatmapViewController
+    }
+
+    func updateUIViewController(_ uiViewController: HeatmapViewController, context: Context) {
+
+    }
+ }
 
 class HeatmapViewController: UIViewController, GMSMapViewDelegate {
   private var mapView: GMSMapView!

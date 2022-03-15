@@ -20,7 +20,6 @@
 		AA2C059627E06C8D00E4930B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059527E06C8D00E4930B /* CoreGraphics.framework */; };
 		AA2C059827E06C9F00E4930B /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059727E06C9F00E4930B /* CoreImage.framework */; };
 		AA2C059A27E06CA800E4930B /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059927E06CA800E4930B /* CoreLocation.framework */; };
-		AA2C059C27E06CB200E4930B /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059B27E06CB200E4930B /* CoreTelephony.framework */; };
 		AA2C059E27E06CBC00E4930B /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059D27E06CBC00E4930B /* CoreText.framework */; };
 		AA2C05A027E06CC500E4930B /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059F27E06CC500E4930B /* GLKit.framework */; };
 		AA2C05A227E06CCE00E4930B /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C05A127E06CCE00E4930B /* ImageIO.framework */; };
@@ -33,6 +32,7 @@
 		AA2C05B027E06D1100E4930B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C05AF27E06D1100E4930B /* UIKit.framework */; };
 		AA2E855927E06E5C00709BC7 /* HeatmapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2E855827E06E5C00709BC7 /* HeatmapViewController.swift */; };
 		AA2E855C27E06E8400709BC7 /* GoogleMapsUtils in Frameworks */ = {isa = PBXBuildFile; productRef = AA2E855B27E06E8400709BC7 /* GoogleMapsUtils */; };
+		AA2E855D27E0730F00709BC7 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059B27E06CB200E4930B /* CoreTelephony.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,9 +79,9 @@
 				AA2C05A227E06CCE00E4930B /* ImageIO.framework in Frameworks */,
 				AA2C05A027E06CC500E4930B /* GLKit.framework in Frameworks */,
 				AA2C059E27E06CBC00E4930B /* CoreText.framework in Frameworks */,
-				AA2C059C27E06CB200E4930B /* CoreTelephony.framework in Frameworks */,
 				AA2C059A27E06CA800E4930B /* CoreLocation.framework in Frameworks */,
 				AA2C059827E06C9F00E4930B /* CoreImage.framework in Frameworks */,
+				AA2E855D27E0730F00709BC7 /* CoreTelephony.framework in Frameworks */,
 				AA2C059627E06C8D00E4930B /* CoreGraphics.framework in Frameworks */,
 				AA2E855C27E06E8400709BC7 /* GoogleMapsUtils in Frameworks */,
 				AA2C059427E06C8400E4930B /* CoreData.framework in Frameworks */,
