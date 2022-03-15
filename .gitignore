@@ -2,3 +2,5 @@ GoogleMaps.xcframework/
 GoogleMapsBase.xcframework/
 GoogleMapsCore.xcframework/
 Config.xcconfig
+iOS-client/HeatmapMapbox/Pods/Mapbox-iOS-SDK/dynamic/Mapbox.framework/Mapbox
+iOS-client/HeatmapMapbox/Pods/Mapbox-iOS-SDK/dynamic/Mapbox.framework.dSYM/Contents/Resources/DWARF/Mapbox
