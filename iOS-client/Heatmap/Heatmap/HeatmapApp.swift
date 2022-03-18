@@ -12,8 +12,8 @@ import GoogleMaps
 struct HeatmapApp: App {
     
     init() {
-        if let azureToken = Bundle.main.infoDictionary?["Azure_Token"] as? String {
-            GMSServices.provideAPIKey(azureToken)
+        if let googleMapsToken = Bundle.main.infoDictionary?["GoogleMaps"] as? String {
+            GMSServices.provideAPIKey(googleMapsToken)
         }
     }
     
