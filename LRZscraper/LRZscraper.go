@@ -14,7 +14,8 @@ import (
 
 // It scrapes the table data of a single subdistrict's page
 // from "https://wlan.lrz.de/apstat/ublist/"
-func ScrapeListOfSubdistricts(fName string) {
+func ScrapeListOfSubdistricts() {
+	fName := "subdistricts.csv"
 	subdistrictsURL := "https://wlan.lrz.de/apstat/ublist/"
 	file, err := os.Create(fName)
 	if err != nil {
