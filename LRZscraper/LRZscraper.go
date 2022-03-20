@@ -14,8 +14,7 @@ import (
 
 // It scrapes the table data of a single subdistrict's page
 // from "https://wlan.lrz.de/apstat/ublist/"
-func ScrapeListOfSubdistricts() {
-	fName := "subdistricts.csv"
+func ScrapeListOfSubdistricts(fName string) {
 	subdistrictsURL := "https://wlan.lrz.de/apstat/ublist/"
 	file, err := os.Create(fName)
 	if err != nil {
@@ -71,9 +70,8 @@ func ScrapeListOfSubdistricts() {
 	c.Wait()
 }
 
-func ScrapeOverviewOfAPs() {
+func ScrapeOverviewOfAPs(fName string) {
 	overviewURL := "https://wlan.lrz.de/apstat"
-	fName := "overview.csv"
 	file, err := os.Create(fName)
 	if err != nil {
 		log.Fatalf("Could not create file, err: %q", err)

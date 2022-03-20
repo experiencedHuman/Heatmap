@@ -1,3 +1,6 @@
 GoogleMaps.xcframework/
 GoogleMapsBase.xcframework/
 GoogleMapsCore.xcframework/
+
+*.vscode
+*.out

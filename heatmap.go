@@ -15,7 +15,7 @@ import (
 	"github.com/experiencedHuman/heatmap/LRZscraper"
 )
 
-func readCSVFromUrl(url string) {
+func readCSVFromUrl(fName, url string) {
 	resp, httpError := http.Get(url)
 	if httpError != nil {
 		fmt.Println("Could not retrieve csv data from URL!", httpError)
@@ -28,7 +28,6 @@ func readCSVFromUrl(url string) {
 	csvReader := csv.NewReader(resp.Body)
 	csvReader.Comma = ','
 
-	fName := "graphData.csv"
 	file, osError := os.Create(fName)
 	if osError != nil {
 		log.Fatalf("Could not create file, err: %q", osError)
@@ -64,11 +63,11 @@ func readCSVFromUrl(url string) {
 }
 
 func main() {
-	LRZscraper.ScrapeListOfSubdistricts()
-	LRZscraper.ScrapeOverviewOfAPs()
+	LRZscraper.ScrapeListOfSubdistricts("csv/subdistricts.csv")
+	LRZscraper.ScrapeOverviewOfAPs("csv/overview.csv")
 	
-	// url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-2days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
-	// readCSVFromUrl(url)
+	url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-2days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
+	readCSVFromUrl("csv/graphData.csv", url)
 
 	// // open a local database instance, located in this directory
 	// db, _ := sql.Open("sqlite3", "./accesspoints.db")
