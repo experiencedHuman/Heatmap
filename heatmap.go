@@ -47,7 +47,6 @@ func readCSVFromUrl(url string) {
 			break
 		} else if httpError != nil {
 			panic(httpError)
-			break
 		} else {
 			fields := strings.Fields(data[0]) // get substrings separated by whitespaces
 			name 	:= fields[0]
@@ -66,7 +65,7 @@ func readCSVFromUrl(url string) {
 
 func main() {
 	// LRZscraper.ScrapeListOfSubdistricts("subdistricts.csv")
-	LRZscraper.ScrapeOverviewOfAPs("overview.csv")
+	LRZscraper.ScrapeOverviewOfAPs()
 	
 	// url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-2days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
 	// readCSVFromUrl(url)

@@ -1,14 +1,18 @@
 package LRZscraper
 
 import (
-	"fmt"
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
+	"strings"
+
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
+	"github.com/gocolly/colly/debug"
 )
 
-// It scrapes the table data of a single subdistrict's (Unterbezirk auf Deutsch) page
+// It scrapes the table data of a single subdistrict's page
 // from "https://wlan.lrz.de/apstat/ublist/"
 func ScrapeListOfSubdistricts(fName string) {
 	subdistrictsURL := "https://wlan.lrz.de/apstat/ublist/"
@@ -31,7 +35,7 @@ func ScrapeListOfSubdistricts(fName string) {
 	})
 
 	c.OnError(func(request *colly.Response, err error) {
-	    fmt.Println("Request URL:", request.Request.URL, "failed with response:", request, "\nError:", err)
+		fmt.Println("Request URL:", request.Request.URL, "failed with response:", request, "\nError:", err)
 	})
 
 	// scrape table's head
@@ -66,9 +70,9 @@ func ScrapeListOfSubdistricts(fName string) {
 	c.Wait()
 }
 
-func ScrapeOverviewOfAPs(filename string) {
+func ScrapeOverviewOfAPs() {
 	overviewURL := "https://wlan.lrz.de/apstat"
-	fName := filename
+	fName := "overview.csv"
 	file, err := os.Create(fName)
 	if err != nil {
 		log.Fatalf("Could not create file, err: %q", err)
@@ -77,21 +81,36 @@ func ScrapeOverviewOfAPs(filename string) {
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
+	writer.Comma = ';'
 	defer writer.Flush()
 
 	c := colly.NewCollector(
 		colly.AllowedDomains("wlan.lrz.de"),
+		colly.Debugger(&debug.LogDebugger{}),
 	)
 
 	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL.String())
 	})
 
-	c.OnHTML("tbody > tr", func(e *colly.HTMLElement) {
-		selection := e.DOM.Find("td:first-child > a[href]").Text()
-		// ss := fmt.Sprintf("%d", selection)
-		writer.Write([]string{
-			selection,
+	// this also works
+	c.OnHTML("html", func(e *colly.HTMLElement) {
+		e.DOM.Find("table#aptable > tbody > tr").Each(func(i int, s *goquery.Selection) {
+			address 	:= s.ChildrenFiltered("td:nth-child(1)").Text()
+			room 		:= s.ChildrenFiltered("td:nth-child(2)").Text()
+			apName 		:= s.ChildrenFiltered("td:nth-child(3)").Text()
+			apStatus 	:= s.ChildrenFiltered("td:nth-child(4)").Text()
+			apStatus = strings.TrimSpace(apStatus)
+			apType 		:= s.ChildrenFiltered("td:nth-child(5)").Text()
+			load 		:= s.ChildrenFiltered("td:nth-child(6)").Text()
+			writer.Write([]string{
+				address,
+				room,
+				apName,
+				apStatus,
+				apType,
+				load,
+			})
 		})
 	})
 
