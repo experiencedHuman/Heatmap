@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "database/sql"
+	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 
 	"io"
@@ -15,7 +15,7 @@ import (
 	"github.com/experiencedHuman/heatmap/LRZscraper"
 )
 
-func readCSVFromUrl(fName, url string) {
+func getDataFromURL(fName, url string) {
 	resp, httpError := http.Get(url)
 	if httpError != nil {
 		fmt.Println("Could not retrieve csv data from URL!", httpError)
@@ -62,26 +62,69 @@ func readCSVFromUrl(fName, url string) {
 	}
 }
 
+func storeDataInSQLite(dbPath string) {
+	csvFile, err := os.Open("csv/graphData.csv")
+    if err != nil {
+        log.Fatal(err)
+    }
+	defer csvFile.Close()
+
+	csvReader := csv.NewReader(csvFile)
+	csvReader.Comma = ';'
+    data, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
+    if err != nil {
+        log.Fatal(err)
+    }
+
+	// open a local database instance, located in dbPath
+	db, sqlError := sql.Open("sqlite3", dbPath)
+	if sqlError != nil {
+		panic(sqlError)
+	}
+
+	stmt, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS "accesspoints" (
+			"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+			"network"	TEXT,
+			"current"	TEXT,
+			"max"	TEXT,
+			"min"	TEXT,
+			"other" TEXT
+		);
+	`)
+	stmt.Exec()
+
+	// fmt.Println(network, current, max, min, other)
+	stmt, dbError := db.Prepare(`
+		INSERT INTO accesspoints (network, current, max, min, other) values (?,?,?,?,?)
+	`)
+
+	if dbError != nil {
+		panic(dbError)
+	}
+	
+	fmt.Println("Storing data in SQLite ...")
+	for r := range data {
+		network := data[r][0]
+		current := data[r][1]
+		max 	:= data[r][2]
+		min 	:= data[r][3]
+		other 	:= data[r][4]
+
+		_, err := stmt.Exec(network, current, max, min, other)
+		if err != nil {
+			panic(err)
+		}
+	}
+	fmt.Println("Finished data storing")
+}
+
 func main() {
 	LRZscraper.ScrapeListOfSubdistricts("csv/subdistricts.csv")
 	LRZscraper.ScrapeOverviewOfAPs("csv/overview.csv")
 	
 	url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-2days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
-	readCSVFromUrl("csv/graphData.csv", url)
+	getDataFromURL("csv/graphData.csv", url)
 
-	// // open a local database instance, located in this directory
-	// db, _ := sql.Open("sqlite3", "./accesspoints.db")
-
-	// stmt, _ := db.Prepare(`
-	// 	INSERT INTO accesspoints (address) values (?)
-	// `)
-
-	// // stmt, _ := db.Prepare(`
-	// // 	CREATE TABLE IF NOT EXISTS "accesspoints" (
-	// // 		"ID"	INTEGER NOT NULL PRIMARY KEY,
-	// // 		"address"	TEXT
-	// // 	);
-	// // `)
-
-	// stmt.Exec("Garching")
+	storeDataInSQLite("./accesspoints.db")
 }
