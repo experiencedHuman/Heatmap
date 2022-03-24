@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 
-	"io"
-	"os"
-	"fmt"
-	"log"
-	"strings"
-	"net/http"
 	"encoding/csv"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"strings"
 
 	"github.com/experiencedHuman/heatmap/LRZscraper"
 )
@@ -47,7 +47,7 @@ func getDataFromURL(fName, url string) {
 		} else if httpError != nil {
 			panic(httpError)
 		} else {
-			fields := strings.Fields(data[0]) // get substrings separated by whitespaces
+			fields 	:= strings.Fields(data[0]) // get substrings separated by whitespaces
 			name 	:= fields[0]
 			current := strings.Split(fields[1], ":")[1]
 			max 	:= strings.Split(fields[2], ":")[1]
@@ -62,19 +62,20 @@ func getDataFromURL(fName, url string) {
 	}
 }
 
+// for csv/graphData.csv
 func storeDataInSQLite(dbPath string) {
 	csvFile, err := os.Open("csv/graphData.csv")
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer csvFile.Close()
 
 	csvReader := csv.NewReader(csvFile)
 	csvReader.Comma = ';'
-    data, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
-    if err != nil {
-        log.Fatal(err)
-    }
+	data, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// open a local database instance, located in dbPath
 	db, sqlError := sql.Open("sqlite3", dbPath)
@@ -87,9 +88,9 @@ func storeDataInSQLite(dbPath string) {
 			"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 			"network"	TEXT,
 			"current"	TEXT,
-			"max"	TEXT,
-			"min"	TEXT,
-			"other" TEXT
+			"max"		TEXT,
+			"min"		TEXT,
+			"other" 	TEXT
 		);
 	`)
 	stmt.Exec()
@@ -102,7 +103,7 @@ func storeDataInSQLite(dbPath string) {
 	if dbError != nil {
 		panic(dbError)
 	}
-	
+
 	fmt.Println("Storing data in SQLite ...")
 	for r := range data {
 		network := data[r][0]
@@ -119,12 +120,82 @@ func storeDataInSQLite(dbPath string) {
 	fmt.Println("Finished data storing")
 }
 
-func main() {
-	LRZscraper.ScrapeListOfSubdistricts("csv/subdistricts.csv")
-	LRZscraper.ScrapeOverviewOfAPs("csv/overview.csv")
-	
-	url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-2days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
-	getDataFromURL("csv/graphData.csv", url)
+// for csv/overview.csv
+func storeOverviewInSQLite(dbPath string) {
+	csvFile, err := os.Open("csv/overview.csv")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer csvFile.Close()
 
-	storeDataInSQLite("./accesspoints.db")
+	csvReader := csv.NewReader(csvFile)
+	csvReader.Comma = ';'
+	data, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// open a local database instance, located in dbPath
+	db, sqlError := sql.Open("sqlite3", dbPath)
+	if sqlError != nil {
+		panic(sqlError)
+	}
+
+	stmt, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS "overview" (
+			"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+			"address"	TEXT,
+			"roomNr"	TEXT,
+			"apName"	TEXT,
+			"status"	TEXT,
+			"apType"	TEXT,
+			"apLoad" 	TEXT
+		);
+	`)
+	stmt.Exec()
+
+	stmt, dbError := db.Prepare(`
+		INSERT INTO overview (address, roomNr, apName, status, apType, apLoad) values (?,?,?,?,?,?)
+	`)
+
+	if dbError != nil {
+		panic(dbError)
+	}
+
+	fmt.Println("Storing data in SQLite ...")
+	for r := range data {
+		address := data[r][0]
+		roomNr 	:= data[r][1]
+		apName 	:= data[r][2]
+		status 	:= data[r][3]
+		apType 	:= data[r][4]
+		apLoad 	:= data[r][5]
+
+		_, err := stmt.Exec(address, roomNr, apName, status, apType, apLoad)
+		if err != nil {
+			panic(err)
+		}
+	}
+	fmt.Println("Finished data storing")
+}
+
+// func getListOfIntensities() []int {
+
+// }
+
+// func saveApLoadToJsonFile() {
+
+// }
+
+func main() {
+	// LRZscraper.ScrapeListOfSubdistricts("csv/subdistricts.csv")
+	// LRZscraper.ScrapeOverviewOfAPs("csv/overview.csv")
+	// storeOverviewInSQLite("./overview.db")
+
+	// url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-2days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
+	// getDataFromURL("csv/graphData.csv", url)
+
+	// storeDataInSQLite("./accesspoints.db")
+	LRZscraper.ScrapeMapCoordinatesForRoom("1", "5406")
+
 }

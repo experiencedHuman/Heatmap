@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
@@ -114,4 +115,44 @@ func ScrapeOverviewOfAPs(fName string) {
 	})
 
 	c.Visit(overviewURL)
+}
+
+func ScrapeMapCoordinatesForRoom(roomNumber, buildingNumber string) {
+	// https://portal.mytum.de/displayRoomMap?1@5406
+	queryURL := fmt.Sprintf("https://portal.mytum.de/displayRoomMap?%s@%s", roomNumber, buildingNumber)
+
+	c := colly.NewCollector(
+		colly.AllowedDomains("portal.mytum.de"),
+		colly.Debugger(&debug.LogDebugger{}),
+	)
+
+	c.OnHTML("html", func(h *colly.HTMLElement) {
+		e := h.DOM.Find("a[href^='http://maps.google.com']")
+		link, exists := e.Attr("href")
+		if exists {
+			fmt.Println(link)
+			lat, long, spnLat, spnLong := getLatLongFromURL(link)
+			fmt.Println(lat, long, spnLat, spnLong)
+		}
+	})
+
+	c.Visit(queryURL)
+}
+
+func getLatLongFromURL(url string) (float64, float64, float64, float64) {
+	parts := strings.Split(url, "&")
+	
+	latLong := strings.Split(parts[0], "=")[1]
+	latStr, longStr, _ := strings.Cut(latLong, ",")
+	
+	spnLatLong := strings.Split(parts[1], "=")[1]
+	spnLatStr, spnLongStr, _ := strings.Cut(spnLatLong, ",")
+
+	lat, _  := strconv.ParseFloat(latStr, 64)
+	long, _ := strconv.ParseFloat(longStr, 64)
+
+	spnLat, _  := strconv.ParseFloat(spnLatStr, 64)
+	spnLong, _ := strconv.ParseFloat(spnLongStr, 64)
+	
+	return lat, long, spnLat, spnLong
 }
