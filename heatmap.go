@@ -28,10 +28,10 @@ type AccessPointOverview struct {
 func getDataFromURL(fName, url string) {
 	resp, httpError := http.Get(url)
 	if httpError != nil {
-		fmt.Println("Could not retrieve csv data from URL!", httpError)
+		log.Println("Could not retrieve csv data from URL!", httpError)
 		return
 	} else {
-		fmt.Println("Successfully retrieved data from URL!")
+		log.Println("Successfully retrieved data from URL!")
 	}
 
 	defer resp.Body.Close()
@@ -105,10 +105,8 @@ func storeDataInSQLite(dbPath string) {
 	}
 
 	db := InitDB(dbPath)
-
 	CreateTableAccesspoints(db)
 
-	// fmt.Println(network, current, max, min, other)
 	stmt, dbError := db.Prepare(`
 		INSERT INTO accesspoints (network, current, max, min, other) values (?,?,?,?,?)
 	`)
@@ -117,7 +115,7 @@ func storeDataInSQLite(dbPath string) {
 		panic(dbError)
 	}
 
-	fmt.Println("Storing data in SQLite ...")
+	log.Println("Storing data in SQLite ...")
 	for r := range data {
 		network := data[r][0]
 		current := data[r][1]
@@ -130,7 +128,7 @@ func storeDataInSQLite(dbPath string) {
 			panic(err)
 		}
 	}
-	fmt.Println("Finished data storing")
+	log.Println("Finished data storing")
 }
 
 // initializes a local database instance, located in dbPath
@@ -216,7 +214,7 @@ func storeOverviewInSQLite(dbPath string) {
 		panic(dbError)
 	}
 
-	fmt.Println("Storing data in SQLite ...")
+	log.Println("Storing data in SQLite ...")
 	for r := range data {
 		address := data[r][0]
 		roomNr := data[r][1]
@@ -230,7 +228,7 @@ func storeOverviewInSQLite(dbPath string) {
 			panic(err)
 		}
 	}
-	fmt.Println("Finished data storing")
+	log.Println("Finished data storing")
 }
 
 // func getListOfIntensities() []int {
@@ -247,7 +245,7 @@ func main() {
 	// storeOverviewInSQLite("./overview.db")
 
 	db := InitDB("./overview.db")
-	fmt.Println("Printing data")
+	log.Println("Printing data")
 	res := ReadItem(db)
 	for _, val := range res {
 		fmt.Println(val.Address)

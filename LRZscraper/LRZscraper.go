@@ -32,11 +32,11 @@ func ScrapeListOfSubdistricts(fName string) {
 	)
 
 	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL.String())
+		log.Println("Visiting", r.URL.String())
 	})
 
 	c.OnError(func(request *colly.Response, err error) {
-		fmt.Println("Request URL:", request.Request.URL, "failed with response:", request, "\nError:", err)
+		log.Println("Request URL:", request.Request.URL, "failed with response:", request, "\nError:", err)
 	})
 
 	// scrape table's head
@@ -66,7 +66,7 @@ func ScrapeListOfSubdistricts(fName string) {
 	c.Limit(&colly.LimitRule{DomainGlob: "wlan.lrz.de", Parallelism: 2})
 	error := c.Visit(subdistrictsURL)
 	if error != nil {
-		fmt.Println(error)
+		log.Println(error)
 	}
 	c.Wait()
 }
@@ -90,7 +90,7 @@ func ScrapeOverviewOfAPs(fName string) {
 	)
 
 	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL.String())
+		log.Println("Visiting", r.URL.String())
 	})
 
 	// this also works
@@ -130,9 +130,9 @@ func ScrapeMapCoordinatesForRoom(roomNumber, buildingNumber string) {
 		e := h.DOM.Find("a[href^='http://maps.google.com']")
 		link, exists := e.Attr("href")
 		if exists {
-			fmt.Println(link)
+			log.Println(link)
 			lat, long, spnLat, spnLong := getLatLongFromURL(link)
-			fmt.Println(lat, long, spnLat, spnLong)
+			log.Println(lat, long, spnLat, spnLong)
 		}
 	})
 
