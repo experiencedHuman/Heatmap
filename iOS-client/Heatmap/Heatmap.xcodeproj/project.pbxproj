@@ -34,6 +34,7 @@
 		AA2E855D27E0730F00709BC7 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059B27E06CB200E4930B /* CoreTelephony.framework */; };
 		AA8C0E5F27E07E9D00D054C1 /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E5E27E07E9D00D054C1 /* data.json */; };
 		AA8C0E8B27E1037000D054C1 /* GoogleMaps.bundle in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E8A27E1037000D054C1 /* GoogleMaps.bundle */; };
+		AAE41E9F27EB2C8100A8541B /* demo.json in Resources */ = {isa = PBXBuildFile; fileRef = AAE41E9E27EB2C8100A8541B /* demo.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +67,7 @@
 		AA8C0E8A27E1037000D054C1 /* GoogleMaps.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = GoogleMaps.bundle; path = "Carthage/Build/GoogleMaps.xcframework/ios-arm64_x86_64-simulator/GoogleMaps.framework/Resources/GoogleMaps.bundle"; sourceTree = "<group>"; };
 		AA8C0E8C27E1048F00D054C1 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		AA8C0E8D27E105F700D054C1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		AAE41E9E27EB2C8100A8541B /* demo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = demo.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +130,7 @@
 				AA2C057C27E0692100E4930B /* Preview Content */,
 				AA2E855827E06E5C00709BC7 /* HeatmapViewController.swift */,
 				AA8C0E8C27E1048F00D054C1 /* Config.xcconfig */,
+				AAE41E9E27EB2C8100A8541B /* demo.json */,
 			);
 			path = Heatmap;
 			sourceTree = "<group>";
@@ -233,6 +236,7 @@
 				AA8C0E5F27E07E9D00D054C1 /* data.json in Resources */,
 				AA2C057E27E0692100E4930B /* Preview Assets.xcassets in Resources */,
 				AA2C057B27E0692100E4930B /* Assets.xcassets in Resources */,
+				AAE41E9F27EB2C8100A8541B /* demo.json in Resources */,
 				AA8C0E8B27E1037000D054C1 /* GoogleMaps.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

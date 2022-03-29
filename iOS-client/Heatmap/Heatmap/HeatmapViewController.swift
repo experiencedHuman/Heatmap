@@ -43,7 +43,8 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
   private var gradientStartPoints = [0.2, 1.0] as [NSNumber]
 
   override func loadView() {
-    let camera = GMSCameraPosition.camera(withLatitude: -37.848, longitude: 145.001, zoom: 10)
+//    let camera = GMSCameraPosition.camera(withLatitude: -37.848, longitude: 145.001, zoom: 10)
+      let camera = GMSCameraPosition.camera(withLatitude: 48.2692083204, longitude: 11.6690079838, zoom: 15)
     mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
     mapView.delegate = self
     self.view = mapView
@@ -68,7 +69,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     var list = [GMUWeightedLatLng]()
     do {
       // Get the data: latitude/longitude positions of police stations.
-      if let path = Bundle.main.url(forResource: "data", withExtension: "json") {
+      if let path = Bundle.main.url(forResource: "demo", withExtension: "json") {
         let data = try Data(contentsOf: path)
         let json = try JSONSerialization.jsonObject(with: data, options: [])
         if let object = json as? [[String: Any]] {
