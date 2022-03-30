@@ -16,20 +16,10 @@ type Coordinate struct {
 	longitude float64
 }
 
-type Room struct {
-	RoomNumber string
-	BuildingNr string
-}
-
 var rooms map[string]Coordinate
 
-func Scrape() {
+func Scrape(roomIDs []string) {
 	// url := "http://portal.mytum.de/displayRoomMap?"
-
-	data := []Room{
-		{RoomNumber: "5501", BuildingNr: "5509"},
-		{RoomNumber: "5502", BuildingNr: "5508"},
-	}
 
 	// Instantiate default collector
 	c := colly.NewCollector(
@@ -71,9 +61,9 @@ func Scrape() {
 		}
 	})
 
-	for _, val := range data {
+	for _, roomID := range roomIDs {
 		// Add URLs to the queue
-		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s@%s", val.RoomNumber, val.BuildingNr))
+		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomID))
 	}
 	// Consume URLs
 	q.Run(c)
@@ -86,20 +76,34 @@ func getLatLongFromURL(url string) (float64, float64) {
 	latLong := strings.Split(parts[0], "=")[1]
 	latStr, longStr, _ := strings.Cut(latLong, ",")
 
-	// spnLatLong := strings.Split(parts[1], "=")[1]
-	// spnLatStr, spnLongStr, _ := strings.Cut(spnLatLong, ",")
-
 	lat, _ := strconv.ParseFloat(latStr, 64)
 	long, _ := strconv.ParseFloat(longStr, 64)
 
-	// spnLat, _  := strconv.ParseFloat(spnLatStr, 64)
-	// spnLong, _ := strconv.ParseFloat(spnLongStr, 64)
-
-	return lat, long //, spnLat, spnLong
+	return lat, long
 }
 
 func scrapeBuildingNrFromAddress(address string) string {
 	re := regexp.MustCompile("[0-9]+")
 	buildingNr := re.FindString(address)
 	return buildingNr
+}
+
+func scrapeRoomNrFromRoomName(roomName string) string {
+	re := regexp.MustCompile("[0-9]+.[0-9]+(.[0-9])?")
+	roomNr := re.FindString(roomName)
+	return roomNr
+}
+
+func PrepareDataToScrape() []string {
+	db := InitDB("./overview.db")
+	fmt.Println("Preparing data")
+	res := ReadItem(db)
+	var data []string
+	for _, val := range res {
+		roomNr := scrapeRoomNrFromRoomName(val.Room)
+		buildingNr := scrapeBuildingNrFromAddress(val.Address)
+		roomID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
+		data = append(data, roomID)
+	}
+	return data
 }
