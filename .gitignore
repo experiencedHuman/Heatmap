@@ -5,3 +5,6 @@ Config.xcconfig
 
 iOS-client/HeatmapMapbox/
 iOS-client/HeatmapUIKit/
+
+*.vscode
+*.out
