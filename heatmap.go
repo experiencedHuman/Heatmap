@@ -81,5 +81,5 @@ func main() {
 	// storeDataInSQLite("./accesspoints.db")
 	LRZscraper.ScrapeMapCoordinatesForRoom("1", "5406")
 	roomIDs := RoomFinder.PrepareDataToScrape()
-RoomFinder.Scrape(roomIDs)
+	RoomFinder.Scrape(roomIDs)
 }

@@ -18,9 +18,12 @@ type Coordinate struct {
 
 var rooms map[string]Coordinate
 
+// This function generates a number of URLs (based on roomIDs) and 
+// visits them all in parallel and scrapes the coordinates for each room.
+// It returns a map of all rooms with key being roomID, and value room coordinates
+// Reference -> If you want to refer to a room map from outside the portal, please use the complete path:
+// http://portal.mytum.de/displayRoomMap?roomnumber@builingnumber
 func Scrape(roomIDs []string) {
-	// url := "http://portal.mytum.de/displayRoomMap?"
-
 	// Instantiate default collector
 	c := colly.NewCollector(
 		colly.Async(true),
@@ -44,18 +47,27 @@ func Scrape(roomIDs []string) {
 		fmt.Println("visiting", r.URL)
 	})
 
+	rooms := make(map[string]Coordinate)
+
 	c.OnHTML("html", func(h *colly.HTMLElement) {
-		roomNr := h.Request.URL
-		buildingNr := h.Request.URL
+		roomRE := regexp.MustCompile("[0-9]+")
+		roomNr := roomRE.FindString(h.Request.URL.String())
+
+		buildingRE := regexp.MustCompile("[0-9]+$")
+		buildingNr := buildingRE.FindString(h.Request.URL.String())
+		
 		roomFinderID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
 		if _, ok := rooms[roomFinderID]; ok {
 			// already visited
+			// fmt.Println("if", roomFinderID)
 		} else {
 			// not yet visited
 			e := h.DOM.Find("a[href^='http://maps.google.com']")
 			link, exists := e.Attr("href")
 			if exists {
 				lat, long := getLatLongFromURL(link)
+				// fmt.Println("else", roomFinderID)
+				// fmt.Println(rooms[roomFinderID])
 				rooms[roomFinderID] = Coordinate{latitude: lat, longitude: long}
 			}
 		}
@@ -68,8 +80,11 @@ func Scrape(roomIDs []string) {
 	// Consume URLs
 	q.Run(c)
 	c.Wait()
+	fmt.Println("finito")
 }
 
+// This function scrapes latitude and longitude from url and 
+// returns them as float64 values
 func getLatLongFromURL(url string) (float64, float64) {
 	parts := strings.Split(url, "&")
 
@@ -82,18 +97,26 @@ func getLatLongFromURL(url string) (float64, float64) {
 	return lat, long
 }
 
+// This function scrapes the buildingnumber from a long address description and returns it
+// Reference -> If you want to refer to a room map from outside the portal, please use the complete path:
+// http://portal.mytum.de/displayRoomMap?roomnumber@builingnumber
 func scrapeBuildingNrFromAddress(address string) string {
 	re := regexp.MustCompile("[0-9]+")
 	buildingNr := re.FindString(address)
 	return buildingNr
 }
 
+// This function scrapes the roomnumber from a longer room description and returns it
+// Reference -> If you want to refer to a room map from outside the portal, please use the complete path:
+// http://portal.mytum.de/displayRoomMap?roomnumber@builingnumber
 func scrapeRoomNrFromRoomName(roomName string) string {
 	re := regexp.MustCompile("[0-9]+.[0-9]+(.[0-9])?")
 	roomNr := re.FindString(roomName)
 	return roomNr
 }
 
+// This function prepares the roomIDs that will later be concatenated to the RoomFinder's url/path
+// to get the room map and then scrape its coordinate. It returns a slice of all roomIDs
 func PrepareDataToScrape() []string {
 	db := InitDB("./overview.db")
 	fmt.Println("Preparing data")
