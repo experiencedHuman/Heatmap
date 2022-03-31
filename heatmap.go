@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/experiencedHuman/heatmap/LRZscraper"
+	// "github.com/experiencedHuman/heatmap/LRZscraper"
 )
 
 func getDataFromURL(fName, url string) {
@@ -79,7 +79,8 @@ func main() {
 	// getDataFromURL("csv/graphData.csv", url)
 
 	// storeDataInSQLite("./accesspoints.db")
-	LRZscraper.ScrapeMapCoordinatesForRoom("1", "5406")
-	roomIDs := RoomFinder.PrepareDataToScrape()
-	RoomFinder.Scrape(roomIDs)
+	// LRZscraper.ScrapeMapCoordinatesForRoom("1", "5406")
+	roomIDs, totalLoad := RoomFinder.PrepareDataToScrape()
+	_ = RoomFinder.Scrape(roomIDs) // TODO use ignore result, which is a map of room ids and coordinates
+	fmt.Println("Total load:", totalLoad)
 }

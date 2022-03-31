@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/queue"
@@ -16,7 +17,7 @@ type Coordinate struct {
 	longitude float64
 }
 
-// This function generates a number of URLs (based on roomIDs) and 
+// This function generates a number of URLs (based on roomIDs) and
 // visits them all in parallel and scrapes the coordinates for each room.
 // It returns a map of all rooms with key being roomID, and value room coordinates
 // Reference -> If you want to refer to a room map from outside the portal, please use the complete path:
@@ -57,7 +58,7 @@ func Scrape(roomIDs []string) map[string]Coordinate {
 
 		buildingRE := regexp.MustCompile("[0-9]+$")
 		buildingNr := buildingRE.FindString(h.Request.URL.String())
-		
+
 		roomFinderID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
 		if _, ok := rooms[roomFinderID]; ok {
 			// already visited
@@ -76,16 +77,18 @@ func Scrape(roomIDs []string) map[string]Coordinate {
 		// Add URLs to the queue
 		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomID))
 	}
+	start := time.Now()
 	// Consume URLs
 	q.Run(c)
 	c.Wait()
+	elapsed := time.Since(start)
 	// TODO measure time performance
 	// TODO add progress indicator
-	fmt.Println("Finished scraping locations") 
+	fmt.Println("Finished scraping locations. Time elapsed:", elapsed)
 	return rooms
 }
 
-// This function scrapes latitude and longitude from url and 
+// This function scrapes latitude and longitude from url and
 // returns them as float64 values
 func getLatLongFromURL(url string) (float64, float64) {
 	parts := strings.Split(url, "&")
@@ -113,22 +116,45 @@ func scrapeBuildingNrFromAddress(address string) string {
 // http://portal.mytum.de/displayRoomMap?roomnumber@builingnumber
 func scrapeRoomNrFromRoomName(roomName string) string {
 	re := regexp.MustCompile("[0-9]+.[0-9]+(.[0-9])?")
+	// TODO measure success rate of this regex
 	roomNr := re.FindString(roomName)
 	return roomNr
 }
 
+type RoomInfo struct {
+	RoomID 		string
+	RoomLoad 	int
+}
+
 // This function prepares the roomIDs that will later be concatenated to the RoomFinder's url/path
 // to get the room map and then scrape its coordinate. It returns a slice of all roomIDs
-func PrepareDataToScrape() []string {
+func PrepareDataToScrape() ([]RoomInfo, int) {
 	db := InitDB("./overview.db")
 	fmt.Println("Preparing data")
 	res := ReadItem(db)
-	var data []string
+	var data []RoomInfo
+	var total int
 	for _, val := range res {
 		roomNr := scrapeRoomNrFromRoomName(val.Room)
 		buildingNr := scrapeBuildingNrFromAddress(val.Address)
+		fmt.Println("Load:", val.Load)
+		currTotalLoad := getCurrentTotalLoad(val.Load)
+		total += currTotalLoad
 		roomID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
-		data = append(data, roomID)
+		data = append(data, RoomInfo{RoomID: roomID, RoomLoad: currTotalLoad})
 	}
-	return data
+	return data, total
+}
+
+func getCurrentTotalLoad(load string) int {
+	// this regex must match a substring beginning with '(', ignores first number and '-', and then gets the second number
+	// based on: https://stackoverflow.com/questions/46817073/regular-expression-for-getting-numbers-in-between
+	re := regexp.MustCompile(`\(\s*\d+\s*-\s*(\d+)`)
+	match := re.FindStringSubmatch(load)
+	currentLoad, err := strconv.Atoi(match[1]) // TODO error handling
+	if err != nil {
+		return 0 // TODO handle edge cases
+	} else {
+		return currentLoad
+	}
 }
