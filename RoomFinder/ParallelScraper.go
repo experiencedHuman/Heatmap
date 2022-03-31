@@ -22,7 +22,7 @@ type Coordinate struct {
 // It returns a map of all rooms with key being roomID, and value room coordinates
 // Reference -> If you want to refer to a room map from outside the portal, please use the complete path:
 // http://portal.mytum.de/displayRoomMap?roomnumber@builingnumber
-func Scrape(roomIDs []string) map[string]Coordinate {
+func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	// Instantiate default collector
 	c := colly.NewCollector(
 		colly.Async(true),
@@ -73,9 +73,9 @@ func Scrape(roomIDs []string) map[string]Coordinate {
 		}
 	})
 
-	for _, roomID := range roomIDs {
+	for _, roomInfo := range roomInfos {
 		// Add URLs to the queue
-		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomID))
+		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.RoomID))
 	}
 	start := time.Now()
 	// Consume URLs
