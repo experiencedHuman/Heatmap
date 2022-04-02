@@ -1,4 +1,4 @@
-package RoomFinder
+package LRZscraper
 
 import (
 	"database/sql"

@@ -12,6 +12,7 @@ import (
 	"github.com/gocolly/colly"
 	// "github.com/gocolly/colly/debug"
 	"github.com/gocolly/colly/queue"
+	"github.com/experiencedHuman/heatmap/LRZscraper"
 )
 
 type muxCache struct {
@@ -157,9 +158,9 @@ type RoomInfo struct {
 // This function prepares the roomIDs that will later be concatenated to the RoomFinder's url/path
 // to get the room map and then scrape its coordinate. It returns a slice of all roomIDs
 func PrepareDataToScrape() ([]RoomInfo, int) {
-	db := InitDB("./overview.db")
+	db := LRZscraper.InitDB("./overview.db")
 	fmt.Println("Preparing data")
-	res := ReadItem(db)
+	res := LRZscraper.ReadItem(db)
 	var data []RoomInfo
 	var total int
 	for _, val := range res {
