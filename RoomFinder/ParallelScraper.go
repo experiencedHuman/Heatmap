@@ -23,8 +23,8 @@ var roomCache = muxCache{rooms: make(map[string]Coordinate)}
 
 type Coordinate struct {
 	// visited   bool
-	latitude  float64
-	longitude float64
+	Latitude  float64
+	Longitude float64
 }
 
 func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) bool {
@@ -32,7 +32,6 @@ func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) boo
 	defer cache.mux.Unlock()
 	if _, ok := roomCache.rooms[roomFinderID]; ok {
 		// already visited
-		fmt.Println("already visited")
 		return true
 	} else {
 		// not yet visited
@@ -40,7 +39,7 @@ func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) boo
 		link, exists := e.Attr("href")
 		if exists {
 			lat, long := getLatLongFromURL(link)
-			roomCache.rooms[roomFinderID] = Coordinate{latitude: lat, longitude: long}
+			roomCache.rooms[roomFinderID] = Coordinate{Latitude: lat, Longitude: long}
 		}
 		return false
 	}
@@ -73,7 +72,7 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	//
 	// Parallelism can be controlled also by spawning fixed
 	// number of go routines.
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 200})
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 20})
 
 	// create a request queue with 2 consumer threads
 	q, _ := queue.New(
@@ -89,7 +88,6 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 		log.Println("Finished scraping", r.Request.URL)
 	})
 
-	rooms := make(map[string]Coordinate)
 
 	c.OnHTML("html", func(h *colly.HTMLElement) {
 		roomRE := regexp.MustCompile("[0-9]+")
@@ -112,11 +110,10 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	q.Run(c)
 	c.Wait()
 	elapsed := time.Since(start)
-	// TODO measure time performance
 	// TODO add progress indicator
 	// go showStatus(q)
 	fmt.Println("Finished scraping locations. Time elapsed:", elapsed)
-	return rooms
+	return roomCache.rooms
 }
 
 // This function scrapes latitude and longitude from url and
@@ -168,7 +165,6 @@ func PrepareDataToScrape() ([]RoomInfo, int) {
 	for _, val := range res {
 		roomNr := scrapeRoomNrFromRoomName(val.Room)
 		buildingNr := scrapeBuildingNrFromAddress(val.Address)
-		// fmt.Println("Load:", val.Load)
 		currTotalLoad := getCurrentTotalLoad(val.Load)
 		total += currTotalLoad
 		roomID := fmt.Sprintf("%s@%s", roomNr, buildingNr)

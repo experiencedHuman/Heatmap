@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -11,7 +13,6 @@ import (
 
 	"os"
 	"strings"
-
 	// "github.com/experiencedHuman/heatmap/LRZscraper"
 )
 
@@ -62,13 +63,37 @@ func getDataFromURL(fName, url string) {
 	}
 }
 
-// func getListOfIntensities() []int {
+type AccessPoint struct {
+	Intensity float64
+	Latitude  float64
+	Longitude float64
+}
 
-// }
+func saveApLoadToJsonFile() {
+	roomInfos, totalLoad := RoomFinder.PrepareDataToScrape()
+	coordinatesMap := RoomFinder.Scrape(roomInfos) // TODO use ignore result, which is a map of room ids and coordinates
 
-// func saveApLoadToJsonFile() {
+	accessPoints := make([]AccessPoint, 0)
+	for _, roomInfo := range roomInfos {
+		var intensity float64 = float64(roomInfo.RoomLoad) / float64(totalLoad)
+		if coordinate, exists := coordinatesMap[roomInfo.RoomID]; exists {
+			ap := AccessPoint{Intensity: intensity, Latitude: coordinate.Latitude, Longitude: coordinate.Longitude}
+			accessPoints = append(accessPoints, ap)
+		}
+	}
 
-// }
+	bytes, err := json.Marshal(accessPoints)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = ioutil.WriteFile("accessPoints.json", bytes, 0644)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Println("Data was saved successfully to accessPoints.json")
+	}
+}
 
 func main() {
 	// LRZscraper.ScrapeListOfSubdistricts("csv/subdistricts.csv")
@@ -80,7 +105,5 @@ func main() {
 
 	// storeDataInSQLite("./accesspoints.db")
 	// LRZscraper.ScrapeMapCoordinatesForRoom("1", "5406")
-	roomIDs, totalLoad := RoomFinder.PrepareDataToScrape()
-	_ = RoomFinder.Scrape(roomIDs) // TODO use ignore result, which is a map of room ids and coordinates
-	fmt.Println("Total load:", totalLoad)
+	saveApLoadToJsonFile()
 }
