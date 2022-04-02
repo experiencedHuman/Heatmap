@@ -1,20 +1,58 @@
 package RoomFinder
 
 import (
+	"log"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gocolly/colly"
+	// "github.com/gocolly/colly/debug"
 	"github.com/gocolly/colly/queue"
 )
+
+type muxCache struct {
+	mux 	sync.Mutex
+	rooms map[string]Coordinate
+}
+
+var roomCache = muxCache{rooms: make(map[string]Coordinate)}
 
 type Coordinate struct {
 	// visited   bool
 	latitude  float64
 	longitude float64
+}
+
+func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) bool {
+	cache.mux.Lock()
+	defer cache.mux.Unlock()
+	if _, ok := roomCache.rooms[roomFinderID]; ok {
+		// already visited
+		fmt.Println("already visited")
+		return true
+	} else {
+		// not yet visited
+		e := h.DOM.Find("a[href^='http://maps.google.com']")
+		link, exists := e.Attr("href")
+		if exists {
+			lat, long := getLatLongFromURL(link)
+			roomCache.rooms[roomFinderID] = Coordinate{latitude: lat, longitude: long}
+		}
+		return false
+	}
+}
+
+func showStatus(q *queue.Queue) {
+	qSize, err := q.Size()
+	if err != nil {
+		log.Println("Error reading queue size!", err)
+	} else {
+			log.Println("Queue size:", qSize)
+	}
 }
 
 // This function generates a number of URLs (based on roomIDs) and
@@ -26,6 +64,7 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	// Instantiate default collector
 	c := colly.NewCollector(
 		colly.Async(true),
+		// colly.Debugger(&debug.LogDebugger{}),
 	)
 
 	// Limit the maximum parallelism to 2
@@ -34,7 +73,7 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	//
 	// Parallelism can be controlled also by spawning fixed
 	// number of go routines.
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2})
+	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 200})
 
 	// create a request queue with 2 consumer threads
 	q, _ := queue.New(
@@ -43,11 +82,11 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	)
 
 	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("visiting", r.URL)
+		log.Println("visiting", r.URL)
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		fmt.Println("Finished scraping", r.Request.URL)
+		log.Println("Finished scraping", r.Request.URL)
 	})
 
 	rooms := make(map[string]Coordinate)
@@ -60,17 +99,7 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 		buildingNr := buildingRE.FindString(h.Request.URL.String())
 
 		roomFinderID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
-		if _, ok := rooms[roomFinderID]; ok {
-			// already visited
-		} else {
-			// not yet visited
-			e := h.DOM.Find("a[href^='http://maps.google.com']")
-			link, exists := e.Attr("href")
-			if exists {
-				lat, long := getLatLongFromURL(link)
-				rooms[roomFinderID] = Coordinate{latitude: lat, longitude: long}
-			}
-		}
+		roomCache.setVisited(h, roomFinderID)
 	})
 
 	for _, roomInfo := range roomInfos {
@@ -78,12 +107,14 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.RoomID))
 	}
 	start := time.Now()
+	log.Println("Time now", start)
 	// Consume URLs
 	q.Run(c)
 	c.Wait()
 	elapsed := time.Since(start)
 	// TODO measure time performance
 	// TODO add progress indicator
+	// go showStatus(q)
 	fmt.Println("Finished scraping locations. Time elapsed:", elapsed)
 	return rooms
 }
@@ -122,8 +153,8 @@ func scrapeRoomNrFromRoomName(roomName string) string {
 }
 
 type RoomInfo struct {
-	RoomID 		string
-	RoomLoad 	int
+	RoomID   string
+	RoomLoad int
 }
 
 // This function prepares the roomIDs that will later be concatenated to the RoomFinder's url/path
@@ -137,7 +168,7 @@ func PrepareDataToScrape() ([]RoomInfo, int) {
 	for _, val := range res {
 		roomNr := scrapeRoomNrFromRoomName(val.Room)
 		buildingNr := scrapeBuildingNrFromAddress(val.Address)
-		fmt.Println("Load:", val.Load)
+		// fmt.Println("Load:", val.Load)
 		currTotalLoad := getCurrentTotalLoad(val.Load)
 		total += currTotalLoad
 		roomID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
