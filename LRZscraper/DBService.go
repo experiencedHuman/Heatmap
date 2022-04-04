@@ -3,7 +3,6 @@ package LRZscraper
 import (
 	"database/sql"
 	"encoding/csv"
-	"fmt"
 	"log"
 	"os"
 
@@ -39,8 +38,8 @@ func CreateTableAccesspoints(db *sql.DB) {
 			"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 			"network"	TEXT,
 			"current"	TEXT,
-			"max"		TEXT,
-			"min"		TEXT,
+			"max"			TEXT,
+			"min"			TEXT,
 			"other" 	TEXT
 		);
 	`)
@@ -75,7 +74,7 @@ func ReadItem(db *sql.DB) []AccessPointOverview {
 }
 
 // for csv/graphData.csv
-func storeDataInSQLite(dbPath string) {
+func StoreDataInSQLite(dbPath string) {
 	csvFile, err := os.Open("csv/graphData.csv")
 	if err != nil {
 		log.Fatal(err)
@@ -102,7 +101,7 @@ func storeDataInSQLite(dbPath string) {
 		panic(dbError)
 	}
 
-	fmt.Println("Storing data in SQLite ...")
+	log.Println("Storing graph data in SQLite ...")
 	for r := range data {
 		network := data[r][0]
 		current := data[r][1]
@@ -115,12 +114,13 @@ func storeDataInSQLite(dbPath string) {
 			panic(err)
 		}
 	}
-	fmt.Println("Finished data storing")
+	log.Println("Finished storing graph data.")
 }
 
-// for csv/overview.csv
-func storeOverviewInSQLite(dbPath string) {
-	csvFile, err := os.Open("csv/overview.csv")
+// It reads the apstat data from the csv file and
+// stores it in a SQLite table under path parameter 'dbPath'
+func StoreApstatInSQLite(dbPath string) {
+	csvFile, err := os.Open("data/csv/apstat.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -145,7 +145,7 @@ func storeOverviewInSQLite(dbPath string) {
 		panic(dbError)
 	}
 
-	fmt.Println("Storing data in SQLite ...")
+	log.Println("Storing apstat data in SQLite ...")
 	for r := range data {
 		address := data[r][0]
 		roomNr := data[r][1]
@@ -159,7 +159,7 @@ func storeOverviewInSQLite(dbPath string) {
 			panic(err)
 		}
 	}
-	fmt.Println("Finished data storing")
+	log.Println("Finished data storing for apstat.")
 }
 
 // creates a DB table (if not exists) to store an overview of all access points

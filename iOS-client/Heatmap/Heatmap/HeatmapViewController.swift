@@ -76,7 +76,12 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
           for item in object {
             let lat = item["lat"]
             let lng = item["lng"]
-            let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: 1.0)
+//            var intensity = item["Intensity"] as? Double ?? 1.0
+//              if intensity != 1.0 {
+//                  intensity *= 100000.0
+//              }
+//              print("intensity is : \(Float(intensity))")
+              let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: 10.0) //Float(intensity)
             list.append(coords)
           }
         } else {

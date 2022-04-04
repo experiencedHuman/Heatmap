@@ -1,4 +1,4 @@
-module github.com/experiencedHuman/heatmap/LRZscraper
+module github.com/kvogli/Heatmap/LRZscraper
 
 go 1.17
 

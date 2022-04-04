@@ -9,11 +9,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/experiencedHuman/heatmap/RoomFinder"
+	"github.com/kvogli/Heatmap/LRZscraper"
+	"github.com/kvogli/Heatmap/RoomFinder"
 
 	"os"
 	"strings"
-	// "github.com/experiencedHuman/heatmap/LRZscraper"
 )
 
 func getDataFromURL(fName, url string) {
@@ -48,14 +48,14 @@ func getDataFromURL(fName, url string) {
 		} else if httpError != nil {
 			panic(httpError)
 		} else {
-			fields := strings.Fields(data[0]) // get substrings separated by whitespaces
-			name := fields[0]
+			fields 	:= strings.Fields(data[0]) // get substrings separated by whitespaces
+			name 		:= fields[0]
 			current := strings.Split(fields[1], ":")[1]
-			max := strings.Split(fields[2], ":")[1]
-			min := strings.Split(fields[3], ":")[1]
+			max 		:= strings.Split(fields[2], ":")[1]
+			min 		:= strings.Split(fields[3], ":")[1]
 
 			dateAndTime := data[1]
-			other := data[2] // TODO find out what other is
+			other 			:= data[2] // TODO find out what other is
 			csvWriter.Write([]string{
 				name, current, max, min, dateAndTime, other,
 			})
@@ -76,8 +76,8 @@ func saveApLoadToJsonFile() {
 	accessPoints := make([]AccessPoint, 0)
 	for _, roomInfo := range roomInfos {
 		var intensity float64 = float64(roomInfo.RoomLoad) / float64(totalLoad)
-		if coordinate, exists := coordinatesMap[roomInfo.RoomID]; exists {
-			ap := AccessPoint{Intensity: intensity, Latitude: coordinate.Latitude, Longitude: coordinate.Longitude}
+		if coord, exists := coordinatesMap[roomInfo.RoomID]; exists {
+			ap := AccessPoint{Intensity: intensity, Latitude: coord.Lat, Longitude: coord.Long}
 			accessPoints = append(accessPoints, ap)
 		}
 	}
@@ -96,14 +96,7 @@ func saveApLoadToJsonFile() {
 }
 
 func main() {
-	// LRZscraper.ScrapeListOfSubdistricts("csv/subdistricts.csv")
-	// LRZscraper.ScrapeOverviewOfAPs("csv/overview.csv")
-	// storeOverviewInSQLite("./overview.db")
-
-	// url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-2days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
-	// getDataFromURL("csv/graphData.csv", url)
-
-	// storeDataInSQLite("./accesspoints.db")
-	// LRZscraper.ScrapeMapCoordinatesForRoom("1", "5406")
+	// LRZscraper.ScrapeApstat("data/csv/apstat.csv")
+	LRZscraper.StoreApstatInSQLite("data/sqlite/apstat.db")
 	saveApLoadToJsonFile()
 }

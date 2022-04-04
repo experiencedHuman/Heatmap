@@ -1,11 +1,11 @@
-module github.com/experiencedHuman/heatmap
+module github.com/kvogli/Heatmap
 
 go 1.17
 
-replace github.com/experiencedHuman/heatmap/LRZscraper => ./LRZscraper
+replace github.com/kvogli/Heatmap/LRZscraper => ./LRZscraper
 
 require (
-	github.com/experiencedHuman/heatmap/LRZscraper v0.0.0-00010101000000-000000000000
+	github.com/kvogli/Heatmap/LRZscraper v0.0.0-00010101000000-000000000000
 	github.com/gocolly/colly v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.12
 )

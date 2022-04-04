@@ -1,8 +1,8 @@
 package RoomFinder
 
 import (
-	"log"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -10,22 +10,20 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
-	// "github.com/gocolly/colly/debug"
 	"github.com/gocolly/colly/queue"
-	"github.com/experiencedHuman/heatmap/LRZscraper"
+	"github.com/kvogli/Heatmap/LRZscraper"
 )
 
 type muxCache struct {
-	mux 	sync.Mutex
+	mux   sync.Mutex
 	rooms map[string]Coordinate
 }
 
 var roomCache = muxCache{rooms: make(map[string]Coordinate)}
 
 type Coordinate struct {
-	// visited   bool
-	Latitude  float64
-	Longitude float64
+	Lat  float64
+	Long float64
 }
 
 func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) bool {
@@ -33,6 +31,7 @@ func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) boo
 	defer cache.mux.Unlock()
 	if _, ok := roomCache.rooms[roomFinderID]; ok {
 		// already visited
+		// TODO adjust intensity of the room/ap
 		return true
 	} else {
 		// not yet visited
@@ -40,18 +39,9 @@ func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) boo
 		link, exists := e.Attr("href")
 		if exists {
 			lat, long := getLatLongFromURL(link)
-			roomCache.rooms[roomFinderID] = Coordinate{Latitude: lat, Longitude: long}
+			roomCache.rooms[roomFinderID] = Coordinate{Lat: lat, Long: long}
 		}
 		return false
-	}
-}
-
-func showStatus(q *queue.Queue) {
-	qSize, err := q.Size()
-	if err != nil {
-		log.Println("Error reading queue size!", err)
-	} else {
-			log.Println("Queue size:", qSize)
 	}
 }
 
@@ -64,7 +54,6 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	// Instantiate default collector
 	c := colly.NewCollector(
 		colly.Async(true),
-		// colly.Debugger(&debug.LogDebugger{}),
 	)
 
 	// Limit the maximum parallelism to 2
@@ -88,7 +77,6 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	c.OnScraped(func(r *colly.Response) {
 		log.Println("Finished scraping", r.Request.URL)
 	})
-
 
 	c.OnHTML("html", func(h *colly.HTMLElement) {
 		roomRE := regexp.MustCompile("[0-9]+")
@@ -117,18 +105,16 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	return roomCache.rooms
 }
 
-// This function scrapes latitude and longitude from url and
+// It scrapes latitude and longitude from parameter 'url' and
 // returns them as float64 values
-func getLatLongFromURL(url string) (float64, float64) {
+func getLatLongFromURL(url string) (lat, long float64) {
 	parts := strings.Split(url, "&")
-
 	latLong := strings.Split(parts[0], "=")[1]
 	latStr, longStr, _ := strings.Cut(latLong, ",")
 
-	lat, _ := strconv.ParseFloat(latStr, 64)
-	long, _ := strconv.ParseFloat(longStr, 64)
-
-	return lat, long
+	lat, _ = strconv.ParseFloat(latStr, 64)
+	long, _ = strconv.ParseFloat(longStr, 64)
+	return
 }
 
 // This function scrapes the buildingnumber from a long address description and returns it
@@ -158,9 +144,10 @@ type RoomInfo struct {
 // This function prepares the roomIDs that will later be concatenated to the RoomFinder's url/path
 // to get the room map and then scrape its coordinate. It returns a slice of all roomIDs
 func PrepareDataToScrape() ([]RoomInfo, int) {
-	db := LRZscraper.InitDB("./overview.db")
+	db := LRZscraper.InitDB("./data/sqlite/apstat.db")
 	fmt.Println("Preparing data")
 	res := LRZscraper.ReadItem(db)
+	fmt.Printf("A number of %d datapoints was fetched.", len(res))
 	var data []RoomInfo
 	var total int
 	for _, val := range res {
