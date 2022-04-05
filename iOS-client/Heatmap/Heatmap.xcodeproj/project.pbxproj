@@ -14,7 +14,6 @@
 		AA2C058827E06BB400E4930B /* GoogleMapsCore.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C058527E06BB400E4930B /* GoogleMapsCore.xcframework */; };
 		AA2C058A27E06BB400E4930B /* GoogleMaps.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C058627E06BB400E4930B /* GoogleMaps.xcframework */; };
 		AA2C058C27E06BB400E4930B /* GoogleMapsBase.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C058727E06BB400E4930B /* GoogleMapsBase.xcframework */; };
-		AA2C059027E06C5900E4930B /* GoogleMaps.bundle in Resources */ = {isa = PBXBuildFile; fileRef = AA2C058F27E06C5900E4930B /* GoogleMaps.bundle */; };
 		AA2C059227E06C7900E4930B /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059127E06C7900E4930B /* Accelerate.framework */; };
 		AA2C059427E06C8400E4930B /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059327E06C8400E4930B /* CoreData.framework */; };
 		AA2C059627E06C8D00E4930B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059527E06C8D00E4930B /* CoreGraphics.framework */; };
@@ -34,6 +33,9 @@
 		AA2E855C27E06E8400709BC7 /* GoogleMapsUtils in Frameworks */ = {isa = PBXBuildFile; productRef = AA2E855B27E06E8400709BC7 /* GoogleMapsUtils */; };
 		AA2E855D27E0730F00709BC7 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA2C059B27E06CB200E4930B /* CoreTelephony.framework */; };
 		AA8C0E5F27E07E9D00D054C1 /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E5E27E07E9D00D054C1 /* data.json */; };
+		AA8C0E8B27E1037000D054C1 /* GoogleMaps.bundle in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E8A27E1037000D054C1 /* GoogleMaps.bundle */; };
+		AAB33A4327FB6C0500819884 /* accessPoints.json in Resources */ = {isa = PBXBuildFile; fileRef = AAB33A4227FB6C0500819884 /* accessPoints.json */; };
+		AAE41E9F27EB2C8100A8541B /* demo.json in Resources */ = {isa = PBXBuildFile; fileRef = AAE41E9E27EB2C8100A8541B /* demo.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,7 +47,6 @@
 		AA2C058527E06BB400E4930B /* GoogleMapsCore.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GoogleMapsCore.xcframework; path = Carthage/Build/GoogleMapsCore.xcframework; sourceTree = "<group>"; };
 		AA2C058627E06BB400E4930B /* GoogleMaps.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GoogleMaps.xcframework; path = Carthage/Build/GoogleMaps.xcframework; sourceTree = "<group>"; };
 		AA2C058727E06BB400E4930B /* GoogleMapsBase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GoogleMapsBase.xcframework; path = Carthage/Build/GoogleMapsBase.xcframework; sourceTree = "<group>"; };
-		AA2C058F27E06C5900E4930B /* GoogleMaps.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = GoogleMaps.bundle; path = "Carthage/Build/GoogleMaps.xcframework/ios-arm64_x86_64-simulator/GoogleMaps.framework/Resources/GoogleMaps.bundle"; sourceTree = "<group>"; };
 		AA2C059127E06C7900E4930B /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		AA2C059327E06C8400E4930B /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		AA2C059527E06C8D00E4930B /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -64,6 +65,11 @@
 		AA2C05AF27E06D1100E4930B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		AA2E855827E06E5C00709BC7 /* HeatmapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapViewController.swift; sourceTree = "<group>"; };
 		AA8C0E5E27E07E9D00D054C1 /* data.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = data.json; path = "../../../../../Heatmap/google-maps-ios-utils/samples/SwiftDemoApp/SwiftDemoApp/data.json"; sourceTree = "<group>"; };
+		AA8C0E8A27E1037000D054C1 /* GoogleMaps.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = GoogleMaps.bundle; path = "Carthage/Build/GoogleMaps.xcframework/ios-arm64_x86_64-simulator/GoogleMaps.framework/Resources/GoogleMaps.bundle"; sourceTree = "<group>"; };
+		AA8C0E8C27E1048F00D054C1 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		AA8C0E8D27E105F700D054C1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		AAB33A4227FB6C0500819884 /* accessPoints.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = accessPoints.json; path = ../../../accessPoints.json; sourceTree = "<group>"; };
+		AAE41E9E27EB2C8100A8541B /* demo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = demo.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,7 +106,7 @@
 		AA2C056A27E0692000E4930B = {
 			isa = PBXGroup;
 			children = (
-				AA2C058F27E06C5900E4930B /* GoogleMaps.bundle */,
+				AA8C0E8A27E1037000D054C1 /* GoogleMaps.bundle */,
 				AA2C057527E0692000E4930B /* Heatmap */,
 				AA2C057427E0692000E4930B /* Products */,
 				AA2C058427E06BB400E4930B /* Frameworks */,
@@ -118,12 +124,16 @@
 		AA2C057527E0692000E4930B /* Heatmap */ = {
 			isa = PBXGroup;
 			children = (
+				AA8C0E8D27E105F700D054C1 /* Info.plist */,
 				AA8C0E5E27E07E9D00D054C1 /* data.json */,
 				AA2C057627E0692000E4930B /* HeatmapApp.swift */,
 				AA2C057827E0692000E4930B /* ContentView.swift */,
 				AA2C057A27E0692100E4930B /* Assets.xcassets */,
 				AA2C057C27E0692100E4930B /* Preview Content */,
 				AA2E855827E06E5C00709BC7 /* HeatmapViewController.swift */,
+				AA8C0E8C27E1048F00D054C1 /* Config.xcconfig */,
+				AAE41E9E27EB2C8100A8541B /* demo.json */,
+				AAB33A4227FB6C0500819884 /* accessPoints.json */,
 			);
 			path = Heatmap;
 			sourceTree = "<group>";
@@ -227,9 +237,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA8C0E5F27E07E9D00D054C1 /* data.json in Resources */,
-				AA2C059027E06C5900E4930B /* GoogleMaps.bundle in Resources */,
 				AA2C057E27E0692100E4930B /* Preview Assets.xcassets in Resources */,
+				AAB33A4327FB6C0500819884 /* accessPoints.json in Resources */,
 				AA2C057B27E0692100E4930B /* Assets.xcassets in Resources */,
+				AAE41E9F27EB2C8100A8541B /* demo.json in Resources */,
+				AA8C0E8B27E1037000D054C1 /* GoogleMaps.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +263,7 @@
 /* Begin XCBuildConfiguration section */
 		AA2C057F27E0692100E4930B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA8C0E8C27E1048F00D054C1 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -286,7 +299,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -349,7 +361,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -378,8 +389,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Heatmap/Preview Content\"";
+				DEVELOPMENT_TEAM = 3AKVPYXCTG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Heatmap/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -406,8 +419,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Heatmap/Preview Content\"";
+				DEVELOPMENT_TEAM = 3AKVPYXCTG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Heatmap/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

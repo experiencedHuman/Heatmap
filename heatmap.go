@@ -1,29 +1,19 @@
 package main
 
 import (
-	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
-
 	"encoding/csv"
-	"fmt"
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/kvogli/Heatmap/LRZscraper"
+	"github.com/kvogli/Heatmap/RoomFinder"
+
 	"os"
 	"strings"
-
-	"github.com/experiencedHuman/heatmap/LRZscraper"
 )
-
-type AccessPointOverview struct {
-	ID      string
-	Address string
-	Room    string
-	Name    string
-	Status  string
-	Type    string
-	Load    string
-}
 
 func getDataFromURL(fName, url string) {
 	resp, httpError := http.Get(url)
@@ -72,188 +62,40 @@ func getDataFromURL(fName, url string) {
 	}
 }
 
-func CreateTableAccesspoints(db *sql.DB) {
-	stmt, _ := db.Prepare(`
-		CREATE TABLE IF NOT EXISTS "accesspoints" (
-			"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-			"network"	TEXT,
-			"current"	TEXT,
-			"max"		TEXT,
-			"min"		TEXT,
-			"other" 	TEXT
-		);
-	`)
-	_, err := stmt.Exec()
-	if err != nil {
-		panic(err)
-	}
+type AccessPoint struct {
+	Intensity float64
+	Latitude  float64
+	Longitude float64
 }
 
-// for csv/graphData.csv
-func storeDataInSQLite(dbPath string) {
-	csvFile, err := os.Open("csv/graphData.csv")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer csvFile.Close()
+func saveApLoadToJsonFile() {
+	roomInfos, totalLoad := RoomFinder.PrepareDataToScrape()
+	coordinatesMap := RoomFinder.Scrape(roomInfos) // TODO use ignore result, which is a map of room ids and coordinates
 
-	csvReader := csv.NewReader(csvFile)
-	csvReader.Comma = ';'
-	data, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db := InitDB(dbPath)
-	CreateTableAccesspoints(db)
-
-	stmt, dbError := db.Prepare(`
-		INSERT INTO accesspoints (network, current, max, min, other) values (?,?,?,?,?)
-	`)
-
-	if dbError != nil {
-		panic(dbError)
-	}
-
-	log.Println("Storing data in SQLite ...")
-	for r := range data {
-		network := data[r][0]
-		current := data[r][1]
-		max := data[r][2]
-		min := data[r][3]
-		other := data[r][4]
-
-		_, err := stmt.Exec(network, current, max, min, other)
-		if err != nil {
-			panic(err)
+	accessPoints := make([]AccessPoint, 0)
+	for _, roomInfo := range roomInfos {
+		var intensity float64 = float64(roomInfo.RoomLoad) / float64(totalLoad)
+		if coord, exists := coordinatesMap[roomInfo.RoomID]; exists {
+			ap := AccessPoint{Intensity: intensity, Latitude: coord.Lat, Longitude: coord.Long}
+			accessPoints = append(accessPoints, ap)
 		}
 	}
-	log.Println("Finished data storing")
-}
 
-// initializes a local database instance, located in dbPath
-// returns a pointer to the initialized database
-func InitDB(dbPath string) *sql.DB {
-	db, sqlError := sql.Open("sqlite3", dbPath)
-	if sqlError != nil {
-		panic(sqlError)
-	}
-	if db == nil {
-		panic("db is nil")
-	}
-	return db
-}
-
-// creates a DB table (if not exists) to store an overview of all access points
-func CreateTableOverview(db *sql.DB) {
-	stmt, _ := db.Prepare(`
-			CREATE TABLE IF NOT EXISTS "overview" (
-				"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-				"Address"	TEXT,
-				"Room"		TEXT,
-				"Name"		TEXT,
-				"Status"	TEXT,
-				"Type"		TEXT,
-				"Load" 		TEXT
-			);
-		`)
-	_, err := stmt.Exec()
-	if err != nil {
-		panic(err)
-	}
-}
-
-func ReadItem(db *sql.DB) []AccessPointOverview {
-	query := `
-		SELECT Address, Room, Load 
-		FROM overview
-		WHERE Address Like '%TUM%'
-	`
-	rows, err := db.Query(query)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	var result []AccessPointOverview
-	for rows.Next() {
-		item := AccessPointOverview{}
-		err2 := rows.Scan(&item.Address, &item.Room, &item.Load)
-		if err2 != nil {
-			panic(err2)
-		}
-		result = append(result, item)
-	}
-	return result
-}
-
-// for csv/overview.csv
-func storeOverviewInSQLite(dbPath string) {
-	csvFile, err := os.Open("csv/overview.csv")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer csvFile.Close()
-
-	csvReader := csv.NewReader(csvFile)
-	csvReader.Comma = ';'
-	data, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
+	bytes, err := json.Marshal(accessPoints)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db := InitDB(dbPath)
-	CreateTableOverview(db)
-
-	stmt, dbError := db.Prepare(`
-		INSERT INTO overview (Address, Room, Name, Status, Type, Load) 
-		values (?,?,?,?,?,?)
-	`)
-
-	if dbError != nil {
-		panic(dbError)
+	err = ioutil.WriteFile("accessPoints.json", bytes, 0644)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Println("Data was saved successfully to accessPoints.json")
 	}
-
-	log.Println("Storing data in SQLite ...")
-	for r := range data {
-		address := data[r][0]
-		roomNr := data[r][1]
-		apName := data[r][2]
-		status := data[r][3]
-		apType := data[r][4]
-		apLoad := data[r][5]
-
-		_, err := stmt.Exec(address, roomNr, apName, status, apType, apLoad)
-		if err != nil {
-			panic(err)
-		}
-	}
-	log.Println("Finished data storing")
 }
-
-// func getListOfIntensities() []int {
-
-// }
-
-// func saveApLoadToJsonFile() {
-
-// }
 
 func main() {
-	// LRZscraper.ScrapeListOfSubdistricts("csv/subdistricts.csv")
-	// LRZscraper.ScrapeOverviewOfAPs("csv/overview.csv")
-	// storeOverviewInSQLite("./overview.db")
-
-	db := InitDB("./overview.db")
-	log.Println("Printing data")
-	res := ReadItem(db)
-	for _, val := range res {
-		fmt.Println(val.Address)
-	}
-	// url := "http://graphite-kom.srv.lrz.de/render/?xFormat=%d.%m.%20%H:%M&tz=CET&from=-2days&target=cactiStyle(group(alias(ap.gesamt.ssid.eduroam,%22eduroam%22),alias(ap.gesamt.ssid.lrz,%22lrz%22),alias(ap.gesamt.ssid.mwn-events,%22mwn-events%22),alias(ap.gesamt.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.gesamt.ssid.other,%22other%22)))&format=csv"
-	// getDataFromURL("csv/graphData.csv", url)
-
-	// storeDataInSQLite("./accesspoints.db")
-	LRZscraper.ScrapeMapCoordinatesForRoom("1", "5406")
-
+	// LRZscraper.ScrapeApstat("data/csv/apstat.csv")
+	LRZscraper.StoreApstatInSQLite("data/sqlite/apstat.db")
+	saveApLoadToJsonFile()
 }

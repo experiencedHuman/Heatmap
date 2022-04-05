@@ -47,16 +47,16 @@
       "identifier" : "ios-arm64"
     },
     {
-      "hash" : "e52d4f458d264701529f176b2f265122e26c69f5943e75f99cb7f16303600dca",
-      "name" : "GoogleMapsM4B",
-      "container" : "GoogleMapsM4B.xcframework",
-      "identifier" : "ios-arm64_x86_64-simulator"
-    },
-    {
       "hash" : "b38862511f25cc6cc195564ac644a24b2d89538b9d205b2af7bc9876a5bf86ae",
       "name" : "GoogleMapsM4B",
       "container" : "GoogleMapsM4B.xcframework",
       "identifier" : "ios-arm64"
+    },
+    {
+      "hash" : "e52d4f458d264701529f176b2f265122e26c69f5943e75f99cb7f16303600dca",
+      "name" : "GoogleMapsM4B",
+      "container" : "GoogleMapsM4B.xcframework",
+      "identifier" : "ios-arm64_x86_64-simulator"
     }
   ]
 }

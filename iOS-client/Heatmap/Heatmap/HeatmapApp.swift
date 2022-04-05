@@ -12,7 +12,9 @@ import GoogleMaps
 struct HeatmapApp: App {
     
     init() {
-        GMSServices.provideAPIKey("AIzaSyBC3NMmAu-jAl6fhAdWVDHCAQ0QpBI24iU")
+        if let googleMapsToken = Bundle.main.infoDictionary?["GoogleMaps"] as? String {
+            GMSServices.provideAPIKey(googleMapsToken)
+        }
     }
     
     var body: some Scene {

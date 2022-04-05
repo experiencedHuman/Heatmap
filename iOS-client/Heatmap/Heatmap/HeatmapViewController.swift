@@ -43,7 +43,8 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
   private var gradientStartPoints = [0.2, 1.0] as [NSNumber]
 
   override func loadView() {
-    let camera = GMSCameraPosition.camera(withLatitude: -37.848, longitude: 145.001, zoom: 10)
+//    let camera = GMSCameraPosition.camera(withLatitude: -37.848, longitude: 145.001, zoom: 10)
+      let camera = GMSCameraPosition.camera(withLatitude: 48.2692083204, longitude: 11.6690079838, zoom: 15)
     mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
     mapView.delegate = self
     self.view = mapView
@@ -68,14 +69,19 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     var list = [GMUWeightedLatLng]()
     do {
       // Get the data: latitude/longitude positions of police stations.
-      if let path = Bundle.main.url(forResource: "data", withExtension: "json") {
+      if let path = Bundle.main.url(forResource: "demo", withExtension: "json") {
         let data = try Data(contentsOf: path)
         let json = try JSONSerialization.jsonObject(with: data, options: [])
         if let object = json as? [[String: Any]] {
           for item in object {
             let lat = item["lat"]
             let lng = item["lng"]
-            let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: 1.0)
+//            var intensity = item["Intensity"] as? Double ?? 1.0
+//              if intensity != 1.0 {
+//                  intensity *= 100000.0
+//              }
+//              print("intensity is : \(Float(intensity))")
+              let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: 10.0) //Float(intensity)
             list.append(coords)
           }
         } else {
