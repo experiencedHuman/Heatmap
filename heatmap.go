@@ -96,6 +96,8 @@ func saveApLoadToJsonFile() {
 
 func main() {
 	// LRZscraper.ScrapeApstat("data/csv/apstat.csv")
-	LRZscraper.StoreApstatInSQLite("data/sqlite/apstat.db")
-	saveApLoadToJsonFile()
+	// LRZscraper.StoreApstatInSQLite("data/sqlite/apstat.db")
+	// saveApLoadToJsonFile()
+	res := LRZscraper.FetchApstatData("apstat")
+	println(len(res))
 }

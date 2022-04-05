@@ -144,9 +144,7 @@ type RoomInfo struct {
 // This function prepares the roomIDs that will later be concatenated to the RoomFinder's url/path
 // to get the room map and then scrape its coordinate. It returns a slice of all roomIDs
 func PrepareDataToScrape() ([]RoomInfo, int) {
-	db := LRZscraper.InitDB("./data/sqlite/apstat.db")
-	fmt.Println("Preparing data")
-	res := LRZscraper.ReadItem(db)
+	res := LRZscraper.FetchApstatData("apstat")
 	fmt.Printf("A number of %d datapoints was fetched.", len(res))
 	var data []RoomInfo
 	var total int

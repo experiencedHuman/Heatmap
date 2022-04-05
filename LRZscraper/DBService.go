@@ -3,10 +3,16 @@ package LRZscraper
 import (
 	"database/sql"
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
+)
+
+const (
+	sqlitePath 	string = "./data/sqlite/"
+	csvPath		string = "data/csv/"
 )
 
 type AccessPointOverview struct {
@@ -17,14 +23,15 @@ type AccessPointOverview struct {
 	Status  string
 	Type    string
 	Load    string
+	// RF_ID	string // RoomFinderID ~ architect number e.g. 1302@0103
 }
 
 // initializes a local database instance, located in dbPath
 // returns a pointer to the initialized database
-func InitDB(dbPath string) *sql.DB {
+func initDB(dbPath string) *sql.DB {
 	db, sqlError := sql.Open("sqlite3", dbPath)
 	if sqlError != nil {
-		panic(sqlError)
+		log.Panicf("Error: could not open sqlite instance at path %s! %s", dbPath, sqlError)
 	}
 	if db == nil {
 		panic("db is nil")
@@ -32,24 +39,32 @@ func InitDB(dbPath string) *sql.DB {
 	return db
 }
 
-func CreateTableAccesspoints(db *sql.DB) {
-	stmt, _ := db.Prepare(`
-		CREATE TABLE IF NOT EXISTS "accesspoints" (
+func FetchApstatData(dbName string) []AccessPointOverview {
+	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, dbName)
+	db := initDB(dbPath)
+	return readItem(db)
+}
+
+func createTableAccesspoints(tableName string, db *sql.DB) {
+	query := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS "%s" (
 			"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 			"network"	TEXT,
 			"current"	TEXT,
-			"max"			TEXT,
-			"min"			TEXT,
+			"max"		TEXT,
+			"min"		TEXT,
 			"other" 	TEXT
 		);
-	`)
+	`, tableName)
+
+	stmt, _ := db.Prepare(query)
 	_, err := stmt.Exec()
 	if err != nil {
 		panic(err)
 	}
 }
 
-func ReadItem(db *sql.DB) []AccessPointOverview {
+func readItem(db *sql.DB) []AccessPointOverview {
 	query := `
 		SELECT Address, Room, Load 
 		FROM overview
@@ -88,9 +103,9 @@ func StoreDataInSQLite(dbPath string) {
 		log.Fatal(err)
 	}
 
-	db := InitDB(dbPath)
+	db := initDB(dbPath)
 
-	CreateTableAccesspoints(db)
+	createTableAccesspoints("accesspoints", db)
 
 	// fmt.Println(network, current, max, min, other)
 	stmt, dbError := db.Prepare(`
@@ -105,9 +120,9 @@ func StoreDataInSQLite(dbPath string) {
 	for r := range data {
 		network := data[r][0]
 		current := data[r][1]
-		max := data[r][2]
-		min := data[r][3]
-		other := data[r][4]
+		max 	:= data[r][2]
+		min 	:= data[r][3]
+		other 	:= data[r][4]
 
 		_, err := stmt.Exec(network, current, max, min, other)
 		if err != nil {
@@ -119,8 +134,9 @@ func StoreDataInSQLite(dbPath string) {
 
 // It reads the apstat data from the csv file and
 // stores it in a SQLite table under path parameter 'dbPath'
-func StoreApstatInSQLite(dbPath string) {
-	csvFile, err := os.Open("data/csv/apstat.csv")
+func StoreApstatInSQLite(data string) {
+	filePath := fmt.Sprintf("%s%s.csv", csvPath, data)
+	csvFile, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,13 +144,14 @@ func StoreApstatInSQLite(dbPath string) {
 
 	csvReader := csv.NewReader(csvFile)
 	csvReader.Comma = ';'
-	data, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
+	csvData, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db := InitDB(dbPath)
-	CreateTableOverview(db)
+	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, data)
+	db := initDB(dbPath)
+	createTable("apstat", db)
 
 	stmt, dbError := db.Prepare(`
 		INSERT INTO overview (Address, Room, Name, Status, Type, Load) 
@@ -145,27 +162,27 @@ func StoreApstatInSQLite(dbPath string) {
 		panic(dbError)
 	}
 
-	log.Println("Storing apstat data in SQLite ...")
+	log.Printf("Storing %s csv data in SQLite ...\n", data)
 	for r := range data {
-		address := data[r][0]
-		roomNr := data[r][1]
-		apName := data[r][2]
-		status := data[r][3]
-		apType := data[r][4]
-		apLoad := data[r][5]
+		address := csvData[r][0]
+		room  	:= csvData[r][1]
+		apName  := csvData[r][2]
+		status  := csvData[r][3]
+		apType  := csvData[r][4]
+		apLoad  := csvData[r][5]
 
-		_, err := stmt.Exec(address, roomNr, apName, status, apType, apLoad)
+		_, err := stmt.Exec(address, room, apName, status, apType, apLoad)
 		if err != nil {
 			panic(err)
 		}
 	}
-	log.Println("Finished data storing for apstat.")
+	log.Printf("Finished data storing for %s.\n", data)
 }
 
 // creates a DB table (if not exists) to store an overview of all access points
-func CreateTableOverview(db *sql.DB) {
-	stmt, _ := db.Prepare(`
-			CREATE TABLE IF NOT EXISTS "overview" (
+func createTable(tableName string, db *sql.DB) {
+	query := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS %s" (
 				"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 				"Address"	TEXT,
 				"Room"		TEXT,
@@ -174,7 +191,9 @@ func CreateTableOverview(db *sql.DB) {
 				"Type"		TEXT,
 				"Load" 		TEXT
 			);
-		`)
+		`, tableName)
+
+	stmt, _ := db.Prepare(query)
 	_, err := stmt.Exec()
 	if err != nil {
 		panic(err)
