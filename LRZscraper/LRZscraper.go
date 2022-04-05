@@ -13,7 +13,7 @@ import (
 )
 
 // It scrapes the table data from URL https://wlan.lrz.de/apstat/ and
-// stores the scraped data in csv format under the path parameter  'fName'
+// stores the scraped data in csv format under the destination path parameter  'fName'
 func ScrapeApstat(fName string) {
 	apstatURL := "https://wlan.lrz.de/apstat/"
 	file, err := os.Create(fName)

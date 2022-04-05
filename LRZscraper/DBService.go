@@ -134,8 +134,8 @@ func StoreDataInSQLite(dbPath string) {
 
 // It reads the apstat data from the csv file and
 // stores it in a SQLite table under path parameter 'dbPath'
-func StoreApstatInSQLite(data string) {
-	filePath := fmt.Sprintf("%s%s.csv", csvPath, data)
+func StoreApstatInSQLite(dbName string) {
+	filePath := fmt.Sprintf("%s%s.csv", csvPath, dbName)
 	csvFile, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal(err)
@@ -149,21 +149,22 @@ func StoreApstatInSQLite(data string) {
 		log.Fatal(err)
 	}
 
-	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, data)
+	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, dbName)
 	db := initDB(dbPath)
 	createTable("apstat", db)
 
-	stmt, dbError := db.Prepare(`
-		INSERT INTO overview (Address, Room, Name, Status, Type, Load) 
+	query := fmt.Sprintf(`
+		INSERT INTO %s (Address, Room, Name, Status, Type, Load) 
 		values (?,?,?,?,?,?)
-	`)
+	`, dbName)
+	stmt, dbError := db.Prepare(query)
 
 	if dbError != nil {
 		panic(dbError)
 	}
 
-	log.Printf("Storing %s csv data in SQLite ...\n", data)
-	for r := range data {
+	log.Printf("Storing %s csv data in SQLite ...\n", dbName)
+	for r := range csvData {
 		address := csvData[r][0]
 		room  	:= csvData[r][1]
 		apName  := csvData[r][2]
@@ -176,13 +177,13 @@ func StoreApstatInSQLite(data string) {
 			panic(err)
 		}
 	}
-	log.Printf("Finished data storing for %s.\n", data)
+	log.Printf("Finished data storing for %s.\n", dbName)
 }
 
 // creates a DB table (if not exists) to store an overview of all access points
 func createTable(tableName string, db *sql.DB) {
 	query := fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS %s" (
+			CREATE TABLE IF NOT EXISTS "%s" (
 				"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 				"Address"	TEXT,
 				"Room"		TEXT,
@@ -197,5 +198,45 @@ func createTable(tableName string, db *sql.DB) {
 	_, err := stmt.Exec()
 	if err != nil {
 		panic(err)
+	}
+}
+
+// adds a new column of type 'TEXT' to table 'tableName'
+func addNewColumn(tableName, newCol string, db *sql.DB) {
+	query := fmt.Sprintf(`
+		ALTER TABLE %s ADD COLUMN %s TEXT
+	`, tableName, newCol)
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Panicf("Error: failed to prepare query! %q", err)
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		log.Panicf("Error: could not alter table! Failed to add new column: %s", err)
+	}
+}
+
+func PopulateNewColumn(dbName, newCol string) {
+	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, dbName)
+	db := initDB(dbPath)
+
+	// addNewColumn(dbName, newCol, db)
+
+	// query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s='unvalid'`, dbName, newCol, newCol)
+	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s IS NULL`, dbName, newCol, newCol)
+
+	fmt.Println(query)
+	stmt, dbError := db.Prepare(query)
+
+	if dbError != nil {
+		panic(dbError)
+	}
+
+	res, err := stmt.Exec("unknown")
+	if err != nil {
+		panic(err)
+	} else {
+		println(res.LastInsertId())
 	}
 }

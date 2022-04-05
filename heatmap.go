@@ -98,6 +98,11 @@ func main() {
 	// LRZscraper.ScrapeApstat("data/csv/apstat.csv")
 	// LRZscraper.StoreApstatInSQLite("data/sqlite/apstat.db")
 	// saveApLoadToJsonFile()
-	res := LRZscraper.FetchApstatData("apstat")
-	println(len(res))
+
+	// res := LRZscraper.FetchApstatData("apstat")
+	// println(len(res))
+	 
+	// LRZscraper.ScrapeApstat("data/csv/apstat.csv")
+	// LRZscraper.StoreApstatInSQLite("apstat")
+	LRZscraper.PopulateNewColumn("apstat", "RF_ID")
 }
