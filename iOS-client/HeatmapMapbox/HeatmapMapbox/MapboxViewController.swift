@@ -10,6 +10,7 @@ import Foundation
 
 import Mapbox
 import SwiftUI
+import UIKit
 
 struct MapboxView: UIViewControllerRepresentable {
     
@@ -18,36 +19,41 @@ struct MapboxView: UIViewControllerRepresentable {
     }
     
     func updateUIViewController(_ uiViewController: MapboxViewController, context: Context) {
-        
     }
 }
 
 class MapboxViewController: UIViewController, MGLMapViewDelegate {
+    private var mapView: MGLMapView!
+    private var heatmapLayer: MGLHeatmapStyleLayer!
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func loadView() {
+        super.loadView()
         
         // create and add a map view
-        // let url = URL(string: "mapbox://styles/mapbox/streets-v11")
-        let mapView = MGLMapView(frame: view.bounds, styleURL: MGLStyle.lightStyleURL)
+        mapView = MGLMapView(frame: view.bounds, styleURL: MGLStyle.lightStyleURL)
         mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        mapView.setCenter(CLLocationCoordinate2D(latitude: 59.31, longitude: 18.06), zoomLevel: 9, animated: false)
+        mapView.setCenter(CLLocationCoordinate2D(latitude: 48.2692083204, longitude: 11.6690079838), zoomLevel: 9, animated: false)
         mapView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         mapView.delegate = self
         mapView.tintColor = .lightGray
-        view.addSubview(mapView)
+//        view.addSubview(mapView)
+         self.view = mapView
     }
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
+    
+
     func mapView(_ mapView: MGLMapView, didFinishLoading style: MGLStyle) {
         let identifier = "accesspoints"
-        var coordinates: [CLLocationCoordinate2D] = readCoordsFromJSON(file: "accessPoints")
-        
+        var coordinates = readCoordsFromJSON(file: "accessPoints")
         let collection = MGLPointCollection(coordinates: &coordinates, count: UInt(coordinates.count))
         let source = MGLShapeSource(identifier: identifier, shape: collection, options: nil)
         style.addSource(source)
         
         // Create a heatmap layer.
-        let heatmapLayer = MGLHeatmapStyleLayer(identifier: identifier, source: source)
+        heatmapLayer = MGLHeatmapStyleLayer(identifier: identifier, source: source)
         
         // Adjust the color of the heatmap based on the point density.
         let colorDictionary: [NSNumber: UIColor] = [
@@ -57,23 +63,24 @@ class MapboxViewController: UIViewController, MGLMapViewDelegate {
             0.5: UIColor(red: 0.73, green: 0.23, blue: 0.25, alpha: 1.0),
             1: .yellow
         ]
-        heatmapLayer.heatmapColor = NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($heatmapDensity, 'linear', nil, %@)", colorDictionary)
+        
+        heatmapLayer.heatmapColor =
+            NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($heatmapDensity, 'linear', nil, %@)", colorDictionary)
         
         // Heatmap weight measures how much a single data point impacts the layer's appearance.
-        heatmapLayer.heatmapWeight = NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:(mag, 'linear', nil, %@)",
-                                                  [0: 0,
-                                                   6: 1])
+        heatmapLayer.heatmapWeight =
+            NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:(mag, 'linear', nil, %@)", [0: 0, 6: 1])
         
         // Heatmap intensity multiplies the heatmap weight based on zoom level.
-        heatmapLayer.heatmapIntensity = NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)",
-                                                     [0: 1,
-                                                      9: 3])
-        heatmapLayer.heatmapRadius = NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)",
-                                                  [0: 4,
-                                                   9: 30])
+        heatmapLayer.heatmapIntensity =
+            NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)", [0: 1, 9: 3])
+        
+        heatmapLayer.heatmapRadius =
+            NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:($zoomLevel, 'linear', nil, %@)", [0: 4, 9: 30])
         
         // The heatmap layer should be visible up to zoom level 9.
-        heatmapLayer.heatmapOpacity = NSExpression(format: "mgl_step:from:stops:($zoomLevel, 0.75, %@)", [0: 0.75, 9: 0])
+        heatmapLayer.heatmapOpacity = NSExpression(format: "mgl_step:from:stops:($zoomLevel, 0.75, %@)", [0: 1.0, 20: 0])
+        
         style.addLayer(heatmapLayer)
         
         // Add a circle layer to represent the earthquakes at higher zoom levels.
@@ -88,7 +95,7 @@ class MapboxViewController: UIViewController, MGLMapViewDelegate {
         circleLayer.circleColor = NSExpression(format: "mgl_interpolate:withCurveType:parameters:stops:(mag, 'linear', nil, %@)", magnitudeDictionary)
         
         // The heatmap layer will have an opacity of 0.75 up to zoom level 9, when the opacity becomes 0.
-        circleLayer.circleOpacity = NSExpression(format: "mgl_step:from:stops:($zoomLevel, 0, %@)", [0: 0, 9: 0.75])
+        circleLayer.circleOpacity = NSExpression(format: "mgl_step:from:stops:($zoomLevel, 0, %@)", [0: 0, 20: 1.0])
         circleLayer.circleRadius = NSExpression(forConstantValue: 20)
         style.addLayer(circleLayer)
     }
