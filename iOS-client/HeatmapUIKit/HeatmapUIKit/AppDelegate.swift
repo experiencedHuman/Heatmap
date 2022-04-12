@@ -15,8 +15,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         if let azureToken = Bundle.main.infoDictionary?["Azure_Token"] as? String {
-            AzureMaps.configure(accessToken: "abe32ed9-48e5-433c-a854-80cd2b29da15")
-            print("done")
+            // Azure Portal > Heatmap > Authentication > Primary key
+            AzureMaps.configure(subscriptionKey: azureToken)
             AzureMaps.view = "Auto"
         }
         return true
