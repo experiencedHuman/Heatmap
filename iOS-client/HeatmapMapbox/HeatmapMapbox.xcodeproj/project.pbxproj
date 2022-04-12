@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AA1F75DA27E11612006377B5 /* MapboxViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1F75D927E11612006377B5 /* MapboxViewController.swift */; };
+		AA24255D2805D8E3006BBD25 /* accessPoints.json in Resources */ = {isa = PBXBuildFile; fileRef = AA24255C2805D8E3006BBD25 /* accessPoints.json */; };
 		AA8C0E9B27E1090800D054C1 /* HeatmapMapboxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E9A27E1090800D054C1 /* HeatmapMapboxApp.swift */; };
 		AA8C0E9D27E1090800D054C1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E9C27E1090800D054C1 /* ContentView.swift */; };
 		AA8C0E9F27E1090B00D054C1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E9E27E1090B00D054C1 /* Assets.xcassets */; };
@@ -18,6 +19,7 @@
 /* Begin PBXFileReference section */
 		5F0234EC63BEAE0E9E60346F /* Pods_HeatmapMapbox.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HeatmapMapbox.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA1F75D927E11612006377B5 /* MapboxViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapboxViewController.swift; sourceTree = "<group>"; };
+		AA24255C2805D8E3006BBD25 /* accessPoints.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = accessPoints.json; sourceTree = "<group>"; };
 		AA8C0E9727E1090800D054C1 /* HeatmapMapbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeatmapMapbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA8C0E9A27E1090800D054C1 /* HeatmapMapboxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapMapboxApp.swift; sourceTree = "<group>"; };
 		AA8C0E9C27E1090800D054C1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 		AA8C0E9927E1090800D054C1 /* HeatmapMapbox */ = {
 			isa = PBXGroup;
 			children = (
+				AA24255C2805D8E3006BBD25 /* accessPoints.json */,
 				AA8C0EA827E112C700D054C1 /* Info.plist */,
 				AA8C0E9A27E1090800D054C1 /* HeatmapMapboxApp.swift */,
 				AA8C0E9C27E1090800D054C1 /* ContentView.swift */,
@@ -158,6 +161,7 @@
 			files = (
 				AA8C0EA227E1090B00D054C1 /* Preview Assets.xcassets in Resources */,
 				AA8C0E9F27E1090B00D054C1 /* Assets.xcassets in Resources */,
+				AA24255D2805D8E3006BBD25 /* accessPoints.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

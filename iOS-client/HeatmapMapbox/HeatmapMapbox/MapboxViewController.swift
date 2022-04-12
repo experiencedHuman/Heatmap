@@ -39,13 +39,15 @@ class MapboxViewController: UIViewController, MGLMapViewDelegate {
     }
     
     func mapView(_ mapView: MGLMapView, didFinishLoading style: MGLStyle) {
-        // Parse GeoJSON data. This example uses all M1.0+ earthquakes from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-        guard let url = URL(string: "https://www.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson") else { return }
-        let source = MGLShapeSource(identifier: "earthquakes", url: url, options: nil)
+        let identifier = "accesspoints"
+        var coordinates: [CLLocationCoordinate2D] = readCoordsFromJSON(file: "accessPoints")
+        
+        let collection = MGLPointCollection(coordinates: &coordinates, count: UInt(coordinates.count))
+        let source = MGLShapeSource(identifier: identifier, shape: collection, options: nil)
         style.addSource(source)
         
         // Create a heatmap layer.
-        let heatmapLayer = MGLHeatmapStyleLayer(identifier: "earthquakes", source: source)
+        let heatmapLayer = MGLHeatmapStyleLayer(identifier: identifier, source: source)
         
         // Adjust the color of the heatmap based on the point density.
         let colorDictionary: [NSNumber: UIColor] = [
@@ -89,5 +91,27 @@ class MapboxViewController: UIViewController, MGLMapViewDelegate {
         circleLayer.circleOpacity = NSExpression(format: "mgl_step:from:stops:($zoomLevel, 0, %@)", [0: 0, 9: 0.75])
         circleLayer.circleRadius = NSExpression(forConstantValue: 20)
         style.addLayer(circleLayer)
+    }
+    
+    private func readCoordsFromJSON(file filename: String) -> [CLLocationCoordinate2D] {
+        var coordinates: [CLLocationCoordinate2D] = []
+        do {
+            if let path = Bundle.main.url(forResource: filename, withExtension: "json") {
+                let data = try Data(contentsOf: path)
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
+                if let object = json as? [[String: Any]] {
+                    for item in object {
+                        let lat  = item["Latitude"] as? Double ?? 0.0
+                        let long = item["Longitude"] as? Double ?? 0.0
+                        let coord = CLLocationCoordinate2D(latitude: lat, longitude: long)
+                        coordinates.append(coord)
+                    }
+                }
+            }
+        } catch {
+            print("Could not read json file!")
+            return coordinates
+        }
+        return coordinates
     }
 }
