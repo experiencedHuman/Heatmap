@@ -50,19 +50,37 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
         self.view = mapView
         removeButton()
         fadeInButton()
+        radiusButton()
         opacityButton()
         gradientButton()
         tileSizeButton()
         zIndexButton()
         maxZoneIntensityButton()
         minZoneIntensityButton()
+        
+        let slider = UISlider(frame:CGRect(x: 0, y: 400, width: 200, height: 20))
+        slider.minimumValue = 0.05
+        slider.maximumValue = 10.0
+        slider.isContinuous = true
+        slider.addTarget(self, action: #selector(self.sliderValueDidChange(_:)), for: .valueChanged)
+        view.addSubview(slider)
+    }
+    
+    @objc
+    func sliderValueDidChange(_ sender:UISlider!) {
+        let step:Float = 0.05
+        // Use this code below only if you want UISlider to snap to values step by step
+        let stepValue = sender.value / step * step
+        sender.value = stepValue
+        heatmapLayer.opacity = stepValue
+        print("Slider value \(stepValue)")
     }
     
     override func viewDidLoad() {
         // Set heatmap options.
         heatmapLayer = GMUHeatmapTileLayer()
         heatmapLayer.radius = 300
-        heatmapLayer.opacity = 0.8
+        heatmapLayer.opacity = 0.8 // default = 0.8 or 0.75
         heatmapLayer.gradient = GMUGradient(colors: gradientColors,
                                             startPoints: gradientStartPoints,
                                             colorMapSize: 256)
@@ -105,6 +123,10 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
         heatmapLayer.weightedData = list
     }
     
+    func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
+        print("You tapped at \(coordinate.latitude), \(coordinate.longitude)")
+    }
+    
     @objc
     func removeHeatmap() {
         heatmapLayer.map = nil
@@ -113,42 +135,16 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
         button.isEnabled = false
     }
     
-    func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
-        print("You tapped at \(coordinate.latitude), \(coordinate.longitude)")
-    }
-    
     // Add a button to the view.
     func removeButton() {
         // A button to test removing the heatmap.
-        button = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 35))
-        button.backgroundColor = .blue
-//        button.alpha = 0.5
-        button.setTitle("Remove map", for: .normal)
+        button = UIButton(frame: CGRect(x: 0, y: 5, width: 100, height: 35))
+        button.backgroundColor = .red
+        button.setTitle("Remove", for: .normal)
         button.addTarget(self, action: #selector(removeHeatmap), for: .touchUpInside)
         self.mapView.addSubview(button)
 
     }
-    
-    /*
-     TODO properties & methods of mapView
-     
-     properties of heatmapLayer
-     heatmapLayer.map
-     heatmapLayer.fadeIn //bool. specifies whether the tiles should fade in. default yes.
-     heatmapLayer.radius
-     heatmapLayer.opacity
-     heatmapLayer.gradient
-     heatmapLayer.tileSize
-     heatmapLayer.zIndex
-     heatmapLayer.weightedData
-     heatmapLayer.maximumZoomIntensity
-     heatmapLayer.minimumZoomIntensity
-     
-     methods
-     heatmapLayer.clearTileCache()
-     heatmapLayer.requestTileFor(x: <#T##UInt#>, y: <#T##UInt#>, zoom: <#T##UInt#>, receiver: <#T##GMSTileReceiver#>)
-     heatmapLayer.tileFor(x: <#T##UInt#>, y: <#T##UInt#>, zoom: <#T##UInt#>)
-     */
     
     // MARK: fadeIn
     @objc
@@ -162,7 +158,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     }
     
     func fadeInButton() {
-        button = UIButton(frame: CGRect(x: 110, y: 0, width: 100, height: 35))
+        button = UIButton(frame: CGRect(x: 110, y: 5, width: 100, height: 35))
         button.backgroundColor = .blue
         button.setTitle("fade in", for: .normal)
         button.addTarget(self, action: #selector(fadeIn), for: .touchUpInside)
@@ -177,7 +173,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     }
     
     func radiusButton() {
-        button = UIButton(frame: CGRect(x: 220, y: 0, width: 100, height: 35))
+        button = UIButton(frame: CGRect(x: 220, y: 5, width: 100, height: 35))
         button.backgroundColor = .blue
         button.setTitle("rad +20", for: .normal)
         button.addTarget(self, action: #selector(increaseRadius), for: .touchUpInside)
@@ -192,7 +188,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     }
     
     func opacityButton() {
-        button = UIButton(frame: CGRect(x: 330, y: 5, width: 100, height: 35))
+        button = UIButton(frame: CGRect(x: 330, y: 5, width: 150, height: 35))
         button.backgroundColor = .blue
         button.setTitle("opacity +0.05", for: .normal)
         button.addTarget(self, action: #selector(increaseOpacity), for: .touchUpInside)
@@ -239,7 +235,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     func zIndexButton() {
         button = UIButton(frame: CGRect(x: 220, y: 45, width: 100, height: 35))
         button.backgroundColor = .blue
-        button.setTitle("fade in", for: .normal)
+        button.setTitle("zIndex", for: .normal)
         button.addTarget(self, action: #selector(changeZindex), for: .touchUpInside)
         self.mapView.addSubview(button)
     }
