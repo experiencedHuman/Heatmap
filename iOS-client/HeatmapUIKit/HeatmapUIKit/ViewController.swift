@@ -26,8 +26,9 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         let source = DataSource()
-        let url = URL(string: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson")!
-        source.importData(fromURL: url)
+        let locations = readCoordsFromJSON(file: "accessPoints")
+        let pointCollection = PointCollection(locations)
+        source.add(geometry: pointCollection)
         
         azureMap.onReady { map in
             map.sources.add(source)
@@ -38,6 +39,28 @@ class ViewController: UIViewController {
             map.layers.insertLayer(layer, below: "labels")
         }
         
+    }
+    
+    private func readCoordsFromJSON(file filename: String) -> [CLLocationCoordinate2D] {
+        var coordinates: [CLLocationCoordinate2D] = []
+        do {
+            if let path = Bundle.main.url(forResource: filename, withExtension: "json") {
+                let data = try Data(contentsOf: path)
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
+                if let object = json as? [[String: Any]] {
+                    for item in object {
+                        let lat  = item["Latitude"] as? Double ?? 0.0
+                        let long = item["Longitude"] as? Double ?? 0.0
+                        let coord = CLLocationCoordinate2D(latitude: lat, longitude: long)
+                        coordinates.append(coord)
+                    }
+                }
+            }
+        } catch {
+            print("Could not read json file!")
+            return coordinates
+        }
+        return coordinates
     }
     
 }
