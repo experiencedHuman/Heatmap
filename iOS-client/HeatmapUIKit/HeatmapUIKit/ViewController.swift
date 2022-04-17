@@ -23,6 +23,7 @@ class ViewController: UIViewController, AzureMapDelegate {
     
     func azureMap(_ map: AzureMap, didTapAt location: CLLocationCoordinate2D) {
         heatmapLayer = heatmapLayers[0]
+        // TODO add a button to change between multiple layer strategy and single layer (to be able to see property changing)
     }
     
     override func loadView() {
