@@ -47,10 +47,9 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
     
     override func loadView() {
         let camera = GMSCameraPosition.camera(withLatitude: 48.14957600438307, longitude: 11.567179933190348, zoom: zoomLevel)
-        mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
+        mapView = GMSMapView.map(withFrame: CGRect(x: 0, y: 0, width: 500, height: 800), camera: camera)
         mapView.delegate = self
         self.view = mapView
-        addButtons()
         addSliders()
     }
     
@@ -272,83 +271,4 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate {
         button.isEnabled = false
     }
     
-    // MARK: fadeIn
-    @objc
-    private func fadeIn() {
-        if heatmapLayer.fadeIn {
-            heatmapLayer.fadeIn = false
-        } else {
-            heatmapLayer.fadeIn = true
-        }
-        print("heatmap faded in \(heatmapLayer.fadeIn)")
-    }
-    
-    // MARK: radius
-    @objc
-    private func increaseRadius() {
-        heatmapLayer.radius += UInt(20.0)
-        print("radius: \(heatmapLayer.radius)")
-    }
-    
-    // MARK: opacity
-    @objc
-    private func increaseOpacity() {
-        heatmapLayer.opacity += 0.05
-        print("opacity: \(heatmapLayer.opacity)")
-    }
-    
-    // MARK: gradient
-    @objc
-    private func changeGradient() {
-        heatmapLayer.gradient = GMUGradient(colors: [UIColor.yellow, UIColor.green], startPoints: [0.1, 0.5] as [NSNumber], colorMapSize: 128)
-        print("gradient: \(heatmapLayer.gradient.description)")
-    }
-    
-    // MARK: tileSize
-    @objc
-    private func changeTileSize() {
-        heatmapLayer.tileSize += 20
-        print("tile size: \(heatmapLayer.tileSize)")
-    }
-    
-    // MARK: zIndex
-    @objc
-    private func changeZindex() {
-        heatmapLayer.zIndex += 10
-        print("z index: \(heatmapLayer.zIndex)")
-    }
-    
-    // MARK: maximumZoneIntensity
-    @objc
-    private func changeMaxZoneIntensity() {
-        heatmapLayer.minimumZoomIntensity += UInt(0.1)
-        print("Maximum zone intensity: \(heatmapLayer.minimumZoomIntensity)")
-    }
-    
-    // MARK: minimumZoneIntensity
-    @objc
-    private func changeMinZoneIntensity() {
-        heatmapLayer.minimumZoomIntensity += UInt(0.1)
-        print("Minimum zone intensity: \(heatmapLayer.minimumZoomIntensity)")
-    }
-    
-    private func addButtons() {
-        addButton(title: "Remove",     xOrig: 0,     yOrig: 5,  width: 100, height: 35, objcFunc: #selector(removeHeatmap))
-        addButton(title: "fadeIn",     xOrig: 110,   yOrig: 5,  width: 100, height: 35, objcFunc: #selector(fadeIn))
-        addButton(title: "Radius",     xOrig: 220,   yOrig: 5,  width: 100, height: 35, objcFunc: #selector(increaseRadius))
-        addButton(title: "Opacity",    xOrig: 330,   yOrig: 5,  width: 100, height: 35, objcFunc: #selector(increaseOpacity))
-        addButton(title: "Gradient",   xOrig: 0,     yOrig: 45, width: 100, height: 35, objcFunc: #selector(changeGradient))
-        addButton(title: "TileSize",   xOrig: 110,   yOrig: 45, width: 100, height: 35, objcFunc: #selector(changeTileSize))
-        addButton(title: "zIndex",     xOrig: 220,   yOrig: 45, width: 100, height: 35, objcFunc: #selector(changeZindex))
-        addButton(title: "MaxZoneInt", xOrig: 330,   yOrig: 45, width: 120, height: 35, objcFunc: #selector(changeMaxZoneIntensity))
-        addButton(title: "MinZoneInt", xOrig: 460,   yOrig: 45, width: 120, height: 35, objcFunc: #selector(changeMinZoneIntensity))
-    }
-    
-    private func addButton(title: String, xOrig:Int, yOrig: Int, width: Int, height: Int, objcFunc: Selector) {
-        button = UIButton(frame: CGRect(x: xOrig, y: yOrig, width: width, height: height))
-        button.backgroundColor = .blue
-        button.setTitle(title, for: .normal)
-        button.addTarget(self, action: objcFunc, for: .touchUpInside)
-        self.mapView.addSubview(button)
-    }
 }
