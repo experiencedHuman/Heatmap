@@ -22,7 +22,7 @@ class ViewController: UIViewController, AzureMapDelegate {
     private var heatmapLayer: HeatMapLayer!
     
     func azureMap(_ map: AzureMap, didTapAt location: CLLocationCoordinate2D) {
-        heatmapLayer = heatmapLayers[0]
+//        heatmapLayer = heatmapLayers[0]
         // TODO add a button to change between multiple layer strategy and single layer (to be able to see property changing)
     }
     
@@ -38,24 +38,41 @@ class ViewController: UIViewController, AzureMapDelegate {
         azureMap.onReady { map in
             map.sources.add(self.dataSource)
             
-            //setup heatmap layers and add them all to map
-            self.heatmapLayers = [HeatMapLayer?](repeating: nil, count: 23)
-            for i in 1...23 {
-                let heatmapLayer = HeatMapLayer(
-                    source: self.dataSource,
-                    options: [
-                        .heatmapRadius(10.0 + Double(i)),
-                        .heatmapOpacity(0.8),
-                        .minZoom(Double(i) - 0.1),
-                        .maxZoom(Double(i) + 0.9)
-                    ]
-                )
-                self.heatmapLayers[i - 1] = heatmapLayer
-                map.layers.insertLayer(heatmapLayer, below: "labels")
-            }
+            self.useMultipleLayers(map)
+//            self.useSingleLayer(map)
         }
         
         self.view.addSubview(azureMap)
+    }
+    
+    private func useMultipleLayers(_ map: AzureMap) {
+        //setup heatmap layers and add them all to map
+        heatmapLayers = [HeatMapLayer?](repeating: nil, count: 23)
+        for i in 1...23 {
+            let heatmapLayer = HeatMapLayer(
+                source: dataSource,
+                options: [
+                    .heatmapRadius(10.0 + Double(i)),
+                    .heatmapOpacity(0.8),
+                    .minZoom(Double(i) - 0.1),
+                    .maxZoom(Double(i) + 0.9)
+                ]
+            )
+            heatmapLayers[i - 1] = heatmapLayer
+            map.layers.insertLayer(heatmapLayer, below: "labels")
+        }
+    }
+    
+    private func useSingleLayer(_ map: AzureMap) {
+        heatmapLayer = HeatMapLayer(
+            source: dataSource,
+            options: [
+                .heatmapRadius(10.0),
+                .heatmapOpacity(0.8),
+                .minZoom(1.0),
+            ]
+        )
+        map.layers.insertLayer(heatmapLayer, below: "labels")
     }
     
     override func viewDidLoad() {
