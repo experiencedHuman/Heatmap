@@ -86,11 +86,19 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         heatmapLayers = [GMUHeatmapTileLayer?](repeating: nil, count: 23)
         for i in 1...23 {
             let hmLayer = GMUHeatmapTileLayer()
-            hmLayer.radius = UInt(i)
-            hmLayer.opacity = 0.8
+            if i <= 5 {
+                hmLayer.radius = UInt(i)
+                hmLayer.opacity = 0.3
+            } else if i > 5 && i < 10 {
+                hmLayer.radius = UInt(i * 5)
+                hmLayer.opacity = 0.8
+            } else {
+                hmLayer.radius = UInt(i * 20)
+                hmLayer.opacity = 0.85
+            }
             hmLayer.weightedData = accesspoints
-            hmLayer.zIndex = Int32(i)
-            hmLayer.map = mapView
+//            hmLayer.zIndex = Int32(i)
+//            hmLayer.map = mapView
             heatmapLayers[i - 1] = hmLayer
         }
     }
@@ -103,7 +111,15 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
             let lvl = Int(zoomLevel)
             let hml = heatmapLayers[lvl]
             hml?.map = mapView
-            print("zoom lvl: \(Int(zoomLevel)) & radius: \(heatmapLayer.radius)")
+            
+            //remove the other heatmaps
+            for i in 0...22 {
+                if i != lvl {
+                    let otherHML = heatmapLayers[i]
+                    otherHML?.map = nil
+                }
+            }
+            print("zoom lvl: \(Int(zoomLevel)) & radius: \(hml?.radius)")
 //            heatmapLayer.clearTileCache()
 //            initHeatmapLayer(radius: radius, opacity: opacity, colorMapSize: colorMapSize)
         }
@@ -137,7 +153,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         //      heatmapLayer.zIndex // <- this is useful when you have multiple heatmap layers and want to decide which shows on top of which
         
         // Set the heatmap to the mapview.
-        heatmapLayer.map = mapView
+//        heatmapLayer.map = mapView
     }
     
     // Parse JSON data and add it to the heatmap layer.
