@@ -1,4 +1,4 @@
-package LRZscraper
+package DBService
 
 import (
 	"database/sql"
@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	sqlitePath 	string = "./data/sqlite/"
-	csvPath		string = "data/csv/"
+	sqlitePath string = "./data/sqlite/"
+	csvPath    string = "data/csv/"
 )
 
 type AccessPointOverview struct {
@@ -23,7 +23,7 @@ type AccessPointOverview struct {
 	Status  string
 	Type    string
 	Load    string
-	// RF_ID	string // RoomFinderID ~ architect number e.g. 1302@0103
+	RF_ID	string // RoomFinderID ~ architect number e.g. 1302@0103
 }
 
 // initializes a local database instance, located in dbPath
@@ -66,8 +66,8 @@ func createTableAccesspoints(tableName string, db *sql.DB) {
 
 func readItem(db *sql.DB) []AccessPointOverview {
 	query := `
-		SELECT Address, Room, Load 
-		FROM overview
+		SELECT ID, Address, Room, Load, RF_ID
+		FROM apstat
 		WHERE Address Like '%TUM%'
 	`
 	rows, err := db.Query(query)
@@ -79,7 +79,7 @@ func readItem(db *sql.DB) []AccessPointOverview {
 	var result []AccessPointOverview
 	for rows.Next() {
 		item := AccessPointOverview{}
-		err2 := rows.Scan(&item.Address, &item.Room, &item.Load)
+		err2 := rows.Scan(&item.ID, &item.Address, &item.Room, &item.Load, &item.RF_ID)
 		if err2 != nil {
 			panic(err2)
 		}
@@ -120,9 +120,9 @@ func StoreDataInSQLite(dbPath string) {
 	for r := range data {
 		network := data[r][0]
 		current := data[r][1]
-		max 	:= data[r][2]
-		min 	:= data[r][3]
-		other 	:= data[r][4]
+		max := data[r][2]
+		min := data[r][3]
+		other := data[r][4]
 
 		_, err := stmt.Exec(network, current, max, min, other)
 		if err != nil {
@@ -166,11 +166,11 @@ func StoreApstatInSQLite(dbName string) {
 	log.Printf("Storing %s csv data in SQLite ...\n", dbName)
 	for r := range csvData {
 		address := csvData[r][0]
-		room  	:= csvData[r][1]
-		apName  := csvData[r][2]
-		status  := csvData[r][3]
-		apType  := csvData[r][4]
-		apLoad  := csvData[r][5]
+		room := csvData[r][1]
+		apName := csvData[r][2]
+		status := csvData[r][3]
+		apType := csvData[r][4]
+		apLoad := csvData[r][5]
 
 		_, err := stmt.Exec(address, room, apName, status, apType, apLoad)
 		if err != nil {
@@ -225,18 +225,14 @@ func PopulateNewColumn(dbName, newCol string) {
 
 	// query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s='unvalid'`, dbName, newCol, newCol)
 	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s IS NULL`, dbName, newCol, newCol)
-
-	fmt.Println(query)
 	stmt, dbError := db.Prepare(query)
 
 	if dbError != nil {
 		panic(dbError)
 	}
 
-	res, err := stmt.Exec("unknown")
+	_, err := stmt.Exec("unknown")
 	if err != nil {
 		panic(err)
-	} else {
-		println(res.LastInsertId())
 	}
 }

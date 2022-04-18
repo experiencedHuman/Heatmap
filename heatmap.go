@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kvogli/Heatmap/LRZscraper"
+	"github.com/kvogli/Heatmap/DBService"
 	"github.com/kvogli/Heatmap/RoomFinder"
 
 	"os"
@@ -62,6 +62,7 @@ func getDataFromURL(fName, url string) {
 	}
 }
 
+// stores a JSON entry
 type AccessPoint struct {
 	Intensity float64
 	Latitude  float64
@@ -75,9 +76,11 @@ func saveApLoadToJsonFile() {
 	accessPoints := make([]AccessPoint, 0)
 	for _, roomInfo := range roomInfos {
 		var intensity float64 = float64(roomInfo.RoomLoad) / float64(totalLoad)
-		if coord, exists := coordinatesMap[roomInfo.RoomID]; exists {
+		// check if there was an exact match for room's location
+		if coord, exists := coordinatesMap[roomInfo.RoomFinderID]; exists {
 			ap := AccessPoint{Intensity: intensity, Latitude: coord.Lat, Longitude: coord.Long}
 			accessPoints = append(accessPoints, ap)
+			// TODO store newly discovered rooms as visited in the database
 		}
 	}
 
@@ -101,8 +104,8 @@ func main() {
 
 	// res := LRZscraper.FetchApstatData("apstat")
 	// println(len(res))
-	 
+
 	// LRZscraper.ScrapeApstat("data/csv/apstat.csv")
 	// LRZscraper.StoreApstatInSQLite("apstat")
-	LRZscraper.PopulateNewColumn("apstat", "RF_ID")
+	DBService.PopulateNewColumn("apstat", "RF_ID")
 }

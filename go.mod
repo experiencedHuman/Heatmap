@@ -5,7 +5,6 @@ go 1.17
 replace github.com/kvogli/Heatmap/LRZscraper => ./LRZscraper
 
 require (
-	github.com/kvogli/Heatmap/LRZscraper v0.0.0-00010101000000-000000000000
 	github.com/gocolly/colly v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.12
 )
