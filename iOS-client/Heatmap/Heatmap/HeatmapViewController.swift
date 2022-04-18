@@ -56,6 +56,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     
     private var accesspoints: [GMUWeightedLatLng]!
     private var zoomLevel: Float = 16.0
+    private var heatmapLayers: [GMUHeatmapTileLayer?]!
     
     private var backgroundView = UIView(frame: CGRect(x: 5, y: 5, width: 350, height: 400))
     
@@ -66,42 +67,61 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         mapView.delegate = self
         mapView.indoorDisplay.delegate = self
         self.view = mapView
-        addSliders()
+        addSliders() // TODO: add slider for tileSize ?
         
         backgroundView.backgroundColor = .lightGray
         self.view.addSubview(backgroundView)
     }
     
-//    func mapViewDidStartTileRendering(_ mapView: GMSMapView) {
-//        print("did start")
-//    }
-//
-//    func mapViewDidFinishTileRendering(_ mapView: GMSMapView) {
-//        print("did finish")
-//    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         // TODO move this to a function and reinitalize heatmapLayer each time radius is changed for example. There might be a bug that radius change is not taken into consideration
-        // try multiple layers with different zIndex ?
         accesspoints = addHeatmap()
+        setupMultipleLayers()
         initHeatmapLayer(radius: radius, opacity: opacity, colorMapSize: colorMapSize)
         print("zoom level is: \(mapView.camera.zoom)")
-//        heatmapLayer.tile
     }
+    
+    private func setupMultipleLayers() {
+        heatmapLayers = [GMUHeatmapTileLayer?](repeating: nil, count: 23)
+        for i in 1...23 {
+            let hmLayer = GMUHeatmapTileLayer()
+            hmLayer.radius = UInt(i)
+            hmLayer.opacity = 0.8
+            hmLayer.weightedData = accesspoints
+            hmLayer.zIndex = Int32(i)
+            hmLayer.map = mapView
+            heatmapLayers[i - 1] = hmLayer
+        }
+    }
+    
+    func mapView(_ mapView: GMSMapView, didChange position: GMSCameraPosition) {
+        let currentZoomLevel = mapView.camera.zoom
+        if abs(currentZoomLevel - zoomLevel) > 1 {
+            zoomLevel = currentZoomLevel //update
+//            heatmapLayer = heatmapLayers[Int(zoomLevel)]
+            let lvl = Int(zoomLevel)
+            let hml = heatmapLayers[lvl]
+            hml?.map = mapView
+            print("zoom lvl: \(Int(zoomLevel)) & radius: \(heatmapLayer.radius)")
+//            heatmapLayer.clearTileCache()
+//            initHeatmapLayer(radius: radius, opacity: opacity, colorMapSize: colorMapSize)
+        }
+    }
+    
     
     // TODO get building data. show heatmap based just on the building?
     func didChangeActiveBuilding(_ building: GMSIndoorBuilding?) {
         if let currentBuilding = building {
             let levels = currentBuilding.levels
             mapView.indoorDisplay.activeLevel = levels[2]
-            print("Changed to level 2")
+//            print("Changed to level 2")
         }
     }
     
     // TODO display different heatmap based on selected level
     func didChangeActiveLevel(_ level: GMSIndoorLevel?) {
-        print("level was changed")
+//        print("level was changed")
     }
     
     private func initHeatmapLayer(radius: UInt, opacity: Float, colorMapSize: UInt) {
@@ -152,15 +172,6 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         // Add the latlngs to the heatmap layer.
 //      heatmapLayer.weightedData = list
         return list
-    }
-    
-    func mapView(_ mapView: GMSMapView, didChange position: GMSCameraPosition) {
-        let currentZoomLevel = mapView.camera.zoom
-        if abs(currentZoomLevel - zoomLevel) > 1 {
-            zoomLevel = currentZoomLevel //update
-//            heatmapLayer.clearTileCache()
-//            initHeatmapLayer(radius: radius, opacity: opacity, colorMapSize: colorMapSize)
-        }
     }
     
     private func addSliders() {
