@@ -16,6 +16,9 @@ import (
 	"database/sql"
 
 	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/PuerkitoBio/goquery"
+    "net/http"
 )
 
 type muxCache struct {
@@ -211,4 +214,45 @@ func UpdateRoomHasLocation(dbName string) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func ScrapeURLs(roomInfos []RoomInfo) {
+	url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", "1@5509")
+	scrapeURL(url)
+}
+
+func scrapeURL(url string) {
+    resp, err := http.Get(url)
+
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != 200 {
+        log.Fatalf("failed to fetch data: %d %s", resp.StatusCode, resp.Status)
+    }
+
+    doc, err := goquery.NewDocumentFromReader(resp.Body)
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    element := doc.Find("a[href^='http://maps.google.com']")
+    link, exists := element.Attr("href")
+	
+	if exists {
+		fmt.Println(link)
+	}
+}
+
+func prepareURLs(roomInfos []RoomInfo) []string {
+	var urls []string
+	
+	for _, roomInfo := range roomInfos {
+		url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.RoomID)
+		urls = append(urls, url)
+	}
+	return urls
 }

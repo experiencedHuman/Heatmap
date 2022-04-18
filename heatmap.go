@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kvogli/Heatmap/DBService"
+	// "github.com/kvogli/Heatmap/DBService"
 	"github.com/kvogli/Heatmap/RoomFinder"
 
 	"os"
@@ -107,5 +107,8 @@ func main() {
 
 	// LRZscraper.ScrapeApstat("data/csv/apstat.csv")
 	// LRZscraper.StoreApstatInSQLite("apstat")
-	DBService.PopulateNewColumn("apstat", "RF_ID")
+
+	// DBService.PopulateNewColumn("apstat", "RF_ID")
+	roomInfos, _ := RoomFinder.PrepareDataToScrape()
+	RoomFinder.ScrapeURLs(roomInfos)
 }
