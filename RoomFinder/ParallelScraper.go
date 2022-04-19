@@ -67,7 +67,9 @@ func (cache *muxCache) storeCoord(id string, coord Coordinate) {
 	if _, ok := cache.rooms[id]; ok {
 		// already visited
 		// TODO adjust intensity of the room/ap
+		fmt.Println("already visited id:", id)
 	} else {
+		fmt.Println("not yet visited:", id)
 		// not yet visited
 		cache.rooms[id] = coord
 	}
@@ -168,6 +170,10 @@ func getLatLongFromURL(url string) (lat, long string) {
 func scrapeBuildingNrFromAddress(address string) string {
 	re := regexp.MustCompile("[0-9]+")
 	buildingNr := re.FindString(address)
+	if buildingNr == "5500" {
+		re = regexp.MustCompile("\\d{4}")
+		buildingNr = re.FindAllString(address, -1)[1]
+	}
 	return buildingNr
 }
 
@@ -307,6 +313,8 @@ func scrapeURL(urlPair urlPair, wg *sync.WaitGroup, t *http.Transport) {
 			coord = Coordinate{exact: false, Lat: lat, Long: long}
 			cache.storeCoord(urlPair.ID, coord)
 		}
+	} else {
+		fmt.Println("link doesnt exist:", urlPair.url)
 	}
 }
 

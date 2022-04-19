@@ -122,8 +122,8 @@ func main() {
 	// DBService.AddNewColumn("apstat", "Long")
 	// DBService.UpdateColumn("apstat", "Long", "longitude", " IS NULL")
 	
-	DBService.UpdateColumn("apstat", "Lat", "lat", "Lat != 'NULL'")
-	DBService.UpdateColumn("apstat", "Long", "long", "Long != 'zrf'")
+	// DBService.UpdateColumn("apstat", "Lat", "lat", "Lat != 'NULL'")
+	// DBService.UpdateColumn("apstat", "Long", "long", "Long != 'zrf'")
 	scrapeWithGoquery()
 }
 
