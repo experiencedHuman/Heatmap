@@ -14,7 +14,6 @@ import (
 	"github.com/kvogli/Heatmap/RoomFinder"
 
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -68,8 +67,8 @@ func getDataFromURL(fName, url string) {
 // stores a JSON entry
 type AccessPoint struct {
 	Intensity float64
-	Latitude  float64
-	Longitude float64
+	Latitude  string
+	Longitude string
 }
 
 func saveApLoadToJsonFile() {
@@ -123,8 +122,8 @@ func main() {
 	// DBService.AddNewColumn("apstat", "Long")
 	// DBService.UpdateColumn("apstat", "Long", "longitude", " IS NULL")
 	
-	// DBService.UpdateColumn("apstat", "Lat", "lat", "='NULL'")
-	// DBService.UpdateColumn("apstat", "Long", "long", "='zrf'")
+	DBService.UpdateColumn("apstat", "Lat", "lat", "Lat != 'NULL'")
+	DBService.UpdateColumn("apstat", "Long", "long", "Long != 'zrf'")
 	scrapeWithGoquery()
 }
 
@@ -139,11 +138,8 @@ func scrapeWithGoquery() {
 
 	for key, val := range res {
 		where := fmt.Sprintf("ID='%s'", key)
-		lat := strconv.FormatFloat(val.Lat, 'E', -1, 64)
-		DBService.UpdateColumn("apstat", "Lat", lat, where)
-		
-		long := strconv.FormatFloat(val.Long, 'E', -1, 64)
-		DBService.UpdateColumn("apstat", "Long", long, where)
+		DBService.UpdateColumn("apstat", "Lat", val.Lat, where)
+		DBService.UpdateColumn("apstat", "Long", val.Long, where)
 	}
 
 }

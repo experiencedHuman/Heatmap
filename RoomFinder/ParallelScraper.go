@@ -17,9 +17,10 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/PuerkitoBio/goquery"
-    "net/http"
 	"net"
+	"net/http"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type muxCache struct {
@@ -31,8 +32,8 @@ var cache = muxCache{rooms: make(map[string]Coordinate)}
 
 type Coordinate struct {
 	exact bool // whether the coordinates are that of the room, or of the building
-	Lat   float64
-	Long  float64
+	Lat   string
+	Long  string
 }
 
 func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) bool {
@@ -105,7 +106,7 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	)
 
 	c.OnError(func(r *colly.Response, err error) {
-		log.Printf("%q for url: %s",err, r.Request.URL.String())
+		log.Printf("%q for url: %s", err, r.Request.URL.String())
 		failedOnError++
 	})
 
@@ -147,20 +148,17 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	elapsed := time.Since(start)
 
 	fmt.Println("Finished scraping locations. Time elapsed:", elapsed)
-	fmt.Printf("Failed OnReq: %d, OnErr: %d out of 2445\n" +
-				"Valid requests: %d out of 2445", failedOnResponse, failedOnError, validReq)
+	fmt.Printf("Failed OnReq: %d, OnErr: %d out of 2445\n"+
+		"Valid requests: %d out of 2445", failedOnResponse, failedOnError, validReq)
 	return cache.rooms
 }
 
 // It scrapes latitude and longitude from parameter 'url' and
 // returns them as float64 values
-func getLatLongFromURL(url string) (lat, long float64) {
+func getLatLongFromURL(url string) (lat, long string) {
 	parts := strings.Split(url, "&")
 	latLong := strings.Split(parts[0], "=")[1]
-	latStr, longStr, _ := strings.Cut(latLong, ",")
-
-	lat, _ = strconv.ParseFloat(latStr, 64)
-	long, _ = strconv.ParseFloat(longStr, 64)
+	lat, long, _ = strings.Cut(latLong, ",")
 	return
 }
 
@@ -184,9 +182,9 @@ func scrapeRoomNrFromRoomName(roomName string) string {
 }
 
 type RoomInfo struct {
-	ID   string // ID in the database table
+	ID           string // ID in the database table
 	RoomFinderID string
-	RoomLoad int
+	RoomLoad     int
 }
 
 // This function prepares the roomIDs that will later be concatenated to the RoomFinder's url/path
@@ -244,17 +242,17 @@ func UpdateRoomHasLocation(dbName string) {
 func ScrapeURLs(roomInfos []RoomInfo) map[string]Coordinate {
 	var wg sync.WaitGroup
 	urlPairs := prepareURLs(roomInfos)
-	
+
 	start := time.Now()
 	t := http.Transport{
-            Dial: (&net.Dialer{
-                    Timeout: 60 * time.Second,
-                    KeepAlive: 30 * time.Second,
-            }).Dial,
-            TLSHandshakeTimeout: 60 * time.Second,
-			MaxConnsPerHost: 50,
-			MaxIdleConns: 50,
-    }
+		Dial: (&net.Dialer{
+			Timeout:   60 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 60 * time.Second,
+		MaxConnsPerHost:     50,
+		MaxIdleConns:        50,
+	}
 	for _, urlPair := range urlPairs {
 		wg.Add(1)
 		go scrapeURL(urlPair, &wg, &t)
@@ -262,26 +260,26 @@ func ScrapeURLs(roomInfos []RoomInfo) map[string]Coordinate {
 
 	wg.Wait()
 	elapsed := time.Since(start)
-	
-	log.Printf("Failed requests: %d out of 2445\n" + 
-			   "Valid requests: %d out of 2445", failedRequests, validReq)
+
+	log.Printf("Failed requests: %d out of 2445\n"+
+		"Valid requests: %d out of 2445", failedRequests, validReq)
 	log.Println("time elapsed:", elapsed)
 	return cache.rooms
 }
 
 func scrapeURL(urlPair urlPair, wg *sync.WaitGroup, t *http.Transport) {
 	defer wg.Done()
-    c := &http.Client{
-            Transport: t,
-    }
-    resp, err := c.Get(urlPair.url)
+	c := &http.Client{
+		Transport: t,
+	}
+	resp, err := c.Get(urlPair.url)
 
-    if err != nil {
+	if err != nil {
 		failedRequests++
-        // log.Printf("%q for url: %s", err, urlPair.url)
+		// log.Printf("%q for url: %s", err, urlPair.url)
 		return
-    }
-    defer resp.Body.Close()
+	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		failedRequests++
@@ -289,16 +287,16 @@ func scrapeURL(urlPair urlPair, wg *sync.WaitGroup, t *http.Transport) {
 		return
 	}
 
-    doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	validReq++
-    element := doc.Find("a[href^='http://maps.google.com']")
-    link, exists := element.Attr("href")
-	
+	element := doc.Find("a[href^='http://maps.google.com']")
+	link, exists := element.Attr("href")
+
 	if exists {
 		lat, long := getLatLongFromURL(link)
 		var coord Coordinate
@@ -313,13 +311,13 @@ func scrapeURL(urlPair urlPair, wg *sync.WaitGroup, t *http.Transport) {
 }
 
 type urlPair struct {
-	ID	string	// ID of the database entry for the room
-	url	string
+	ID  string // ID of the database entry for the room
+	url string
 }
 
 func prepareURLs(roomInfos []RoomInfo) []urlPair {
 	var urls []urlPair
-	
+
 	for _, roomInfo := range roomInfos {
 		url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.RoomFinderID)
 		urls = append(urls, urlPair{ID: roomInfo.ID, url: url})
