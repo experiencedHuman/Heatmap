@@ -107,7 +107,7 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 
 	for _, roomInfo := range roomInfos {
 		// Add URLs to the queue
-		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.RoomID))
+		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.ID))
 	}
 	start := time.Now()
 	log.Println("Time now", start)
@@ -156,7 +156,7 @@ func scrapeRoomNrFromRoomName(roomName string) string {
 }
 
 type RoomInfo struct {
-	RoomID   string // ID in the database table
+	ID   string // ID in the database table
 	RoomFinderID string
 	RoomLoad int
 }
@@ -177,7 +177,7 @@ func PrepareDataToScrape() ([]RoomInfo, int) {
 		currTotalLoad := getCurrentTotalLoad(val.Load)
 		total += currTotalLoad
 		roomFinderID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
-		data = append(data, RoomInfo{RoomID: val.ID, RoomFinderID: roomFinderID, RoomLoad: currTotalLoad})
+		data = append(data, RoomInfo{ID: val.ID, RoomFinderID: roomFinderID, RoomLoad: currTotalLoad})
 	}
 	return data, total
 }
@@ -217,12 +217,20 @@ func UpdateRoomHasLocation(dbName string) {
 }
 
 func ScrapeURLs(roomInfos []RoomInfo) {
-	url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", "1@5509")
-	scrapeURL(url)
+	var wg sync.WaitGroup
+	urlPairs := prepareURLs(roomInfos)
+
+	for _, urlPair := range urlPairs {
+		wg.Add(1)
+		go scrapeURL(urlPair, &wg)
+	}
+
+	wg.Wait()
 }
 
-func scrapeURL(url string) {
-    resp, err := http.Get(url)
+func scrapeURL(urlPair urlPair, wg *sync.WaitGroup) {
+	defer wg.Done()
+    resp, err := http.Get(urlPair.url)
 
     if err != nil {
         log.Fatal(err)
@@ -243,16 +251,21 @@ func scrapeURL(url string) {
     link, exists := element.Attr("href")
 	
 	if exists {
-		fmt.Println(link)
+		log.Println(link)
 	}
 }
 
-func prepareURLs(roomInfos []RoomInfo) []string {
-	var urls []string
+type urlPair struct {
+	ID	string	// ID of the database entry for the room
+	url	string
+}
+
+func prepareURLs(roomInfos []RoomInfo) []urlPair {
+	var urls []urlPair
 	
 	for _, roomInfo := range roomInfos {
-		url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.RoomID)
-		urls = append(urls, url)
+		url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.ID)
+		urls = append(urls, urlPair{ID: roomInfo.ID, url: url})
 	}
 	return urls
 }
