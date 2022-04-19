@@ -10,8 +10,8 @@ import (
 )
 
 type CoordInfo struct {
-	Lat  float64 `json:"lat"`
-	Long float64 `json:"lon"`
+	Lat  string `json:"lat"`
+	Long string `json:"lon"`
 	Src  string  `json:"source"`
 }
 
