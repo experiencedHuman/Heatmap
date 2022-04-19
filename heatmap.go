@@ -110,5 +110,8 @@ func main() {
 
 	// DBService.PopulateNewColumn("apstat", "RF_ID")
 	roomInfos, _ := RoomFinder.PrepareDataToScrape()
+	// for _, ri := range roomInfos {
+	// 	fmt.Println(ri.RoomFinderID)
+	// }
 	RoomFinder.ScrapeURLs(roomInfos)
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
     "net/http"
+	"net"
 )
 
 type muxCache struct {
@@ -59,6 +60,11 @@ func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) boo
 	}
 }
 
+var failedRequests = 0
+var validReq = 0
+var failedOnError = 0
+var failedOnResponse = 0
+
 // This function generates a number of URLs (based on roomIDs) and
 // visits them all in parallel and scrapes the coordinates for each room.
 // It returns a map of all rooms with key being roomID, and value room coordinates
@@ -86,12 +92,23 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 		&queue.InMemoryQueueStorage{MaxSize: 10000}, // Use default queue storage
 	)
 
+	c.OnError(func(r *colly.Response, err error) {
+		log.Printf("%q for url: %s",err, r.Request.URL.String())
+		failedOnError++
+	})
+
+	c.OnResponse(func(r *colly.Response) {
+		if r.StatusCode != 200 {
+			failedOnResponse++
+		}
+	})
+
 	c.OnRequest(func(r *colly.Request) {
-		log.Println("visiting", r.URL)
+		// log.Println("visiting", r.URL)
 	})
 
 	c.OnScraped(func(r *colly.Response) {
-		log.Println("Finished scraping", r.Request.URL)
+		// log.Println("Finished scraping", r.Request.URL)
 	})
 
 	c.OnHTML("html", func(h *colly.HTMLElement) {
@@ -102,12 +119,13 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 		buildingNr := buildingRE.FindString(h.Request.URL.String())
 
 		roomFinderID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
+		validReq++
 		roomCache.setVisited(h, roomFinderID)
 	})
 
 	for _, roomInfo := range roomInfos {
 		// Add URLs to the queue
-		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.ID))
+		q.AddURL(fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.RoomFinderID))
 	}
 	start := time.Now()
 	log.Println("Time now", start)
@@ -117,10 +135,9 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	elapsed := time.Since(start)
 	// TODO add progress indicator
 
-	
-
 	// go showStatus(q)
 	fmt.Println("Finished scraping locations. Time elapsed:", elapsed)
+	fmt.Printf("Failed OnReq: %d, OnErr: %d out of 2445\nValid requests: %d out of 2445", failedOnResponse, failedOnError, validReq)
 	return roomCache.rooms
 }
 
@@ -219,28 +236,50 @@ func UpdateRoomHasLocation(dbName string) {
 func ScrapeURLs(roomInfos []RoomInfo) {
 	var wg sync.WaitGroup
 	urlPairs := prepareURLs(roomInfos)
-
+	
+	start := time.Now()
+	t := http.Transport{
+            Dial: (&net.Dialer{
+                    Timeout: 60 * time.Second,
+                    KeepAlive: 30 * time.Second,
+            }).Dial,
+            TLSHandshakeTimeout: 60 * time.Second,
+			MaxConnsPerHost: 50,
+			MaxIdleConns: 50,
+    }
 	for _, urlPair := range urlPairs {
 		wg.Add(1)
-		go scrapeURL(urlPair, &wg)
+		go scrapeURL(urlPair, &wg, &t)
 	}
 
 	wg.Wait()
+	elapsed := time.Since(start)
+	
+	log.Printf("Failed requests: %d out of 2445\nValid requests: %d out of 2445", failedRequests, validReq)
+	log.Println("time elapsed:", elapsed)
 }
 
-func scrapeURL(urlPair urlPair, wg *sync.WaitGroup) {
+func scrapeURL(urlPair urlPair, wg *sync.WaitGroup, t *http.Transport) {
 	defer wg.Done()
-    resp, err := http.Get(urlPair.url)
+    c := &http.Client{
+            Transport: t,
+    }
+    resp, err := c.Get(urlPair.url)
 
     if err != nil {
-        log.Fatal(err)
+		failedRequests++
+        log.Printf("%q for url: %s", err, urlPair.url)
+		return
     }
     defer resp.Body.Close()
 
-    if resp.StatusCode != 200 {
-        log.Fatalf("failed to fetch data: %d %s", resp.StatusCode, resp.Status)
-    }
+	if resp.StatusCode != 200 {
+		failedRequests++
+		log.Printf("%s for url: %s", resp.Status, urlPair.url)
+		return
+	}
 
+	validReq++
     doc, err := goquery.NewDocumentFromReader(resp.Body)
 
     if err != nil {
@@ -248,10 +287,10 @@ func scrapeURL(urlPair urlPair, wg *sync.WaitGroup) {
     }
 
     element := doc.Find("a[href^='http://maps.google.com']")
-    link, exists := element.Attr("href")
+    _, exists := element.Attr("href")
 	
 	if exists {
-		log.Println(link)
+		// log.Println(link)
 	}
 }
 
@@ -264,7 +303,7 @@ func prepareURLs(roomInfos []RoomInfo) []urlPair {
 	var urls []urlPair
 	
 	for _, roomInfo := range roomInfos {
-		url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.ID)
+		url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomInfo.RoomFinderID)
 		urls = append(urls, urlPair{ID: roomInfo.ID, url: url})
 	}
 	return urls
