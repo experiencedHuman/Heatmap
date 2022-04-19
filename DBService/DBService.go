@@ -202,7 +202,9 @@ func createTable(tableName string, db *sql.DB) {
 }
 
 // adds a new column of type 'TEXT' to table 'tableName'
-func addNewColumn(tableName, newCol string, db *sql.DB) {
+func AddNewColumn(tableName, newCol string) {
+	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, tableName)
+	db := initDB(dbPath)
 	query := fmt.Sprintf(`
 		ALTER TABLE %s ADD COLUMN %s TEXT
 	`, tableName, newCol)
@@ -217,21 +219,33 @@ func addNewColumn(tableName, newCol string, db *sql.DB) {
 	}
 }
 
-func PopulateNewColumn(dbName, newCol string) {
-	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, dbName)
+func UpdateColumn(tableName, column , newValue, where string) {
+	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, tableName)
 	db := initDB(dbPath)
-
-	// addNewColumn(dbName, newCol, db)
-
-	// query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s='unvalid'`, dbName, newCol, newCol)
-	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s IS NULL`, dbName, newCol, newCol)
+	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s%s`, tableName, column, column, where)
 	stmt, dbError := db.Prepare(query)
 
 	if dbError != nil {
 		panic(dbError)
 	}
 
-	_, err := stmt.Exec("unknown")
+	_, err := stmt.Exec(newValue)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func UpdateColumnName(tableName, currName, newName string) {
+	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, tableName)
+	db := initDB(dbPath)
+	query := fmt.Sprintf(`ALTER TABLE %s RENAME COLUMN %s TO %s;`, tableName, currName, newName)
+	stmt, dbError := db.Prepare(query)
+
+	if dbError != nil {
+		panic(dbError)
+	}
+
+	_, err := stmt.Exec()
 	if err != nil {
 		panic(err)
 	}

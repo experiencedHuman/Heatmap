@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	// "github.com/kvogli/Heatmap/DBService"
+	"github.com/kvogli/Heatmap/DBService"
 	"github.com/kvogli/Heatmap/RoomFinder"
 
 	"os"
@@ -109,9 +110,25 @@ func main() {
 	// LRZscraper.StoreApstatInSQLite("apstat")
 
 	// DBService.PopulateNewColumn("apstat", "RF_ID")
-	roomInfos, _ := RoomFinder.PrepareDataToScrape()
+	
 	// for _, ri := range roomInfos {
 	// 	fmt.Println(ri.RoomFinderID)
 	// }
+
+	// scrapeWithGoquery()
+
+	// DBService.UpdateColumnName("apstat", "RF_ID", "Lat")
+	// DBService.AddNewColumn("apstat", "Long")
+	DBService.UpdateColumn("apstat", "Long", "longitude", " IS NULL")
+	DBService.UpdateColumn("apstat", "Long", "test", "='unknown'")
+}
+
+func scrapeWithGocolly() {
+	roomInfos, _ := RoomFinder.PrepareDataToScrape()
+	RoomFinder.Scrape(roomInfos)
+}
+
+func scrapeWithGoquery() {
+	roomInfos, _ := RoomFinder.PrepareDataToScrape()
 	RoomFinder.ScrapeURLs(roomInfos)
 }

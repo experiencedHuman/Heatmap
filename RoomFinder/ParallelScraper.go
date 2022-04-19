@@ -27,7 +27,7 @@ type muxCache struct {
 	rooms map[string]Coordinate
 }
 
-var roomCache = muxCache{rooms: make(map[string]Coordinate)}
+var cache = muxCache{rooms: make(map[string]Coordinate)}
 
 type Coordinate struct {
 	exact bool // whether the coordinates are that of the room, or of the building
@@ -38,7 +38,7 @@ type Coordinate struct {
 func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) bool {
 	cache.mux.Lock()
 	defer cache.mux.Unlock()
-	if _, ok := roomCache.rooms[roomFinderID]; ok {
+	if _, ok := cache.rooms[roomFinderID]; ok {
 		// already visited
 		// TODO adjust intensity of the room/ap
 		return true
@@ -49,14 +49,26 @@ func (cache *muxCache) setVisited(h *colly.HTMLElement, roomFinderID string) boo
 		if exists {
 			lat, long := getLatLongFromURL(link)
 			if h.DOM.Find(".message").Length() == 0 {
-				roomCache.rooms[roomFinderID] = Coordinate{exact: true, Lat: lat, Long: long}
+				cache.rooms[roomFinderID] = Coordinate{exact: true, Lat: lat, Long: long}
 			} else {
 				/* Die angezeigte Position zeigt das Gebäude.
 				Die Position des Raums innerhalb des Gebäudes ist leider nicht bekannt. */
-				roomCache.rooms[roomFinderID] = Coordinate{exact: false, Lat: lat, Long: long}
+				cache.rooms[roomFinderID] = Coordinate{exact: false, Lat: lat, Long: long}
 			}
 		}
 		return false
+	}
+}
+
+func (cache *muxCache) storeCoord(id string, coord Coordinate) {
+	cache.mux.Lock()
+	defer cache.mux.Unlock()
+	if _, ok := cache.rooms[id]; ok {
+		// already visited
+		// TODO adjust intensity of the room/ap
+	} else {
+		// not yet visited
+		cache.rooms[id] = coord
 	}
 }
 
@@ -120,7 +132,7 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 
 		roomFinderID := fmt.Sprintf("%s@%s", roomNr, buildingNr)
 		validReq++
-		roomCache.setVisited(h, roomFinderID)
+		cache.setVisited(h, roomFinderID)
 	})
 
 	for _, roomInfo := range roomInfos {
@@ -133,12 +145,11 @@ func Scrape(roomInfos []RoomInfo) map[string]Coordinate {
 	q.Run(c)
 	c.Wait()
 	elapsed := time.Since(start)
-	// TODO add progress indicator
 
-	// go showStatus(q)
 	fmt.Println("Finished scraping locations. Time elapsed:", elapsed)
-	fmt.Printf("Failed OnReq: %d, OnErr: %d out of 2445\nValid requests: %d out of 2445", failedOnResponse, failedOnError, validReq)
-	return roomCache.rooms
+	fmt.Printf("Failed OnReq: %d, OnErr: %d out of 2445\n" +
+				"Valid requests: %d out of 2445", failedOnResponse, failedOnError, validReq)
+	return cache.rooms
 }
 
 // It scrapes latitude and longitude from parameter 'url' and
@@ -255,7 +266,8 @@ func ScrapeURLs(roomInfos []RoomInfo) {
 	wg.Wait()
 	elapsed := time.Since(start)
 	
-	log.Printf("Failed requests: %d out of 2445\nValid requests: %d out of 2445", failedRequests, validReq)
+	log.Printf("Failed requests: %d out of 2445\n" + 
+			   "Valid requests: %d out of 2445", failedRequests, validReq)
 	log.Println("time elapsed:", elapsed)
 }
 
@@ -279,18 +291,26 @@ func scrapeURL(urlPair urlPair, wg *sync.WaitGroup, t *http.Transport) {
 		return
 	}
 
-	validReq++
     doc, err := goquery.NewDocumentFromReader(resp.Body)
 
     if err != nil {
         log.Fatal(err)
     }
 
+	validReq++
     element := doc.Find("a[href^='http://maps.google.com']")
-    _, exists := element.Attr("href")
+    link, exists := element.Attr("href")
 	
 	if exists {
-		// log.Println(link)
+		lat, long := getLatLongFromURL(link)
+		var coord Coordinate
+		if doc.Find(".message").Length() == 0 {
+			coord = Coordinate{exact: true, Lat: lat, Long: long}
+			cache.storeCoord(urlPair.ID, coord)
+		} else {
+			coord = Coordinate{exact: false, Lat: lat, Long: long}
+			cache.storeCoord(urlPair.ID, coord)
+		}
 	}
 }
 
