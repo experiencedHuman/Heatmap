@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"github.com/kvogli/Heatmap/RoomFinder"
 
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -119,8 +121,11 @@ func main() {
 
 	// DBService.UpdateColumnName("apstat", "RF_ID", "Lat")
 	// DBService.AddNewColumn("apstat", "Long")
-	DBService.UpdateColumn("apstat", "Long", "longitude", " IS NULL")
-	DBService.UpdateColumn("apstat", "Long", "test", "='unknown'")
+	// DBService.UpdateColumn("apstat", "Long", "longitude", " IS NULL")
+	
+	// DBService.UpdateColumn("apstat", "Lat", "lat", "='NULL'")
+	// DBService.UpdateColumn("apstat", "Long", "long", "='zrf'")
+	scrapeWithGoquery()
 }
 
 func scrapeWithGocolly() {
@@ -130,5 +135,15 @@ func scrapeWithGocolly() {
 
 func scrapeWithGoquery() {
 	roomInfos, _ := RoomFinder.PrepareDataToScrape()
-	RoomFinder.ScrapeURLs(roomInfos)
+	res := RoomFinder.ScrapeURLs(roomInfos)
+
+	for key, val := range res {
+		where := fmt.Sprintf("ID='%s'", key)
+		lat := strconv.FormatFloat(val.Lat, 'E', -1, 64)
+		DBService.UpdateColumn("apstat", "Lat", lat, where)
+		
+		long := strconv.FormatFloat(val.Long, 'E', -1, 64)
+		DBService.UpdateColumn("apstat", "Long", long, where)
+	}
+
 }

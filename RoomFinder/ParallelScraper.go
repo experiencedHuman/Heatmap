@@ -197,9 +197,6 @@ func PrepareDataToScrape() ([]RoomInfo, int) {
 	var data []RoomInfo
 	var total int
 	for _, val := range res {
-		if val.RF_ID != "unknown" {
-			continue
-		}
 		roomNr := scrapeRoomNrFromRoomName(val.Room)
 		buildingNr := scrapeBuildingNrFromAddress(val.Address)
 		currTotalLoad := getCurrentTotalLoad(val.Load)
@@ -244,7 +241,7 @@ func UpdateRoomHasLocation(dbName string) {
 	}
 }
 
-func ScrapeURLs(roomInfos []RoomInfo) {
+func ScrapeURLs(roomInfos []RoomInfo) map[string]Coordinate {
 	var wg sync.WaitGroup
 	urlPairs := prepareURLs(roomInfos)
 	
@@ -269,6 +266,7 @@ func ScrapeURLs(roomInfos []RoomInfo) {
 	log.Printf("Failed requests: %d out of 2445\n" + 
 			   "Valid requests: %d out of 2445", failedRequests, validReq)
 	log.Println("time elapsed:", elapsed)
+	return cache.rooms
 }
 
 func scrapeURL(urlPair urlPair, wg *sync.WaitGroup, t *http.Transport) {
@@ -280,14 +278,14 @@ func scrapeURL(urlPair urlPair, wg *sync.WaitGroup, t *http.Transport) {
 
     if err != nil {
 		failedRequests++
-        log.Printf("%q for url: %s", err, urlPair.url)
+        // log.Printf("%q for url: %s", err, urlPair.url)
 		return
     }
     defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		failedRequests++
-		log.Printf("%s for url: %s", resp.Status, urlPair.url)
+		// log.Printf("%s for url: %s", resp.Status, urlPair.url)
 		return
 	}
 

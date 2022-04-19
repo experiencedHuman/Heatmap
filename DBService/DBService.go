@@ -23,7 +23,8 @@ type AccessPointOverview struct {
 	Status  string
 	Type    string
 	Load    string
-	RF_ID	string // RoomFinderID ~ architect number e.g. 1302@0103
+	Lat		string
+	Long 	string
 }
 
 // initializes a local database instance, located in dbPath
@@ -66,9 +67,11 @@ func createTableAccesspoints(tableName string, db *sql.DB) {
 
 func readItem(db *sql.DB) []AccessPointOverview {
 	query := `
-		SELECT ID, Address, Room, Load, RF_ID
+		SELECT ID, Address, Room, Load, Lat, Long
 		FROM apstat
 		WHERE Address Like '%TUM%'
+		AND Lat='lat'
+		AND Long='long'
 	`
 	rows, err := db.Query(query)
 	if err != nil {
@@ -79,7 +82,7 @@ func readItem(db *sql.DB) []AccessPointOverview {
 	var result []AccessPointOverview
 	for rows.Next() {
 		item := AccessPointOverview{}
-		err2 := rows.Scan(&item.ID, &item.Address, &item.Room, &item.Load, &item.RF_ID)
+		err2 := rows.Scan(&item.ID, &item.Address, &item.Room, &item.Load, &item.Lat, &item.Long)
 		if err2 != nil {
 			panic(err2)
 		}
@@ -222,7 +225,7 @@ func AddNewColumn(tableName, newCol string) {
 func UpdateColumn(tableName, column , newValue, where string) {
 	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, tableName)
 	db := initDB(dbPath)
-	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s%s`, tableName, column, column, where)
+	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s`, tableName, column, where)
 	stmt, dbError := db.Prepare(query)
 
 	if dbError != nil {
