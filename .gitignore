@@ -1,6 +1,9 @@
 GoogleMaps.xcframework/
 GoogleMapsBase.xcframework/
 GoogleMapsCore.xcframework/
+
+*.xcuserstate
+
 Config.xcconfig
 
 iOS-client/HeatmapMapbox/
