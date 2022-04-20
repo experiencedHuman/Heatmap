@@ -43,7 +43,8 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                 minZILabel = UILabel(),
                 maxZILabel = UILabel(),
                 gStartLabel = UILabel(),
-                gEndLabel = UILabel()
+                gEndLabel = UILabel(),
+                zoomLvlLabel = UILabel()
     
     private var gradientColors = [UIColor.green, UIColor.red]
     private var gradientStartPoints = [0.2, 0.6] as [NSNumber]
@@ -77,6 +78,13 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         let marker = GMSMarker(position: position)
         marker.title = "Access Point"
         marker.map = mapView
+        
+        let zoomTitle = UILabel(frame: CGRect(x: 5, y: 360, width: 150, height: 15))
+        zoomTitle.text = "Zoom Lvl:"
+        backgroundView.addSubview(zoomTitle)
+        zoomLvlLabel.frame = CGRect(x: 160, y: 360, width: 80, height: 15)
+        zoomLvlLabel.text = "0.0"
+        backgroundView.addSubview(zoomLvlLabel)
     }
     
     override func viewDidLoad() {
@@ -94,10 +102,10 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
             let hmLayer = GMUHeatmapTileLayer()
             if i <= 9 {
                 hmLayer.radius = UInt(i)
-                hmLayer.opacity = 0.3
+                hmLayer.opacity = 0.7
             } else if i > 9 && i < 17 {
                 hmLayer.radius = UInt(i * 5)
-                hmLayer.opacity = 0.5
+                hmLayer.opacity = 0.8
             } else {
                 hmLayer.radius = UInt(i * 20)
                 hmLayer.opacity = 0.95
@@ -111,6 +119,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     
     func mapView(_ mapView: GMSMapView, didChange position: GMSCameraPosition) {
         let currentZoomLevel = mapView.camera.zoom
+        zoomLvlLabel.text = String(currentZoomLevel)
         if abs(currentZoomLevel - zoomLevel) > 1 {
             zoomLevel = currentZoomLevel //update
 //            heatmapLayer = heatmapLayers[Int(zoomLevel)]
@@ -220,7 +229,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         addUISlider(title: "G-start", xOrig: fromLeft, yOrig: 280, width: width, height: height, minVal: 0, maxVal: 0.59, objcFunc: #selector(self.gradientStartSliderValueDidChange(_:)), &gStartLabel)
         
         // MARK: Gradient End
-        addUISlider(title: "G-end", xOrig: fromLeft, yOrig: 340, width: width, height: height, minVal: 0.6, maxVal: 1.0, objcFunc: #selector(self.gradientEndSliderValueDidChange(_:)), &gEndLabel)
+        addUISlider(title: "G-end", xOrig: fromLeft, yOrig: 320, width: width, height: height, minVal: 0.6, maxVal: 1.0, objcFunc: #selector(self.gradientEndSliderValueDidChange(_:)), &gEndLabel)
     }
     
     private func addUISlider(title: String,
