@@ -49,14 +49,25 @@ class ViewController: UIViewController, AzureMapDelegate {
         //setup heatmap layers and add them all to map
         heatmapLayers = [HeatMapLayer?](repeating: nil, count: 23)
         for i in 1...23 {
-            let heatmapLayer = HeatMapLayer(
-                source: dataSource,
-                options: [
-                    .heatmapRadius(10.0 + Double(i)),
+            let options: [HeatMapLayerOption]
+            if i > 19 {
+                options = [
+                    .heatmapRadius(2.6 * Double(i) - 8.5),
                     .heatmapOpacity(0.8),
                     .minZoom(Double(i) - 0.1),
                     .maxZoom(Double(i) + 0.9)
                 ]
+            } else {
+            options = [
+                .heatmapRadius(Double(i)),
+                .heatmapOpacity(0.8),
+                .minZoom(Double(i) - 0.1),
+                .maxZoom(Double(i) + 0.9)
+            ]
+            }
+            let heatmapLayer = HeatMapLayer(
+                source: dataSource,
+                options: options
             )
             heatmapLayers[i - 1] = heatmapLayer
             map.layers.insertLayer(heatmapLayer, below: "labels")
