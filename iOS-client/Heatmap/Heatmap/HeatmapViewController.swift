@@ -71,6 +71,12 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         
         backgroundView.backgroundColor = .lightGray
         self.view.addSubview(backgroundView)
+        
+        //add markers
+        let position = CLLocationCoordinate2D(latitude: 48.998, longitude: 11.668)
+        let marker = GMSMarker(position: position)
+        marker.title = "Access Point"
+        marker.map = mapView
     }
     
     override func viewDidLoad() {
@@ -86,15 +92,15 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         heatmapLayers = [GMUHeatmapTileLayer?](repeating: nil, count: 23)
         for i in 1...23 {
             let hmLayer = GMUHeatmapTileLayer()
-            if i <= 5 {
+            if i <= 9 {
                 hmLayer.radius = UInt(i)
                 hmLayer.opacity = 0.3
-            } else if i > 5 && i < 10 {
+            } else if i > 9 && i < 17 {
                 hmLayer.radius = UInt(i * 5)
-                hmLayer.opacity = 0.8
+                hmLayer.opacity = 0.5
             } else {
                 hmLayer.radius = UInt(i * 20)
-                hmLayer.opacity = 0.85
+                hmLayer.opacity = 0.95
             }
             hmLayer.weightedData = accesspoints
 //            hmLayer.zIndex = Int32(i)
@@ -111,6 +117,9 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
             let lvl = Int(zoomLevel)
             let hml = heatmapLayers[lvl]
             hml?.map = mapView
+            
+            // TODO: create more heatmap layers and update more often, not only in an interval of 1, but even 0.3 for example.
+            // TODO: show markers on zoom >18 or >19 and then decide to remove or to still keep the heatmap layer
             
             //remove the other heatmaps
             for i in 0...22 {
