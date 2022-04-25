@@ -46,8 +46,14 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                 gEndLabel = UILabel(),
                 zoomLvlLabel = UILabel()
     
-    private var gradientColors = [UIColor.green, UIColor.red]
-    private var gradientStartPoints = [0.2, 0.6] as [NSNumber]
+    private var gradientColors = [UIColor.cyan,
+                                  UIColor.blue,
+                                  UIColor.purple,
+                                  UIColor.green,
+                                  UIColor.yellow,
+                                  UIColor.orange,
+                                  UIColor.red]
+    private var gradientStartPoints = [0.2, 0.3, 0.4, 0.5,  0.6, 0.7, 0.8] as [NSNumber]
     
     private var gradientStart: Float = 0.2,
                 gradientEnd: Float = 0.6,
@@ -55,7 +61,11 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                 radius = UInt(300),
                 colorMapSize = UInt(256)
     
-    private var accesspoints: [GMUWeightedLatLng]!
+    private var apEG: [GMUWeightedLatLng]!,
+                ap1OG: [GMUWeightedLatLng]!,
+                ap2OG: [GMUWeightedLatLng]!,
+                ap3OG: [GMUWeightedLatLng]!
+    
     private var zoomLevel: Float = 16.0
     private var heatmapLayers: [GMUHeatmapTileLayer?]!
     
@@ -89,9 +99,8 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // TODO move this to a function and reinitalize heatmapLayer each time radius is changed for example. There might be a bug that radius change is not taken into consideration
-        accesspoints = addHeatmap()
-        setupMultipleLayers()
+//        apEG = addHeatmap()
+//        setupMultipleLayers()
         initHeatmapLayer(radius: radius, opacity: opacity, colorMapSize: colorMapSize)
         print("zoom level is: \(mapView.camera.zoom)")
     }
@@ -110,7 +119,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                 hmLayer.radius = UInt(i * 20)
                 hmLayer.opacity = 0.95
             }
-            hmLayer.weightedData = accesspoints
+//            hmLayer.weightedData = apEG
 //            hmLayer.zIndex = Int32(i)
 //            hmLayer.map = mapView
             heatmapLayers[i - 1] = hmLayer
@@ -123,39 +132,38 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         if abs(currentZoomLevel - zoomLevel) > 1 {
             zoomLevel = currentZoomLevel //update
 //            heatmapLayer = heatmapLayers[Int(zoomLevel)]
-            let lvl = Int(zoomLevel)
-            let hml = heatmapLayers[lvl]
-            hml?.map = mapView
-            
-            // TODO: create more heatmap layers and update more often, not only in an interval of 1, but even 0.3 for example.
-            // TODO: show markers on zoom >18 or >19 and then decide to remove or to still keep the heatmap layer
-            
-            //remove the other heatmaps
-            for i in 0...22 {
-                if i != lvl {
-                    let otherHML = heatmapLayers[i]
-                    otherHML?.map = nil
-                }
-            }
-            print("zoom lvl: \(Int(zoomLevel)) & radius: \(hml?.radius)")
+//            let lvl = Int(zoomLevel)
+//            let hml = heatmapLayers[lvl]
+//            hml?.map = mapView
+//
+//
+//            //remove the other heatmaps
+//            for i in 0...22 {
+//                if i != lvl {
+//                    let otherHML = heatmapLayers[i]
+//                    otherHML?.map = nil
+//                }
+//            }
+//            print("zoom lvl: \(Int(zoomLevel)) & radius: \(hml?.radius)")
 //            heatmapLayer.clearTileCache()
 //            initHeatmapLayer(radius: radius, opacity: opacity, colorMapSize: colorMapSize)
         }
     }
     
     
-    // TODO get building data. show heatmap based just on the building?
-    func didChangeActiveBuilding(_ building: GMSIndoorBuilding?) {
-        if let currentBuilding = building {
-            let levels = currentBuilding.levels
-            mapView.indoorDisplay.activeLevel = levels[2]
-//            print("Changed to level 2")
-        }
-    }
-    
     // TODO display different heatmap based on selected level
     func didChangeActiveLevel(_ level: GMSIndoorLevel?) {
-//        print("level was changed")
+        if level?.name == "EG" {
+            heatmapLayer.weightedData = apEG
+        } else if level?.name == "1OG" {
+            heatmapLayer.weightedData = ap1OG
+        } else if level?.name == "2OG" {
+            heatmapLayer.weightedData = ap2OG
+        } else if level?.name == "3OG" {
+            heatmapLayer.weightedData = ap3OG
+        }
+        heatmapLayer.clearTileCache()
+        heatmapLayer.map = heatmapLayer.map
     }
     
     private func initHeatmapLayer(radius: UInt, opacity: Float, colorMapSize: UInt) {
@@ -166,33 +174,45 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         heatmapLayer.gradient = GMUGradient(colors: gradientColors,
                                             startPoints: gradientStartPoints,
                                             colorMapSize: colorMapSize) // 256
-        heatmapLayer.weightedData = accesspoints
 
-        //      heatmapLayer.zIndex // <- this is useful when you have multiple heatmap layers and want to decide which shows on top of which
-        
+        addHeatmap()
         // Set the heatmap to the mapview.
-//        heatmapLayer.map = mapView
+        heatmapLayer.map = mapView
     }
     
     // Parse JSON data and add it to the heatmap layer.
-    func addHeatmap() -> [GMUWeightedLatLng] {
-        var list = [GMUWeightedLatLng]()
+    func addHeatmap() {
+        var listEG = [GMUWeightedLatLng]()
+        var list1OG = [GMUWeightedLatLng]()
+        var list2OG = [GMUWeightedLatLng]()
+        var list3OG = [GMUWeightedLatLng]()
         do {
             // Get the data: latitude/longitude positions of police stations.
-            if let path = Bundle.main.url(forResource: "accessPoints", withExtension: "json") {
+            if let path = Bundle.main.url(forResource: "ap-2", withExtension: "json") {
                 let data = try Data(contentsOf: path)
                 let json = try JSONSerialization.jsonObject(with: data, options: [])
                 if let object = json as? [[String: Any]] {
                     for item in object {
-                        let lat = item["Latitude"]
-                        let lng = item["Longitude"]
+                        let lat = item["Lat"]
+                        let lng = item["Long"]
                         var intensity = item["Intensity"] as? Double ?? 1.0
+                        let floor = item["Floor"] as? String
                         if intensity != 1.0 {
-                            intensity *= 100000.0
+                            intensity *= 1000.0
                         }
-                        //                        print("intensity is : \(Float(intensity))")
+                                                print("intensity is : \(Float(intensity))")
+
                         let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: Float(intensity))
-                        list.append(coords)
+                        if floor == "0" {
+                            listEG.append(coords)
+                        } else if floor == "1" {
+                            list1OG.append(coords)
+                        } else if floor == "2" {
+                            list2OG.append(coords)
+                        } else if floor == "3" {
+                            list3OG.append(coords)
+                        }
+                        
                     }
                 } else {
                     print("Could not cast data from JSON")
@@ -203,15 +223,20 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         } catch {
             print(error.localizedDescription)
         }
+        
+        apEG = listEG
+        ap1OG = list1OG
+        ap2OG = list2OG
+        ap3OG = list3OG
+        
         // Add the latlngs to the heatmap layer.
-//      heatmapLayer.weightedData = list
-        return list
+      heatmapLayer.weightedData = listEG
     }
     
     private func addSliders() {
         let fromLeft = 5, width = 170, height = 15
         // MARK: colorMapSize
-        addUISlider(title: "colorMS", xOrig: fromLeft, yOrig: 20, width: width, height: height, minVal: 3, maxVal: 1000.0, objcFunc: #selector(self.colorMapSizeSliderValueDidChange(_:)), &colorMSLabel)
+        addUISlider(title: "colorMS", xOrig: fromLeft, yOrig: 20, width: width, height: height, minVal: 2, maxVal: 512.0, objcFunc: #selector(self.colorMapSizeSliderValueDidChange(_:)), &colorMSLabel)
         
         // MARK: Opacity
         addUISlider(title: "Opacity", xOrig: fromLeft, yOrig: 80, width: width, height: height, minVal: 0.05, maxVal: 10.0, objcFunc: #selector(self.opacitySliderValueDidChange(_:)), &opacityLabel)
@@ -220,7 +245,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         addUISlider(title: "Radius", xOrig: fromLeft, yOrig: 120, width: width, height: height, minVal: 1, maxVal: 500, objcFunc: #selector(self.radiusSliderValueDidChange(_:)), &radiusLabel)
         
         // MARK: Minimum Zone Intensity
-        addUISlider(title: "MinZI", xOrig: fromLeft, yOrig: 180, width: width, height: height, minVal: 0, maxVal: 10, objcFunc: #selector(self.minZoneIntSliderValueDidChange(_:)), &minZILabel)
+        addUISlider(title: "MinZI", xOrig: fromLeft, yOrig: 180, width: width, height: height, minVal: 0, maxVal: 4, objcFunc: #selector(self.minZoneIntSliderValueDidChange(_:)), &minZILabel)
         
         // MARK: Maximum Zone Intensity
         addUISlider(title: "MaxZI", xOrig: fromLeft, yOrig: 220, width: width, height: height, minVal: 0, maxVal: 20, objcFunc: #selector(self.maxZoneIntSliderValueDidChange(_:)), &maxZILabel)
@@ -260,14 +285,15 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     
     @objc
     func colorMapSizeSliderValueDidChange(_ sender: UISlider!) {
-        let step = 1
-        let stepValue = Int(sender.value) / step * step
-        sender.value = Float(stepValue)
+        let step: Float = 0.5
+        let stepValue = sender.value / step * step
+        sender.value = stepValue
         colorMapSize = UInt(stepValue)
         colorMSLabel.text = String(colorMapSize)
         heatmapLayer.gradient = GMUGradient(colors: gradientColors,
                                             startPoints: gradientStartPoints,
                                             colorMapSize: colorMapSize)
+        heatmapLayer.map = heatmapLayer.map
         heatmapLayer.clearTileCache()
     }
     
@@ -283,21 +309,23 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     
     @objc
     func radiusSliderValueDidChange(_ sender: UISlider!) {
-        let step = 50
+        let step = 1
         let stepValue = Int(sender.value) / step * step
         sender.value = Float(stepValue)
         radius = UInt(stepValue)
         heatmapLayer.radius = radius
+        heatmapLayer.map = heatmapLayer.map
         radiusLabel.text = String(radius)
         heatmapLayer.clearTileCache()
     }
     
     @objc
     func minZoneIntSliderValueDidChange(_ sender: UISlider!) {
-        let step = 1
-        let stepValue = Int(sender.value) / step * step
-        sender.value = Float(stepValue)
+        let step: Float = 0.5
+        let stepValue = sender.value / step * step
+        sender.value = stepValue
         heatmapLayer.minimumZoomIntensity = UInt(stepValue)
+        heatmapLayer.map = heatmapLayer.map
         minZILabel.text = String(heatmapLayer.minimumZoomIntensity)
         heatmapLayer.clearTileCache()
     }
@@ -308,6 +336,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         let stepValue = Int(sender.value) / step * step
         sender.value = Float(stepValue)
         heatmapLayer.maximumZoomIntensity = UInt(stepValue)
+        heatmapLayer.map = heatmapLayer.map
         maxZILabel.text = String(heatmapLayer.maximumZoomIntensity)
         heatmapLayer.clearTileCache()
     }
@@ -322,6 +351,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         heatmapLayer.gradient = GMUGradient(colors: gradientColors,
                                             startPoints: gradientStartPoints,
                                             colorMapSize: colorMapSize)
+        heatmapLayer.map = heatmapLayer.map
         gStartLabel.text = String(gradientStart)
         heatmapLayer.clearTileCache()
     }
@@ -336,6 +366,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         heatmapLayer.gradient = GMUGradient(colors: gradientColors,
                                             startPoints: gradientStartPoints,
                                             colorMapSize: colorMapSize)
+        heatmapLayer.map = heatmapLayer.map
         gEndLabel.text = String(gradientEnd)
         heatmapLayer.clearTileCache()
     }

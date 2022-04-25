@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA074C102816FC3E00C612DB /* ap.json in Resources */ = {isa = PBXBuildFile; fileRef = AA074C0F2816FC3E00C612DB /* ap.json */; };
+		AA074C12281701DF00C612DB /* ap-2.json in Resources */ = {isa = PBXBuildFile; fileRef = AA074C11281701DF00C612DB /* ap-2.json */; };
 		AA2C057727E0692000E4930B /* HeatmapApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2C057627E0692000E4930B /* HeatmapApp.swift */; };
 		AA2C057927E0692000E4930B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2C057827E0692000E4930B /* ContentView.swift */; };
 		AA2C057B27E0692100E4930B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA2C057A27E0692100E4930B /* Assets.xcassets */; };
@@ -39,6 +41,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AA074C0F2816FC3E00C612DB /* ap.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = ap.json; path = ../../../../../Downloads/ap.json; sourceTree = "<group>"; };
+		AA074C11281701DF00C612DB /* ap-2.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "ap-2.json"; sourceTree = "<group>"; };
 		AA2C057327E0692000E4930B /* Heatmap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Heatmap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA2C057627E0692000E4930B /* HeatmapApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapApp.swift; sourceTree = "<group>"; };
 		AA2C057827E0692000E4930B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -133,6 +137,8 @@
 				AA2E855827E06E5C00709BC7 /* HeatmapViewController.swift */,
 				AA8C0E8C27E1048F00D054C1 /* Config.xcconfig */,
 				AAE41E9E27EB2C8100A8541B /* demo.json */,
+				AA074C0F2816FC3E00C612DB /* ap.json */,
+				AA074C11281701DF00C612DB /* ap-2.json */,
 				AAB33A4227FB6C0500819884 /* accessPoints.json */,
 			);
 			path = Heatmap;
@@ -237,10 +243,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA8C0E5F27E07E9D00D054C1 /* data.json in Resources */,
+				AA074C12281701DF00C612DB /* ap-2.json in Resources */,
 				AA2C057E27E0692100E4930B /* Preview Assets.xcassets in Resources */,
 				AAB33A4327FB6C0500819884 /* accessPoints.json in Resources */,
 				AA2C057B27E0692100E4930B /* Assets.xcassets in Resources */,
 				AAE41E9F27EB2C8100A8541B /* demo.json in Resources */,
+				AA074C102816FC3E00C612DB /* ap.json in Resources */,
 				AA8C0E8B27E1037000D054C1 /* GoogleMaps.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
