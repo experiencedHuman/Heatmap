@@ -86,14 +86,16 @@ func RetrieveAPs(db *sql.DB, withCoordinate bool) []AccessPoint {
 		query = `
 			SELECT ID, Address, Room, Name, Load, Lat, Long
 			FROM apstat
-			WHERE Lat!='lat'
+			WHERE Address LIKE '%TUM%'
+			AND Lat!='lat'
 			AND Long!='long'
 		`
 	} else {
 		query = `
 			SELECT ID, Address, Room, Name, Load, Lat, Long
 			FROM apstat
-			WHERE Lat='lat'
+			WHERE Address LIKE '%TUM%'
+			AND Lat='lat'
 			AND Long='long'
 		`
 	}
@@ -255,7 +257,7 @@ func runQuery(db *sql.DB, query string, params ...interface{}) {
 		panic(err)
 	}
 	defer stmt.Close()
-	fmt.Println(params...)
+	
 	_, err = stmt.Exec(params...)
 	if err != nil {
 		panic(err)

@@ -5,33 +5,54 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/kvogli/Heatmap/RoomFinder"
 )
 
-type CoordInfo struct {
-	Lat  string `json:"lat"`
-	Long string `json:"lon"`
+type Coords struct {
+	Lat  float64 `json:"lat"`
+	Long float64 `json:"lon"`
 	Src  string  `json:"source"`
 }
 
-type NavigatumResponse struct {
-	Coords CoordInfo `json:"coords"`
+// Navigatum Response
+type NaviRes struct {
+	Type  string `json:"type"`
+	Coord Coords `json:"coords"`
 }
 
-func GetRoomCoordinates(roomID string) RoomFinder.Coordinate {
-	// e.g. roomID := "5602.EG.001"
-	url := fmt.Sprintf("https://roomapi.tum.sexy/api/get/%s", roomID)
+// makes an HTTP request to nav.tum.sexy/api/get/<roomID>
+// e.g. roomID := "5602.EG.001"
+func GetRoomCoordinates(roomID string) (lat, long string, found bool) {
+	lat, long, found = "", "", false
+
+	url := fmt.Sprintf("https://nav.tum.sexy/api/get/%s", roomID)
 	resp, err := http.Get(url)
+
 	if err != nil {
-		log.Fatalf("Error: GET request to %s failed!", url)
-	}
-	var naviResp NavigatumResponse
-	err = json.NewDecoder(resp.Body).Decode(&naviResp)
-	defer resp.Body.Close()
-	if err != nil {
-		log.Fatalf("Error: JSON decoding failed!")
+		log.Printf("GET request to %s failed!", url)
+		return
 	}
 
-	return RoomFinder.Coordinate{Lat: naviResp.Coords.Lat, Long: naviResp.Coords.Long}
+	if resp.StatusCode != 200 {
+		log.Printf("%v for url: %s", resp.Status, url)
+		return
+	}
+
+	var nResp NaviRes
+	err = json.NewDecoder(resp.Body).Decode(&nResp)
+	defer resp.Body.Close()
+
+	if err != nil {
+		log.Printf("JSON decoding failed! %q", err)
+		log.Printf("%v", resp.Body)
+		return
+	}
+
+	lat = fmt.Sprintf("%f", nResp.Coord.Lat)
+	long = fmt.Sprintf("%f", nResp.Coord.Long)
+	found = true
+
+	typ := nResp.Type
+	fmt.Println(typ)
+
+	return
 }

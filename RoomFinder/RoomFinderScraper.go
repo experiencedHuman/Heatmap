@@ -19,25 +19,32 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type muxCache struct {
-	mux sync.Mutex
-	APs map[string]Coordinate
-}
-
 var (
-	cache          = muxCache{APs: make(map[string]Coordinate)}
-	failedRequests = 0
 	validReq       = 0
+	failedRequests = 0
 )
 
-type Coordinate struct {
-	id   string // primary key of the AP
+type Result struct {
+	Failures  []Failure
+	Successes []Success
+}
+
+type Failure struct {
+	ID             string // primary key of the AP
+	RoomNr         string
+	BuildingNr     string
+}
+
+type Success struct {
+	ID   string // primary key of the AP
 	Lat  string
 	Long string
 }
 
 type RF_Info struct {
-	id           string // primary key in 'apstat' table
+	ID           string // primary key in 'apstat' table
+	roomNr       string // ~ architectNr
+	buildingNr   string
 	RoomFinderID string // = <architectNr>@<buildingNr>
 	ApLoad       int    // current total load of the AP
 	url          string // http://portal.mytum.de/displayRoomMap?<roomFinderID>
@@ -57,7 +64,13 @@ func PrepareDataToScrape(APs []DBService.AccessPoint) ([]RF_Info, int) {
 		roomFinderID := fmt.Sprintf("%s@%s", architectNr, buildingNr)
 		url := fmt.Sprintf("http://portal.mytum.de/displayRoomMap?%s", roomFinderID)
 
-		data = append(data, RF_Info{ap.ID, roomFinderID, currTotalLoad, url})
+		data = append(data,
+			RF_Info{ap.ID,
+				architectNr,
+				buildingNr,
+				roomFinderID,
+				currTotalLoad,
+				url})
 	}
 	return data, total
 }
@@ -69,6 +82,14 @@ func scrapeBuildingNrFromAddress(address string) string {
 	if buildingNr == "5500" {
 		re = regexp.MustCompile("\\d{4}")
 		buildingNr = re.FindAllString(address, -1)[1]
+	} else if buildingNr == "" {
+		if address == "TUM, Tentomax Weihenstephan (Prüfungszelt)Gregor-Mendel-Str.Freising" {
+			buildingNr = "4298"
+		} else {
+			fmt.Println("BuildingNr is empty:", address)
+		}
+	} else if buildingNr =="8102" {
+		fmt.Println("Address of 8102:", address)
 	}
 	return buildingNr
 }
@@ -76,8 +97,39 @@ func scrapeBuildingNrFromAddress(address string) string {
 // This function scrapes the roomNr from a longer room description and returns it
 func scrapeRoomNrFromRoomName(roomName string) string {
 	re := regexp.MustCompile("[0-9]+.[0-9]+(.[0-9])?")
-	// TODO measure success rate of this regex
 	roomNr := re.FindString(roomName)
+
+	if strings.Contains(roomNr, " ") {
+		nums := strings.Split(roomNr, " ")
+		
+		if len(nums[0]) > len(nums[1]) {
+			if nums[1] == "0" {
+				roomNr = fmt.Sprintf("EG.%s", nums[0])
+			} else {
+				roomNr = fmt.Sprintf("0%s.%s", nums[1], nums[0])
+			}
+
+		} else if len(nums[0]) == 1 && len(nums[1]) == 2 {
+			if nums[0] == "0" {
+				roomNr = fmt.Sprintf("EG.0%s", nums[1])
+			} else {
+				roomNr = fmt.Sprintf("0%s.0%s", nums[0], nums[1])
+			}
+
+		} else {
+			roomNr = fmt.Sprintf("0%s.%s", nums[0], nums[1])
+		}
+
+	} else if roomNr == "" {
+		if (roomName == "1.OG" || roomName == "2.OG") {
+			roomNr = roomName
+		} else {
+			fmt.Println("RoomNr is empty:", roomName)
+		}
+
+	} else if len(roomNr) == 4 {
+		roomNr = fmt.Sprintf("0%c.%v", roomNr[0], roomNr[1:4])
+	}
 	return roomNr
 }
 
@@ -85,6 +137,10 @@ func GetCurrentTotalLoad(load string) int {
 	// this regex must match a substring beginning with '(', ignores first number and '-', and then gets the second number
 	re := regexp.MustCompile(`\(\s*\d+\s*-\s*(\d+)`)
 	match := re.FindStringSubmatch(load)
+	if len(match) <= 1 {
+		log.Println("FIXME")
+		return 0
+	}
 	currentLoad, err := strconv.Atoi(match[1]) // TODO error handling
 	if err != nil {
 		log.Println(err)
@@ -94,7 +150,8 @@ func GetCurrentTotalLoad(load string) int {
 	}
 }
 
-func ScrapeURLs(rfInfos []RF_Info) map[string]Coordinate {
+func ScrapeURLs(rfInfos []RF_Info) Result {
+	var result Result
 	var wg sync.WaitGroup
 
 	start := time.Now()
@@ -110,22 +167,22 @@ func ScrapeURLs(rfInfos []RF_Info) map[string]Coordinate {
 
 	for _, rfInfo := range rfInfos {
 		wg.Add(1)
-		go scrapeURL(rfInfo, &wg, &t)
+		go scrapeURL(rfInfo, &wg, &t, &result)
 	}
 
 	wg.Wait()
 	elapsed := time.Since(start)
 
 	totalRes := len(rfInfos)
-	log.Printf("Failed requests: %d out of %d\n"+
-		"Valid requests: %d out of %d", failedRequests, totalRes, validReq, totalRes)
-	
+	log.Printf("Failed requests: %d out of %d\n", failedRequests, totalRes)
+	log.Printf("Valid requests: %d out of %d", validReq, totalRes)
+
 	log.Println("time elapsed:", elapsed)
 
-	return cache.APs
+	return result
 }
 
-func scrapeURL(rfInfo RF_Info, wg *sync.WaitGroup, t *http.Transport) {
+func scrapeURL(rfInfo RF_Info, wg *sync.WaitGroup, t *http.Transport, result *Result) {
 	defer wg.Done()
 	c := &http.Client{
 		Transport: t,
@@ -133,6 +190,7 @@ func scrapeURL(rfInfo RF_Info, wg *sync.WaitGroup, t *http.Transport) {
 	resp, err := c.Get(rfInfo.url)
 
 	if err != nil {
+		log.Println("Failed request url:", rfInfo.url) //TODO uncomment
 		failedRequests++
 		// TODO collect failed URLs and try NavigaTUM
 		return
@@ -140,6 +198,7 @@ func scrapeURL(rfInfo RF_Info, wg *sync.WaitGroup, t *http.Transport) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
+		log.Println("Failed request url:", rfInfo.url) //TODO uncomment
 		failedRequests++
 		// TODO collect failed URLs and try NavigaTUM
 		return
@@ -149,39 +208,28 @@ func scrapeURL(rfInfo RF_Info, wg *sync.WaitGroup, t *http.Transport) {
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 
 	if err != nil {
+		log.Println("Failed request url:", rfInfo.url)
 		log.Fatal(err)
 	}
 
-	validReq++
+	// check for link with google map's coordinate
 	element := doc.Find("a[href^='http://maps.google.com']")
 	link, exists := element.Attr("href")
 
 	if exists {
+		validReq++
 		lat, long := getLatLongFromURL(link)
-		var coord Coordinate
-		// RoomFinder loads a message element in case the location is not that of the requested Room
-		// but that of the building (in which that room is located)
-		if doc.Find(".message").Length() == 0 {
-			coord = Coordinate{rfInfo.id, lat, long}
-			cache.storeCoord(rfInfo.id, coord)
-		} else {
-			coord = Coordinate{rfInfo.id, lat, long}
-			cache.storeCoord(rfInfo.id, coord)
-		}
+		success := Success{rfInfo.ID, lat, long}
+		result.Successes = append(result.Successes, success)
 	} else {
-		log.Println("Link doesnt exist:", rfInfo.url)
+		// log.Println("Link doesnt exist:", rfInfo.url)
+		failure := Failure{rfInfo.ID, rfInfo.roomNr, rfInfo.buildingNr}
+		result.Failures = append(result.Failures, failure)
 	}
 }
 
-// stores the coordinate of the Access Point with primary key id in a map
-func (cache *muxCache) storeCoord(id string, coord Coordinate) {
-	cache.mux.Lock()
-	defer cache.mux.Unlock()
-	cache.APs[id] = coord
-}
-
-// It scrapes latitude and longitude from parameter 'url' and
-// returns them as float64 values
+// It scrapes latitude and longitude from url and
+// returns them as strings
 func getLatLongFromURL(url string) (lat, long string) {
 	parts := strings.Split(url, "&")
 	latLong := strings.Split(parts[0], "=")[1]
