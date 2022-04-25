@@ -10,29 +10,34 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const (
-	sqlitePath string = "./data/sqlite/"
-	csvPath    string = "data/csv/"
-)
-
-type AccessPointOverview struct {
-	ID      string
+type AccessPoint struct {
+	ID      string	// primary key
 	Address string
 	Room    string
 	Name    string
+	Floor	string
 	Status  string
 	Type    string
 	Load    string
-	Lat		string
-	Long 	string
+	Lat     string
+	Long    string
 }
 
-// initializes a local database instance, located in dbPath
-// returns a pointer to the initialized database
-func initDB(dbPath string) *sql.DB {
+type APLoad struct {
+	Name    string	// primary key
+	Network string
+	Current string
+	Max     string
+	Min     string
+	Avg     string
+}
+
+// Initializes a local database instance, located in dbPath
+// returns a pointer to the initialized database.
+func InitDB(dbPath string) *sql.DB {
 	db, sqlError := sql.Open("sqlite3", dbPath)
 	if sqlError != nil {
-		log.Panicf("Error: could not open sqlite instance at path %s! %s", dbPath, sqlError)
+		log.Panicf("Could not open sqlite instance at path %s! %s", dbPath, sqlError)
 	}
 	if db == nil {
 		panic("db is nil")
@@ -40,49 +45,29 @@ func initDB(dbPath string) *sql.DB {
 	return db
 }
 
-func FetchApstatData(dbName string) []AccessPointOverview {
-	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, dbName)
-	db := initDB(dbPath)
-	return readItem(db)
-}
-
-func createTableAccesspoints(tableName string, db *sql.DB) {
+// Queries 'accesspoints' table and 
+// returns rows where primary key Name = 'name'
+func RetrieveAPLoads(db *sql.DB, name string) []APLoad {
 	query := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS "%s" (
-			"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-			"network"	TEXT,
-			"current"	TEXT,
-			"max"		TEXT,
-			"min"		TEXT,
-			"other" 	TEXT
-		);
-	`, tableName)
-
-	stmt, _ := db.Prepare(query)
-	_, err := stmt.Exec()
-	if err != nil {
-		panic(err)
-	}
-}
-
-func readItem(db *sql.DB) []AccessPointOverview {
-	query := `
-		SELECT ID, Address, Room, Load, Lat, Long
-		FROM apstat
-		WHERE Address Like '%TUM%'
-		AND Lat='lat'
-		AND Long='long'
-	`
+		SELECT Name, Network, Current, Max, Min, Avg
+		FROM accesspoints
+		WHERE Name='%s'
+	`, name)
 	rows, err := db.Query(query)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 
-	var result []AccessPointOverview
+	var result []APLoad
 	for rows.Next() {
-		item := AccessPointOverview{}
-		err2 := rows.Scan(&item.ID, &item.Address, &item.Room, &item.Load, &item.Lat, &item.Long)
+		item := APLoad{}
+		err2 := rows.Scan(&item.Name, 
+						  &item.Network, 
+						  &item.Current, 
+						  &item.Max, 
+						  &item.Min, 
+						  &item.Avg)
 		if err2 != nil {
 			panic(err2)
 		}
@@ -91,26 +76,69 @@ func readItem(db *sql.DB) []AccessPointOverview {
 	return result
 }
 
-// for csv/graphData.csv
-func StoreDataInSQLite(dbPath string) {
-	csvFile, err := os.Open("csv/graphData.csv")
-	if err != nil {
-		log.Fatal(err)
+// Queries 'apstat' table and
+// returns all rows where 'address' contains "TUM" and 
+// 	Lat, Long are unassigned
+func RetrieveAPs(db *sql.DB, withCoordinate bool) []AccessPoint {
+	var query string
+	
+	if withCoordinate {
+		query = `
+			SELECT ID, Address, Room, Name, Load, Lat, Long
+			FROM apstat
+			WHERE Lat!='lat'
+			AND Long!='long'
+		`
+	} else {
+		query = `
+			SELECT ID, Address, Room, Name, Load, Lat, Long
+			FROM apstat
+			WHERE Lat='lat'
+			AND Long='long'
+		`
 	}
-	defer csvFile.Close()
 
-	csvReader := csv.NewReader(csvFile)
-	csvReader.Comma = ';'
-	data, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
+	rows, err := db.Query(query)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
+	defer rows.Close()
 
-	db := initDB(dbPath)
+	var result []AccessPoint
+	for rows.Next() {
+		item := AccessPoint{}
+		err2 := rows.Scan(&item.ID, 
+						  &item.Address, 
+						  &item.Room,
+						  &item.Name, 
+						  &item.Load,
+						  &item.Lat, 
+						  &item.Long)
+		if err2 != nil {
+			panic(err2)
+		}
+		result = append(result, item)
+	}
+	return result
+}
 
-	createTableAccesspoints("accesspoints", db)
+func StoreAPLoadInDB(csvPath, dbPath, tableName string) {
+	csvData := readFromCSV(csvPath)
+	db := InitDB(dbPath)
 
-	// fmt.Println(network, current, max, min, other)
+	createTable := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS "%s" (
+				"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+				"network"	TEXT,
+				"current"	TEXT,
+				"max"		TEXT,
+				"min"		TEXT,
+				"avg" 		TEXT
+			);
+		`, tableName)
+
+	runQuery(db, createTable)
+
 	stmt, dbError := db.Prepare(`
 		INSERT INTO accesspoints (network, current, max, min, other) values (?,?,?,?,?)
 	`)
@@ -119,27 +147,24 @@ func StoreDataInSQLite(dbPath string) {
 		panic(dbError)
 	}
 
-	log.Println("Storing graph data in SQLite ...")
-	for r := range data {
-		network := data[r][0]
-		current := data[r][1]
-		max := data[r][2]
-		min := data[r][3]
-		other := data[r][4]
+	for r := range csvData {
+		network := csvData[r][0]
+		current := csvData[r][1]
+		max 	:= csvData[r][2]
+		min 	:= csvData[r][3]
+		avg 	:= csvData[r][4]
 
-		_, err := stmt.Exec(network, current, max, min, other)
+		_, err := stmt.Exec(network, current, max, min, avg)
 		if err != nil {
 			panic(err)
 		}
 	}
-	log.Println("Finished storing graph data.")
 }
 
-// It reads the apstat data from the csv file and
-// stores it in a SQLite table under path parameter 'dbPath'
-func StoreApstatInSQLite(dbName string) {
-	filePath := fmt.Sprintf("%s%s.csv", csvPath, dbName)
-	csvFile, err := os.Open(filePath)
+// Reads data from a csv file and
+// returns it as a string matrix.
+func readFromCSV(csvPath string) [][]string {
+	csvFile, err := os.Open(csvPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -147,108 +172,91 @@ func StoreApstatInSQLite(dbName string) {
 
 	csvReader := csv.NewReader(csvFile)
 	csvReader.Comma = ';'
-	csvData, err := csvReader.ReadAll() // TODO use csvReader.Read() for big files
+	csvData, err := csvReader.ReadAll()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, dbName)
-	db := initDB(dbPath)
-	createTable("apstat", db)
-
-	query := fmt.Sprintf(`
-		INSERT INTO %s (Address, Room, Name, Status, Type, Load) 
-		values (?,?,?,?,?,?)
-	`, dbName)
-	stmt, dbError := db.Prepare(query)
-
-	if dbError != nil {
-		panic(dbError)
-	}
-
-	log.Printf("Storing %s csv data in SQLite ...\n", dbName)
-	for r := range csvData {
-		address := csvData[r][0]
-		room := csvData[r][1]
-		apName := csvData[r][2]
-		status := csvData[r][3]
-		apType := csvData[r][4]
-		apLoad := csvData[r][5]
-
-		_, err := stmt.Exec(address, room, apName, status, apType, apLoad)
-		if err != nil {
-			panic(err)
-		}
-	}
-	log.Printf("Finished data storing for %s.\n", dbName)
+	return csvData
 }
 
-// creates a DB table (if not exists) to store an overview of all access points
-func createTable(tableName string, db *sql.DB) {
-	query := fmt.Sprintf(`
+// Stores csv data in SQLite table
+// under path parameter 'dbPath'.
+func StoreApstatInDB(csvPath, dbPath, tableName string) {
+	csvData := readFromCSV(csvPath)
+	db := InitDB(dbPath)
+
+	createTable := fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS "%s" (
 				"ID" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 				"Address"	TEXT,
 				"Room"		TEXT,
 				"Name"		TEXT,
+				"Floor"		TEXT,
 				"Status"	TEXT,
 				"Type"		TEXT,
-				"Load" 		TEXT
+				"Load" 		TEXT,
+				"Lat"		TEXT,
+				"Long"		TEXT
 			);
 		`, tableName)
 
-	stmt, _ := db.Prepare(query)
-	_, err := stmt.Exec()
-	if err != nil {
-		panic(err)
-	}
-}
+	runQuery(db, createTable)
 
-// adds a new column of type 'TEXT' to table 'tableName'
-func AddNewColumn(tableName, newCol string) {
-	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, tableName)
-	db := initDB(dbPath)
 	query := fmt.Sprintf(`
-		ALTER TABLE %s ADD COLUMN %s TEXT
-	`, tableName, newCol)
-
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		log.Panicf("Error: failed to prepare query! %q", err)
-	}
-	_, err = stmt.Exec()
-	if err != nil {
-		log.Panicf("Error: could not alter table! Failed to add new column: %s", err)
-	}
-}
-
-func UpdateColumn(tableName, column , newValue, where string) {
-	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, tableName)
-	db := initDB(dbPath)
-	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s`, tableName, column, where)
+		INSERT INTO %s (Address, Room, Name, Floor, Status, Type, Load) 
+		values (?,?,?,?,?,?,?)
+	`, tableName)
 	stmt, dbError := db.Prepare(query)
 
 	if dbError != nil {
 		panic(dbError)
 	}
 
-	_, err := stmt.Exec(newValue)
+	for r := range csvData {
+		address := csvData[r][0]
+		room 	:= csvData[r][1]
+		apName  := csvData[r][2]
+		floor 	:= string(apName[6])
+		status  := csvData[r][3]
+		apType  := csvData[r][4]
+		apLoad  := csvData[r][5]
+
+		_, err := stmt.Exec(address, room, apName, floor, status, apType, apLoad)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+// Adds a new column of type 'TEXT' to table 'tableName'.
+func AddColumn(db *sql.DB, tableName, newCol string) {
+	query := fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s TEXT`, tableName, newCol)
+	var args []interface{}
+	runQuery(db, query, args...)
+}
+
+// Updates 'column' at rows satisfying the 'where' condition with 'newValue'.
+func UpdateColumn(db *sql.DB, tableName, column, newValue, where string) {
+	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s`, tableName, column, where)
+	runQuery(db, query, newValue)
+}
+
+// Updates name of 'currName' column to 'newName'.
+func UpdateColumnName(db *sql.DB, tableName, currName, newName string) {
+	query := fmt.Sprintf(`ALTER TABLE %s RENAME COLUMN %s TO %s;`, tableName, currName, newName)
+	runQuery(db, query)
+}
+
+// Prepares sqlite 'query' and executes it with optional 'params'.
+func runQuery(db *sql.DB, query string, params ...interface{}) {
+	stmt, err := db.Prepare(query)
+
 	if err != nil {
 		panic(err)
 	}
-}
-
-func UpdateColumnName(tableName, currName, newName string) {
-	dbPath := fmt.Sprintf("%s%s.db", sqlitePath, tableName)
-	db := initDB(dbPath)
-	query := fmt.Sprintf(`ALTER TABLE %s RENAME COLUMN %s TO %s;`, tableName, currName, newName)
-	stmt, dbError := db.Prepare(query)
-
-	if dbError != nil {
-		panic(dbError)
-	}
-
-	_, err := stmt.Exec()
+	defer stmt.Close()
+	fmt.Println(params...)
+	_, err = stmt.Exec(params...)
 	if err != nil {
 		panic(err)
 	}
