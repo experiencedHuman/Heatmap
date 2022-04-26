@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"encoding/csv"
@@ -13,8 +14,8 @@ import (
 	"net/http"
 
 	"github.com/kvogli/Heatmap/DBService"
-	"github.com/kvogli/Heatmap/RoomFinder"
 	"github.com/kvogli/Heatmap/NavigaTUM"
+	"github.com/kvogli/Heatmap/RoomFinder"
 )
 
 func getDataFromURL(filename, url string) {
@@ -63,8 +64,8 @@ func getDataFromURL(filename, url string) {
 
 type JsonEntry struct {
 	Intensity float64
-	Lat       string
-	Long      string
+	Lat       float64
+	Long      float64
 	Floor     string
 }
 
@@ -82,7 +83,9 @@ func saveAPsToJSON(dst string, totalLoad int) {
 	for _, ap := range APs {
 		currTotLoad := RoomFinder.GetCurrentTotalLoad(ap.Load)
 		var intensity float64 = float64(currTotLoad) / float64(totalLoad)
-		jsonEntry := JsonEntry{intensity, ap.Lat, ap.Long, ap.Floor}
+		lat, _ := strconv.ParseFloat(ap.Lat, 64)
+		lng, _ := strconv.ParseFloat(ap.Long, 64)
+		jsonEntry := JsonEntry{intensity, lat, lng, ap.Floor}
 		jsonData = append(jsonData, jsonEntry)
 	}
 
@@ -99,28 +102,11 @@ func saveAPsToJSON(dst string, totalLoad int) {
 
 func main() {
 
-	result, _ := scrapeRoomFinder() //Note that room finder must first be scraped to jump to navigatum this way
+	result, totalLoad := scrapeRoomFinder() //Note that room finder must first be scraped to jump to navigatum this way
 	cnt := scrapeNavigaTUM(result)
 	fmt.Println(cnt)
 	
-	// db := DBService.InitDB(ApstatTable)
-	
-	// APs1 := DBService.RetrieveAPs(db, false)
-	// APs2 := DBService.RetrieveAPs(db, true)
-	// // add floors
-	// for _, ap := range APs1 {
-	// 	floor := string(ap.Name[6])
-	// 	where := fmt.Sprintf("ID='%s'", ap.ID)
-	// 	DBService.UpdateColumn(db, "apstat", "Floor", floor, where)
-	// }
-	// for _, ap := range APs2 {
-	// 	floor := string(ap.Name[6])
-	// 	where := fmt.Sprintf("ID='%s'", ap.ID)
-	// 	DBService.UpdateColumn(db, "apstat", "Floor", floor, where)
-	// }
-
-	// lat, long, _ := NavigaTUM.GetRoomCoordinates("9377")
-	// fmt.Println(lat, long)
+	saveAPsToJSON("data/json/ap.json", totalLoad)
 }
 
 func scrapeRoomFinder() (RoomFinder.Result, int) {

@@ -78,13 +78,13 @@ func RetrieveAPLoads(db *sql.DB, name string) []APLoad {
 
 // Queries 'apstat' table and
 // returns all rows where 'address' contains "TUM" and 
-// 	Lat, Long are unassigned
+// Lat, Long are unassigned
 func RetrieveAPs(db *sql.DB, withCoordinate bool) []AccessPoint {
 	var query string
 	
 	if withCoordinate {
 		query = `
-			SELECT ID, Address, Room, Name, Load, Lat, Long
+			SELECT ID, Address, Room, Name, Floor, Load, Lat, Long
 			FROM apstat
 			WHERE Address LIKE '%TUM%'
 			AND Lat!='lat'
@@ -92,7 +92,7 @@ func RetrieveAPs(db *sql.DB, withCoordinate bool) []AccessPoint {
 		`
 	} else {
 		query = `
-			SELECT ID, Address, Room, Name, Load, Lat, Long
+			SELECT ID, Address, Room, Name, Floor, Load, Lat, Long
 			FROM apstat
 			WHERE Address LIKE '%TUM%'
 			AND Lat='lat'
@@ -112,7 +112,8 @@ func RetrieveAPs(db *sql.DB, withCoordinate bool) []AccessPoint {
 		err2 := rows.Scan(&item.ID, 
 						  &item.Address, 
 						  &item.Room,
-						  &item.Name, 
+						  &item.Name,
+						  &item.Floor, 
 						  &item.Load,
 						  &item.Lat, 
 						  &item.Long)
