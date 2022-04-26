@@ -37,6 +37,7 @@ struct HeatmapControllerRepresentable: UIViewControllerRepresentable {
 class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisplayDelegate {
     private var mapView: GMSMapView!
     private var heatmapLayer: GMUHeatmapTileLayer!
+    private var clusterManager: GMUClusterManager!
     
     private var colorMSLabel = UILabel(),
                 opacityLabel = UILabel(),
@@ -50,8 +51,8 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                 yellowLabel  = UILabel(),
                 redLabel     = UILabel(),
                 
-                markersButton = UIButton(),
-                show = true
+                markersButton = UIButton(), clusterButton = UIButton(),
+                show = true, cluster = true
     
     private var gradientColors = [UIColor(red: 0, green: 0, blue: 128/255, alpha: 1),
                                   UIColor.cyan,
@@ -121,6 +122,37 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         markersButton.setTitle("Show markers", for: .normal)
         markersButton.addTarget(self, action: #selector(showMarkers), for: .touchUpInside)
         mapView.addSubview(markersButton)
+        
+        // Setup the cluster manager
+        let iconGenerator = GMUDefaultClusterIconGenerator()
+        let algo = GMUNonHierarchicalDistanceBasedAlgorithm()
+        let renderer = GMUDefaultClusterRenderer(mapView: mapView,
+                                                 clusterIconGenerator: iconGenerator)
+        clusterManager = GMUClusterManager(map: mapView, algorithm: algo, renderer: renderer)
+        clusterManager.setMapDelegate(self)
+        
+        clusterButton.frame = CGRect(x: 10, y: 675, width: 200, height: 40)
+        clusterButton.backgroundColor = .black
+        clusterButton.setTitle("Cluster markers", for: .normal)
+        clusterButton.addTarget(self, action: #selector(clusterMarkers), for: .touchUpInside)
+        mapView.addSubview(clusterButton)
+    }
+    
+    @objc
+    func clusterMarkers() {
+        if cluster {
+            for marker in allMarkers {
+                clusterManager.add(marker)
+            }
+            clusterManager.cluster()
+            cluster = false
+        } else {
+            for marker in allMarkers {
+                clusterManager.remove(marker)
+            }
+            clusterManager.cluster()
+            cluster = true
+        }
     }
     
     @objc
@@ -136,6 +168,18 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
             }
             show = true
         }
+    }
+    
+    func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
+        mapView.animate(toLocation: marker.position)
+        
+        if marker.userData is GMUCluster {
+            NSLog("Did tap cluster")
+            return true
+        }
+        
+        NSLog("Did tap a normal marker")
+        return false
     }
     
     private func setupMultipleLayers() {
@@ -186,17 +230,18 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     
     // TODO display different heatmap based on selected level
     func didChangeActiveLevel(_ level: GMSIndoorLevel?) {
-        if level?.name == "EG" {
-            heatmapLayer.weightedData = apEG
-        } else if level?.name == "1OG" {
-            heatmapLayer.weightedData = ap1OG
-        } else if level?.name == "2OG" {
-            heatmapLayer.weightedData = ap2OG
-        } else if level?.name == "3OG" {
-            heatmapLayer.weightedData = ap3OG
-        }
-        heatmapLayer.clearTileCache()
-        heatmapLayer.map = heatmapLayer.map
+//        print("Showing heatmap layer for floor: \(level?.name)")
+//        if level?.name == "EG" {
+//            heatmapLayer.weightedData = apEG
+//        } else if level?.name == "1OG" {
+//            heatmapLayer.weightedData = ap1OG
+//        } else if level?.name == "2OG" {
+//            heatmapLayer.weightedData = ap2OG
+//        } else if level?.name == "3OG" {
+//            heatmapLayer.weightedData = ap3OG
+//        }
+//        heatmapLayer.clearTileCache()
+//        heatmapLayer.map = heatmapLayer.map
     }
     
     private func initHeatmapLayer(radius: UInt, opacity: Float, colorMapSize: UInt) {
@@ -237,9 +282,9 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                             intensity *= 1000.0
                         }
                         
-                        if intensity < 5 || intensity > 20 {
-                            print("intensity is : \(Float(intensity))")
-                        }
+//                        if intensity < 5 || intensity > 20 {
+//                            print("intensity is : \(Float(intensity))")
+//                        }
 
                         let coords = GMUWeightedLatLng(
                             coordinate: CLLocationCoordinate2DMake(
