@@ -1,38 +1,36 @@
 package main
 
 import (
-	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
+	"strconv"
+	"strings"
+
+	"encoding/csv"
+	"encoding/json"
 	"net/http"
 
-	"github.com/kvogli/Heatmap/LRZscraper"
+	"github.com/kvogli/Heatmap/DBService"
+	"github.com/kvogli/Heatmap/NavigaTUM"
 	"github.com/kvogli/Heatmap/RoomFinder"
-
-	"os"
-	"strings"
 )
 
-func getDataFromURL(fName, url string) {
+func getDataFromURL(filename, url string) {
 	resp, httpError := http.Get(url)
 	if httpError != nil {
-		fmt.Println("Could not retrieve csv data from URL!", httpError)
-		return
-	} else {
-		fmt.Println("Successfully retrieved data from URL!")
+		log.Fatalf("Could not retrieve csv data from URL! %q", httpError)
 	}
 
 	defer resp.Body.Close()
 	csvReader := csv.NewReader(resp.Body)
 	csvReader.Comma = ','
 
-	file, osError := os.Create(fName)
+	file, osError := os.Create(filename)
 	if osError != nil {
 		log.Fatalf("Could not create file, err: %q", osError)
-		return
 	}
 	defer file.Close()
 
@@ -40,63 +38,124 @@ func getDataFromURL(fName, url string) {
 	csvWriter.Comma = ';'
 	defer csvWriter.Flush()
 
-	var data []string
+	var csvRecord []string
 	for i := 0; ; i++ {
-		data, httpError = csvReader.Read()
+		csvRecord, httpError = csvReader.Read()
 		if httpError == io.EOF {
 			break
 		} else if httpError != nil {
 			panic(httpError)
 		} else {
-			fields 	:= strings.Fields(data[0]) // get substrings separated by whitespaces
-			name 		:= fields[0]
+			fields := strings.Fields(csvRecord[0]) // get substrings separated by whitespaces
+			network := fields[0]
 			current := strings.Split(fields[1], ":")[1]
-			max 		:= strings.Split(fields[2], ":")[1]
-			min 		:= strings.Split(fields[3], ":")[1]
+			max := strings.Split(fields[2], ":")[1]
+			min := strings.Split(fields[3], ":")[1]
 
-			dateAndTime := data[1]
-			other 			:= data[2] // TODO find out what other is
+			dateAndTime := csvRecord[1]
+			avg := csvRecord[2]
+
 			csvWriter.Write([]string{
-				name, current, max, min, dateAndTime, other,
+				network, current, max, min, dateAndTime, avg,
 			})
 		}
 	}
 }
 
-type AccessPoint struct {
+type JsonEntry struct {
 	Intensity float64
-	Latitude  float64
-	Longitude float64
+	Lat       float64
+	Long      float64
+	Floor     string
 }
 
-func saveApLoadToJsonFile() {
-	roomInfos, totalLoad := RoomFinder.PrepareDataToScrape()
-	coordinatesMap := RoomFinder.Scrape(roomInfos) // TODO use ignore result, which is a map of room ids and coordinates
+const (
+	ApstatTable = "./data/sqlite/apstat.db"
+	ApstatCSV   = "data/csv/apstat.csv"
+)
 
-	accessPoints := make([]AccessPoint, 0)
-	for _, roomInfo := range roomInfos {
-		var intensity float64 = float64(roomInfo.RoomLoad) / float64(totalLoad)
-		if coord, exists := coordinatesMap[roomInfo.RoomID]; exists {
-			ap := AccessPoint{Intensity: intensity, Latitude: coord.Lat, Longitude: coord.Long}
-			accessPoints = append(accessPoints, ap)
-		}
+var apstatDB = DBService.InitDB(ApstatTable)
+
+func saveAPsToJSON(dst string, totalLoad int) {
+	APs := DBService.RetrieveAPs(apstatDB, true)
+	var jsonData []JsonEntry
+
+	for _, ap := range APs {
+		currTotLoad := RoomFinder.GetCurrentTotalLoad(ap.Load)
+		var intensity float64 = float64(currTotLoad) / float64(totalLoad)
+		lat, _ := strconv.ParseFloat(ap.Lat, 64)
+		lng, _ := strconv.ParseFloat(ap.Long, 64)
+		jsonEntry := JsonEntry{intensity, lat, lng, ap.Floor}
+		jsonData = append(jsonData, jsonEntry)
 	}
 
-	bytes, err := json.Marshal(accessPoints)
+	bytes, err := json.Marshal(jsonData)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile("accessPoints.json", bytes, 0644)
+	err = ioutil.WriteFile(dst, bytes, 0644)
 	if err != nil {
 		log.Fatal(err)
-	} else {
-		log.Println("Data was saved successfully to accessPoints.json")
 	}
 }
 
 func main() {
-	// LRZscraper.ScrapeApstat("data/csv/apstat.csv")
-	LRZscraper.StoreApstatInSQLite("data/sqlite/apstat.db")
-	saveApLoadToJsonFile()
+
+	result, totalLoad := scrapeRoomFinder() //Note that room finder must first be scraped to jump to navigatum this way
+	cnt := scrapeNavigaTUM(result)
+	fmt.Println(cnt)
+	
+	saveAPsToJSON("data/json/ap.json", totalLoad)
+}
+
+func scrapeRoomFinder() (RoomFinder.Result, int) {
+	db := DBService.InitDB(ApstatTable)
+	APs := DBService.RetrieveAPs(db, false)
+	roomInfos, totalLoad := RoomFinder.PrepareDataToScrape(APs)
+	res := RoomFinder.ScrapeURLs(roomInfos)
+	
+	log.Println("Number of retrieved APs:", len(APs))
+	log.Println("Number of retrieved URLs:", len(res.Successes))
+	
+	for _, val := range res.Successes {
+		where := fmt.Sprintf("ID='%s'", val.ID)
+		DBService.UpdateColumn(db, "apstat", "Lat", val.Lat, where)
+		DBService.UpdateColumn(db, "apstat", "Long", val.Long, where)
+	}
+
+	return res, totalLoad
+}
+
+func scrapeNavigaTUM(res RoomFinder.Result) (count int) {
+	count = 0 // number of found coordinates
+	db := DBService.InitDB(ApstatTable)
+	
+	for _, res := range res.Failures {
+		var roomID string
+		if strings.Contains(res.RoomNr, "OG") || res.RoomNr == "" || strings.Contains(res.RoomNr, ".."){
+			roomID = res.BuildingNr
+		} else {
+			roomID = fmt.Sprintf("%s.%s", res.BuildingNr, res.RoomNr)
+		}
+		
+		lat, long, found := NavigaTUM.GetRoomCoordinates(roomID)
+
+		if found {
+			where := fmt.Sprintf("ID='%s'", res.ID)
+			DBService.UpdateColumn(db, "apstat", "Lat", lat, where)
+			DBService.UpdateColumn(db, "apstat", "Long", long, where)
+			count++
+		} else {
+			lat, long, found = NavigaTUM.GetRoomCoordinates(res.BuildingNr)
+			if found {
+				where := fmt.Sprintf("ID='%s'", res.ID)
+				DBService.UpdateColumn(db, "apstat", "Lat", lat, where)
+				DBService.UpdateColumn(db, "apstat", "Long", long, where)
+				count++
+			}
+		}
+	}
+
+	return 
 }
