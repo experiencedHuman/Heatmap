@@ -37,26 +37,35 @@ struct HeatmapControllerRepresentable: UIViewControllerRepresentable {
 class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisplayDelegate {
     private var mapView: GMSMapView!
     private var heatmapLayer: GMUHeatmapTileLayer!
+    
     private var colorMSLabel = UILabel(),
                 opacityLabel = UILabel(),
-                radiusLabel = UILabel(),
-                minZILabel = UILabel(),
-                maxZILabel = UILabel(),
-                gStartLabel = UILabel(),
-                gEndLabel = UILabel(),
-                zoomLvlLabel = UILabel()
+                radiusLabel  = UILabel(),
+                minZILabel   = UILabel(),
+                maxZILabel   = UILabel(),
+                zoomLvlLabel = UILabel(),
+                blueLabel    = UILabel(),
+                cyanLabel    = UILabel(),
+                greenLabel   = UILabel(),
+                yellowLabel  = UILabel(),
+                redLabel     = UILabel(),
+                
+                markersButton = UIButton(),
+                show = true
     
-    private var gradientColors = [UIColor.cyan,
-                                  UIColor.blue,
-                                  UIColor.purple,
+    private var gradientColors = [UIColor(red: 0, green: 0, blue: 128/255, alpha: 1),
+                                  UIColor.cyan,
                                   UIColor.green,
                                   UIColor.yellow,
-                                  UIColor.orange,
                                   UIColor.red]
-    private var gradientStartPoints = [0.2, 0.3, 0.4, 0.5,  0.6, 0.7, 0.8] as [NSNumber]
+    private var gradientStartPoints = [0.05, 0.15, 0.35, 0.6,  1] as [NSNumber]
     
-    private var gradientStart: Float = 0.2,
-                gradientEnd: Float = 0.6,
+    private var blue: Float = 0.05,
+                cyan: Float = 0.15,
+                green: Float = 0.35,
+                yellow: Float = 0.6,
+                red: Float = 1.0,
+                
                 opacity: Float = 0.8,
                 radius = UInt(300),
                 colorMapSize = UInt(256)
@@ -64,12 +73,14 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     private var apEG: [GMUWeightedLatLng]!,
                 ap1OG: [GMUWeightedLatLng]!,
                 ap2OG: [GMUWeightedLatLng]!,
-                ap3OG: [GMUWeightedLatLng]!
+                ap3OG: [GMUWeightedLatLng]!,
+                allAPs: [GMUWeightedLatLng]!,
+                allMarkers: [GMSMarker]!
     
     private var zoomLevel: Float = 16.0
     private var heatmapLayers: [GMUHeatmapTileLayer?]!
     
-    private var backgroundView = UIView(frame: CGRect(x: 5, y: 5, width: 350, height: 400))
+    private var backgroundView = UIView(frame: CGRect(x: 5, y: 5, width: 350, height: 500))
     
     override func loadView() {
         super.loadView()
@@ -83,18 +94,18 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         backgroundView.backgroundColor = .lightGray
         self.view.addSubview(backgroundView)
         
-        //add markers
-        let position = CLLocationCoordinate2D(latitude: 48.998, longitude: 11.668)
-        let marker = GMSMarker(position: position)
-        marker.title = "Access Point"
-        marker.map = mapView
-        
-        let zoomTitle = UILabel(frame: CGRect(x: 5, y: 360, width: 150, height: 15))
+        let zoomTitle = UILabel(frame: CGRect(x: 5, y: 480, width: 150, height: 15))
         zoomTitle.text = "Zoom Lvl:"
         backgroundView.addSubview(zoomTitle)
-        zoomLvlLabel.frame = CGRect(x: 160, y: 360, width: 80, height: 15)
+        zoomLvlLabel.frame = CGRect(x: 160, y: 480, width: 80, height: 15)
         zoomLvlLabel.text = "0.0"
         backgroundView.addSubview(zoomLvlLabel)
+    }
+    
+    private func addMarker(coord: CLLocationCoordinate2D) {
+        let marker = GMSMarker(position: coord)
+        marker.title = "Access Point"
+        marker.map = mapView
     }
     
     override func viewDidLoad() {
@@ -103,6 +114,28 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
 //        setupMultipleLayers()
         initHeatmapLayer(radius: radius, opacity: opacity, colorMapSize: colorMapSize)
         print("zoom level is: \(mapView.camera.zoom)")
+        
+        // show or not show markers in the map
+        markersButton.frame = CGRect(x: 10, y: 720, width: 200, height: 40)
+        markersButton.backgroundColor = .black
+        markersButton.setTitle("Show markers", for: .normal)
+        markersButton.addTarget(self, action: #selector(showMarkers), for: .touchUpInside)
+        mapView.addSubview(markersButton)
+    }
+    
+    @objc
+    func showMarkers() {
+        if show {
+            for marker in allMarkers {
+                marker.map = mapView
+            }
+            show = false
+        } else {
+            for marker in allMarkers {
+                marker.map = nil
+            }
+            show = true
+        }
     }
     
     private func setupMultipleLayers() {
@@ -186,6 +219,8 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         var list1OG = [GMUWeightedLatLng]()
         var list2OG = [GMUWeightedLatLng]()
         var list3OG = [GMUWeightedLatLng]()
+        allAPs = [GMUWeightedLatLng]()
+        allMarkers = [GMSMarker]()
         do {
             // Get the data: latitude/longitude positions of police stations.
             if let path = Bundle.main.url(forResource: "ap-2", withExtension: "json") {
@@ -193,16 +228,26 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                 let json = try JSONSerialization.jsonObject(with: data, options: [])
                 if let object = json as? [[String: Any]] {
                     for item in object {
-                        let lat = item["Lat"]
-                        let lng = item["Long"]
+                        let lat = item["Lat"] as? Double
+                        let lng = item["Long"] as? Double
                         var intensity = item["Intensity"] as? Double ?? 1.0
                         let floor = item["Floor"] as? String
+                        
                         if intensity != 1.0 {
                             intensity *= 1000.0
                         }
-                                                print("intensity is : \(Float(intensity))")
+                        
+                        if intensity < 5 || intensity > 20 {
+                            print("intensity is : \(Float(intensity))")
+                        }
 
-                        let coords = GMUWeightedLatLng(coordinate: CLLocationCoordinate2DMake(lat as! CLLocationDegrees, lng as! CLLocationDegrees), intensity: Float(intensity))
+                        let coords = GMUWeightedLatLng(
+                            coordinate: CLLocationCoordinate2DMake(
+                                lat!, lng!
+                            ),
+                            intensity: Float(intensity)
+                        )
+                        
                         if floor == "0" {
                             listEG.append(coords)
                         } else if floor == "1" {
@@ -213,6 +258,9 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                             list3OG.append(coords)
                         }
                         
+                        allAPs.append(coords)
+                        let marker = GMSMarker(position: CLLocationCoordinate2D(latitude: lat!, longitude: lng!))
+                        allMarkers.append(marker)
                     }
                 } else {
                     print("Could not cast data from JSON")
@@ -224,37 +272,48 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
             print(error.localizedDescription)
         }
         
-        apEG = listEG
+        apEG  = listEG
         ap1OG = list1OG
         ap2OG = list2OG
         ap3OG = list3OG
         
         // Add the latlngs to the heatmap layer.
-      heatmapLayer.weightedData = listEG
+      heatmapLayer.weightedData = allAPs
     }
     
     private func addSliders() {
         let fromLeft = 5, width = 170, height = 15
         // MARK: colorMapSize
-        addUISlider(title: "colorMS", xOrig: fromLeft, yOrig: 20, width: width, height: height, minVal: 2, maxVal: 512.0, objcFunc: #selector(self.colorMapSizeSliderValueDidChange(_:)), &colorMSLabel)
+        addUISlider(title: "colorMS", xOrig: fromLeft, yOrig: 20, width: width, height: height, minVal: 2, maxVal: 512.0, objcFunc: #selector(self.colorMapSizeSliderValueDidChange(_:)), &colorMSLabel, Float(colorMapSize))
         
         // MARK: Opacity
-        addUISlider(title: "Opacity", xOrig: fromLeft, yOrig: 80, width: width, height: height, minVal: 0.05, maxVal: 10.0, objcFunc: #selector(self.opacitySliderValueDidChange(_:)), &opacityLabel)
+        addUISlider(title: "Opacity", xOrig: fromLeft, yOrig: 80, width: width, height: height, minVal: 0.05, maxVal: 10.0, objcFunc: #selector(self.opacitySliderValueDidChange(_:)), &opacityLabel, opacity)
         
         // MARK: Radius
-        addUISlider(title: "Radius", xOrig: fromLeft, yOrig: 120, width: width, height: height, minVal: 1, maxVal: 500, objcFunc: #selector(self.radiusSliderValueDidChange(_:)), &radiusLabel)
+        addUISlider(title: "Radius", xOrig: fromLeft, yOrig: 120, width: width, height: height, minVal: 1, maxVal: 500, objcFunc: #selector(self.radiusSliderValueDidChange(_:)), &radiusLabel, Float(radius))
         
         // MARK: Minimum Zone Intensity
-        addUISlider(title: "MinZI", xOrig: fromLeft, yOrig: 180, width: width, height: height, minVal: 0, maxVal: 4, objcFunc: #selector(self.minZoneIntSliderValueDidChange(_:)), &minZILabel)
+        addUISlider(title: "MinZI", xOrig: fromLeft, yOrig: 180, width: width, height: height, minVal: 0, maxVal: 4, objcFunc: #selector(self.minZoneIntSliderValueDidChange(_:)), &minZILabel, 0.0)
         
         // MARK: Maximum Zone Intensity
-        addUISlider(title: "MaxZI", xOrig: fromLeft, yOrig: 220, width: width, height: height, minVal: 0, maxVal: 20, objcFunc: #selector(self.maxZoneIntSliderValueDidChange(_:)), &maxZILabel)
+        addUISlider(title: "MaxZI", xOrig: fromLeft, yOrig: 220, width: width, height: height, minVal: 10, maxVal: 40, objcFunc: #selector(self.maxZoneIntSliderValueDidChange(_:)), &maxZILabel, 38.0)
         
-        // MARK: Gradient Start
-        addUISlider(title: "G-start", xOrig: fromLeft, yOrig: 280, width: width, height: height, minVal: 0, maxVal: 0.59, objcFunc: #selector(self.gradientStartSliderValueDidChange(_:)), &gStartLabel)
         
-        // MARK: Gradient End
-        addUISlider(title: "G-end", xOrig: fromLeft, yOrig: 320, width: width, height: height, minVal: 0.6, maxVal: 1.0, objcFunc: #selector(self.gradientEndSliderValueDidChange(_:)), &gEndLabel)
+        
+        // MARK: Gradient Blue
+        addUISlider(title: "Blue", xOrig: fromLeft, yOrig: 280, width: width, height: height, minVal: 0.0, maxVal: 0.1, objcFunc: #selector(self.blueSliderValueDidChange(_:)), &blueLabel, blue)
+        
+        // MARK: Gradient Cyan
+        addUISlider(title: "Cyan", xOrig: fromLeft, yOrig: 320, width: width, height: height, minVal: 0.1, maxVal: 0.25, objcFunc: #selector(self.cyanSliderValueDidChange(_:)), &cyanLabel, cyan)
+        
+        // MARK: Gradient Green
+        addUISlider(title: "Green", xOrig: fromLeft, yOrig: 360, width: width, height: height, minVal: 0.25, maxVal: 0.5, objcFunc: #selector(self.greenSliderValueDidChange(_:)), &greenLabel, green)
+        
+        // MARK: Gradient Yellow
+        addUISlider(title: "Yellow", xOrig: fromLeft, yOrig: 400, width: width, height: height, minVal: 0.5, maxVal: 0.75, objcFunc: #selector(self.yellowSliderValueDidChange(_:)), &yellowLabel, yellow)
+        
+        // MARK: Gradient Red
+        addUISlider(title: "Red", xOrig: fromLeft, yOrig: 440, width: width, height: height, minVal: 0.75, maxVal: 1.0, objcFunc: #selector(self.redSliderValueDidChange(_:)), &redLabel, red)
     }
     
     private func addUISlider(title: String,
@@ -265,13 +324,15 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                              minVal: Float,
                              maxVal: Float,
                              objcFunc: Selector,
-                             _ valueLabel: inout UILabel) {
+                             _ valueLabel: inout UILabel,
+                             _ initialValue: Float) {
         
         let slider = UISlider(frame:CGRect(x: xOrig + 90, y: yOrig, width: width, height: height))
         slider.minimumValue = minVal
         slider.maximumValue = maxVal
         slider.isContinuous = true
         slider.addTarget(self, action: objcFunc, for: .valueChanged)
+        slider.value = initialValue
         backgroundView.addSubview(slider)
         
         let titleLabel = UILabel(frame: CGRect(x: xOrig, y: yOrig, width: 70, height: height))
@@ -279,7 +340,7 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         backgroundView.addSubview(titleLabel)
         
         valueLabel.frame = CGRect(x: xOrig + 270, y: yOrig, width: width, height: height)
-        valueLabel.text = "0.0"
+        valueLabel.text = "\(initialValue)"
         backgroundView.addSubview(valueLabel)
     }
     
@@ -342,32 +403,77 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     }
     
     @objc
-    func gradientStartSliderValueDidChange(_ sender: UISlider!) {
-        let step:Float = 0.05
+    func blueSliderValueDidChange(_ sender: UISlider!) {
+        let step:Float = 0.001
         let stepValue = sender.value / step * step
         sender.value = stepValue
-        gradientStart = stepValue
-        gradientStartPoints = [gradientStart, gradientEnd] as [NSNumber]
+        blue = stepValue
+        gradientStartPoints = [blue, cyan, green, yellow, red] as [NSNumber]
         heatmapLayer.gradient = GMUGradient(colors: gradientColors,
                                             startPoints: gradientStartPoints,
                                             colorMapSize: colorMapSize)
         heatmapLayer.map = heatmapLayer.map
-        gStartLabel.text = String(gradientStart)
+        blueLabel.text = String(blue)
         heatmapLayer.clearTileCache()
     }
     
     @objc
-    func gradientEndSliderValueDidChange(_ sender: UISlider!) {
-        let step:Float = 0.05
+    func cyanSliderValueDidChange(_ sender: UISlider!) {
+        let step:Float = 0.001
         let stepValue = sender.value / step * step
         sender.value = stepValue
-        gradientEnd = stepValue
-        gradientStartPoints = [gradientStart, gradientEnd] as [NSNumber]
+        cyan = stepValue
+        gradientStartPoints = [blue, cyan, green, yellow, red] as [NSNumber]
         heatmapLayer.gradient = GMUGradient(colors: gradientColors,
                                             startPoints: gradientStartPoints,
                                             colorMapSize: colorMapSize)
         heatmapLayer.map = heatmapLayer.map
-        gEndLabel.text = String(gradientEnd)
+        cyanLabel.text = String(cyan)
+        heatmapLayer.clearTileCache()
+    }
+    
+    @objc
+    func greenSliderValueDidChange(_ sender: UISlider!) {
+        let step:Float = 0.001
+        let stepValue = sender.value / step * step
+        sender.value = stepValue
+        green = stepValue
+        gradientStartPoints = [blue, cyan, green, yellow, red] as [NSNumber]
+        heatmapLayer.gradient = GMUGradient(colors: gradientColors,
+                                            startPoints: gradientStartPoints,
+                                            colorMapSize: colorMapSize)
+        heatmapLayer.map = heatmapLayer.map
+        greenLabel.text = String(green)
+        heatmapLayer.clearTileCache()
+    }
+    
+    @objc
+    func yellowSliderValueDidChange(_ sender: UISlider!) {
+        let step:Float = 0.001
+        let stepValue = sender.value / step * step
+        sender.value = stepValue
+        yellow = stepValue
+        gradientStartPoints = [blue, cyan, green, yellow, red] as [NSNumber]
+        heatmapLayer.gradient = GMUGradient(colors: gradientColors,
+                                            startPoints: gradientStartPoints,
+                                            colorMapSize: colorMapSize)
+        heatmapLayer.map = heatmapLayer.map
+        yellowLabel.text = String(yellow)
+        heatmapLayer.clearTileCache()
+    }
+    
+    @objc
+    func redSliderValueDidChange(_ sender: UISlider!) {
+        let step:Float = 0.001
+        let stepValue = sender.value / step * step
+        sender.value = stepValue
+        red = stepValue
+        gradientStartPoints = [blue, cyan, green, yellow, red] as [NSNumber]
+        heatmapLayer.gradient = GMUGradient(colors: gradientColors,
+                                            startPoints: gradientStartPoints,
+                                            colorMapSize: colorMapSize)
+        heatmapLayer.map = heatmapLayer.map
+        redLabel.text = String(red)
         heatmapLayer.clearTileCache()
     }
 }
