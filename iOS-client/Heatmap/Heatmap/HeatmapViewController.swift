@@ -59,17 +59,17 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                                   UIColor.green,
                                   UIColor.yellow,
                                   UIColor.red]
-    private var gradientStartPoints = [0.05, 0.15, 0.35, 0.6,  1] as [NSNumber]
+    private var gradientStartPoints = [0.05, 0.15, 0.35, 0.6,  0.8] as [NSNumber]
     
     private var blue: Float = 0.05,
                 cyan: Float = 0.15,
                 green: Float = 0.35,
                 yellow: Float = 0.6,
-                red: Float = 1.0,
+                red: Float = 0.8,
                 
                 opacity: Float = 0.8,
-                radius = UInt(300),
-                colorMapSize = UInt(256)
+                radius = UInt(87),
+                colorMapSize = UInt(512) // default = 512
     
     private var apEG: [GMUWeightedLatLng]!,
                 ap1OG: [GMUWeightedLatLng]!,
@@ -80,6 +80,8 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     
     private var zoomLevel: Float = 16.0
     private var heatmapLayers: [GMUHeatmapTileLayer?]!
+    
+    private var interpolation = Interpolation()
     
     private var backgroundView = UIView(frame: CGRect(x: 5, y: 5, width: 350, height: 500))
     
@@ -206,8 +208,17 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
     func mapView(_ mapView: GMSMapView, didChange position: GMSCameraPosition) {
         let currentZoomLevel = mapView.camera.zoom
         zoomLvlLabel.text = String(currentZoomLevel)
-        if abs(currentZoomLevel - zoomLevel) > 1 {
+        if abs(currentZoomLevel - zoomLevel) > 0.5 {
             zoomLevel = currentZoomLevel //update
+//            print("Update zl: \(zoomLevel)")
+            let newRadius = lagrange(points: interpolation.radiusPoints, x: Double(currentZoomLevel))
+            let newOpacity = lagrange(points: interpolation.opacityPoints, x: Double(currentZoomLevel))
+            heatmapLayer.radius = UInt(newRadius)
+            heatmapLayer.opacity = Float(newOpacity)
+            heatmapLayer.map = mapView
+            
+            print("new rad: \(newRadius)")
+            print("new opa: \(newOpacity)")
 //            heatmapLayer = heatmapLayers[Int(zoomLevel)]
 //            let lvl = Int(zoomLevel)
 //            let hml = heatmapLayers[lvl]
@@ -419,8 +430,9 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
         let stepValue = Int(sender.value) / step * step
         sender.value = Float(stepValue)
         radius = UInt(stepValue)
+//        heatmapLayer.map = nil
         heatmapLayer.radius = radius
-        heatmapLayer.map = heatmapLayer.map
+        heatmapLayer.map = mapView
         radiusLabel.text = String(radius)
         heatmapLayer.clearTileCache()
     }
