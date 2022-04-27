@@ -21,6 +21,8 @@ class ViewController: UIViewController, AzureMapDelegate {
     private var dataSource: DataSource!
     private var heatmapLayer: HeatMapLayer!
     
+    private var interpolation = Interpolation()
+    
     func azureMap(_ map: AzureMap, didTapAt location: CLLocationCoordinate2D) {
 //        heatmapLayer = heatmapLayers[0]
         // TODO add a button to change between multiple layer strategy and single layer (to be able to see property changing)
@@ -47,29 +49,29 @@ class ViewController: UIViewController, AzureMapDelegate {
     
     private func useMultipleLayers(_ map: AzureMap) {
         //setup heatmap layers and add them all to map
-        heatmapLayers = [HeatMapLayer?](repeating: nil, count: 23)
-        for i in 1...23 {
+        heatmapLayers = [HeatMapLayer?](repeating: nil, count: 46)
+        var index = 0
+        for i in stride(from: 1, to: 23, by: 0.5) {
             let options: [HeatMapLayerOption]
-            if i > 19 {
-                options = [
-                    .heatmapRadius(2.6 * Double(i) - 8.5),
-                    .heatmapOpacity(0.8),
-                    .minZoom(Double(i) - 0.1),
-                    .maxZoom(Double(i) + 0.9)
-                ]
-            } else {
+            
+            let newRadius = lagrange(points: interpolation.radiusPoints, x: i)
+            let newOpacity = lagrange(points: interpolation.opacityPoints, x: i)
+            let newWeight = lagrange(points: interpolation.weightPoints, x: i)
+            
             options = [
-                .heatmapRadius(Double(i)),
-                .heatmapOpacity(0.8),
+                .heatmapRadius(newRadius),
+                .heatmapOpacity(newOpacity),
                 .minZoom(Double(i) - 0.1),
-                .maxZoom(Double(i) + 0.9)
+                .maxZoom(Double(i) + 0.6),
+                .heatmapWeight(newWeight)
             ]
-            }
+            
             let heatmapLayer = HeatMapLayer(
                 source: dataSource,
                 options: options
             )
-            heatmapLayers[i - 1] = heatmapLayer
+            heatmapLayers[index] = heatmapLayer
+            index += 1
             map.layers.insertLayer(heatmapLayer, below: "labels")
         }
     }
