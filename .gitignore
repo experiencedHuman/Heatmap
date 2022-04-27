@@ -3,6 +3,7 @@ GoogleMapsBase.xcframework/
 GoogleMapsCore.xcframework/
 
 *.xcuserstate
+*.xcuserdatad
 
 Config.xcconfig
 

@@ -20,11 +20,13 @@ struct Interpolation {
         Point(x: 7, y: 20),
         Point(x: 8, y: 22),
         Point(x: 10, y: 25),
-        Point(x: 12, y: 35),
-        Point(x: 13, y: 36),
-        Point(x: 14, y: 37),
-        Point(x: 15, y: 39),
-        Point(x: 17, y: 40),
+        Point(x: 12, y: 30),
+        Point(x: 13, y: 31),
+        Point(x: 14, y: 32),
+        Point(x: 15, y: 33),
+        Point(x: 17, y: 35),
+        Point(x: 18, y: 40),
+        Point(x: 19, y: 50),
         Point(x: 20, y: 55),
         Point(x: 23, y: 60)
     ]

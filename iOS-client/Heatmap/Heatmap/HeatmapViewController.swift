@@ -59,13 +59,13 @@ class HeatmapViewController: UIViewController, GMSMapViewDelegate, GMSIndoorDisp
                                   UIColor.green,
                                   UIColor.yellow,
                                   UIColor.red]
-    private var gradientStartPoints = [0.05, 0.15, 0.35, 0.6,  0.8] as [NSNumber]
+    private var gradientStartPoints = [0.05, 0.1, 0.15, 0.26,  0.5] as [NSNumber]
     
     private var blue: Float = 0.05,
-                cyan: Float = 0.15,
-                green: Float = 0.35,
-                yellow: Float = 0.6,
-                red: Float = 0.8,
+                cyan: Float = 0.10,
+                green: Float = 0.15,
+                yellow: Float = 0.26,
+                red: Float = 0.5,
                 
                 opacity: Float = 0.8,
                 radius = UInt(87),
