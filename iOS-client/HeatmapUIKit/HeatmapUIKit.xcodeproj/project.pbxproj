@@ -17,6 +17,7 @@
 		AA8C0E8527E0F6B800D054C1 /* AzureMapsControl in Frameworks */ = {isa = PBXBuildFile; productRef = AA8C0E8427E0F6B800D054C1 /* AzureMapsControl */; };
 		AA8C0E8827E0F85600D054C1 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */; };
 		AAA112952819469300452F84 /* Interpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA112942819469300452F84 /* Interpolation.swift */; };
+		AAA112992827E60A00452F84 /* AccessPointPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA112982827E60A00452F84 /* AccessPointPopup.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		AA8C0E8927E0FD6000D054C1 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		AAA112942819469300452F84 /* Interpolation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Interpolation.swift; sourceTree = "<group>"; };
+		AAA112982827E60A00452F84 /* AccessPointPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AccessPointPopup.swift; path = ../../../../../Documents/AccessPointPopup.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +79,7 @@
 				AA8C0E7D27E0F4C500D054C1 /* Info.plist */,
 				AA8C0E8927E0FD6000D054C1 /* Config.xcconfig */,
 				AAA112942819469300452F84 /* Interpolation.swift */,
+				AAA112982827E60A00452F84 /* AccessPointPopup.swift */,
 			);
 			path = HeatmapUIKit;
 			sourceTree = "<group>";
@@ -171,6 +174,7 @@
 				AA8C0E7027E0F4C300D054C1 /* AppDelegate.swift in Sources */,
 				AAA112952819469300452F84 /* Interpolation.swift in Sources */,
 				AA8C0E7227E0F4C300D054C1 /* SceneDelegate.swift in Sources */,
+				AAA112992827E60A00452F84 /* AccessPointPopup.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -318,6 +322,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3AKVPYXCTG;
@@ -346,6 +351,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3AKVPYXCTG;
