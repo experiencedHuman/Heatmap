@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+service APService {
+  rpc GetAccessPoint (Empty) returns (AccessPoint) {}
+}
+
+message AccessPoint {
+  string name = 1;
+  string lat  = 2;
+  string long = 3;
+  string intensity = 4;
+}

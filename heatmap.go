@@ -54,5 +54,8 @@ func getGraphiteDataFromLRZ() {
 }
 
 func main() {
-	LRZscraper.ScrapeData()
+	if false {
+		LRZscraper.ScrapeData()
+	}
+	fmt.Println("test")
 }

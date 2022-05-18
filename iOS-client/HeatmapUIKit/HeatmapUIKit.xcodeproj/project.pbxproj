@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA08D3F9282BBD9C009A6867 /* ap-2.json in Resources */ = {isa = PBXBuildFile; fileRef = AA08D3F8282BBD9C009A6867 /* ap-2.json */; };
+		AA08D4322832FE96009A6867 /* DataRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08D4312832FE96009A6867 /* DataRepository.swift */; };
 		AA24255F2806B6AF006BBD25 /* accessPoints.json in Resources */ = {isa = PBXBuildFile; fileRef = AA24255E2806B6AF006BBD25 /* accessPoints.json */; };
+		AA279D5A28339A9A00CB5930 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = AA279D5928339A9A00CB5930 /* GRPC */; };
+		AA279D6128339C8400CB5930 /* helloworld.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA279D5F28339C8400CB5930 /* helloworld.pb.swift */; };
+		AA279D6228339C8400CB5930 /* helloworld.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA279D6028339C8400CB5930 /* helloworld.grpc.swift */; };
 		AA8C0E7027E0F4C300D054C1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */; };
 		AA8C0E7227E0F4C300D054C1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E7127E0F4C300D054C1 /* SceneDelegate.swift */; };
 		AA8C0E7427E0F4C300D054C1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E7327E0F4C300D054C1 /* ViewController.swift */; };
@@ -16,12 +21,15 @@
 		AA8C0E7C27E0F4C500D054C1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA8C0E7A27E0F4C500D054C1 /* LaunchScreen.storyboard */; };
 		AA8C0E8527E0F6B800D054C1 /* AzureMapsControl in Frameworks */ = {isa = PBXBuildFile; productRef = AA8C0E8427E0F6B800D054C1 /* AzureMapsControl */; };
 		AA8C0E8827E0F85600D054C1 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */; };
-		AAA112952819469300452F84 /* Interpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA112942819469300452F84 /* Interpolation.swift */; };
 		AAA112992827E60A00452F84 /* AccessPointPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA112982827E60A00452F84 /* AccessPointPopup.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AA08D3F8282BBD9C009A6867 /* ap-2.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "ap-2.json"; sourceTree = "<group>"; };
+		AA08D4312832FE96009A6867 /* DataRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataRepository.swift; sourceTree = "<group>"; };
 		AA24255E2806B6AF006BBD25 /* accessPoints.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = accessPoints.json; sourceTree = "<group>"; };
+		AA279D5F28339C8400CB5930 /* helloworld.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = helloworld.pb.swift; sourceTree = "<group>"; };
+		AA279D6028339C8400CB5930 /* helloworld.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = helloworld.grpc.swift; sourceTree = "<group>"; };
 		AA8C0E6C27E0F4C300D054C1 /* HeatmapUIKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeatmapUIKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA8C0E7127E0F4C300D054C1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -32,7 +40,6 @@
 		AA8C0E7D27E0F4C500D054C1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		AA8C0E8927E0FD6000D054C1 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
-		AAA112942819469300452F84 /* Interpolation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Interpolation.swift; sourceTree = "<group>"; };
 		AAA112982827E60A00452F84 /* AccessPointPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AccessPointPopup.swift; path = ../../../../../Documents/AccessPointPopup.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -41,6 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA279D5A28339A9A00CB5930 /* GRPC in Frameworks */,
 				AA8C0E8827E0F85600D054C1 /* CoreTelephony.framework in Frameworks */,
 				AA8C0E8527E0F6B800D054C1 /* AzureMapsControl in Frameworks */,
 			);
@@ -69,6 +77,9 @@
 		AA8C0E6E27E0F4C300D054C1 /* HeatmapUIKit */ = {
 			isa = PBXGroup;
 			children = (
+				AA279D6028339C8400CB5930 /* helloworld.grpc.swift */,
+				AA279D5F28339C8400CB5930 /* helloworld.pb.swift */,
+				AA08D3F8282BBD9C009A6867 /* ap-2.json */,
 				AA24255E2806B6AF006BBD25 /* accessPoints.json */,
 				AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */,
 				AA8C0E7127E0F4C300D054C1 /* SceneDelegate.swift */,
@@ -78,8 +89,8 @@
 				AA8C0E7A27E0F4C500D054C1 /* LaunchScreen.storyboard */,
 				AA8C0E7D27E0F4C500D054C1 /* Info.plist */,
 				AA8C0E8927E0FD6000D054C1 /* Config.xcconfig */,
-				AAA112942819469300452F84 /* Interpolation.swift */,
 				AAA112982827E60A00452F84 /* AccessPointPopup.swift */,
+				AA08D4312832FE96009A6867 /* DataRepository.swift */,
 			);
 			path = HeatmapUIKit;
 			sourceTree = "<group>";
@@ -110,6 +121,7 @@
 			name = HeatmapUIKit;
 			packageProductDependencies = (
 				AA8C0E8427E0F6B800D054C1 /* AzureMapsControl */,
+				AA279D5928339A9A00CB5930 /* GRPC */,
 			);
 			productName = HeatmapUIKit;
 			productReference = AA8C0E6C27E0F4C300D054C1 /* HeatmapUIKit.app */;
@@ -141,6 +153,7 @@
 			mainGroup = AA8C0E6327E0F4C300D054C1;
 			packageReferences = (
 				AA8C0E8327E0F6B800D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */,
+				AA279D5828339A9A00CB5930 /* XCRemoteSwiftPackageReference "grpc-swift" */,
 			);
 			productRefGroup = AA8C0E6D27E0F4C300D054C1 /* Products */;
 			projectDirPath = "";
@@ -158,6 +171,7 @@
 			files = (
 				AA24255F2806B6AF006BBD25 /* accessPoints.json in Resources */,
 				AA8C0E7C27E0F4C500D054C1 /* LaunchScreen.storyboard in Resources */,
+				AA08D3F9282BBD9C009A6867 /* ap-2.json in Resources */,
 				AA8C0E7927E0F4C500D054C1 /* Assets.xcassets in Resources */,
 				AA8C0E7727E0F4C300D054C1 /* Main.storyboard in Resources */,
 			);
@@ -170,9 +184,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA279D6228339C8400CB5930 /* helloworld.grpc.swift in Sources */,
+				AA279D6128339C8400CB5930 /* helloworld.pb.swift in Sources */,
 				AA8C0E7427E0F4C300D054C1 /* ViewController.swift in Sources */,
+				AA08D4322832FE96009A6867 /* DataRepository.swift in Sources */,
 				AA8C0E7027E0F4C300D054C1 /* AppDelegate.swift in Sources */,
-				AAA112952819469300452F84 /* Interpolation.swift in Sources */,
 				AA8C0E7227E0F4C300D054C1 /* SceneDelegate.swift in Sources */,
 				AAA112992827E60A00452F84 /* AccessPointPopup.swift in Sources */,
 			);
@@ -399,6 +415,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		AA279D5828339A9A00CB5930 /* XCRemoteSwiftPackageReference "grpc-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/grpc/grpc-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		AA8C0E8327E0F6B800D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Azure/azure-maps-ios-sdk-distribution.git";
@@ -410,6 +434,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		AA279D5928339A9A00CB5930 /* GRPC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA279D5828339A9A00CB5930 /* XCRemoteSwiftPackageReference "grpc-swift" */;
+			productName = GRPC;
+		};
 		AA8C0E8427E0F6B800D054C1 /* AzureMapsControl */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = AA8C0E8327E0F6B800D054C1 /* XCRemoteSwiftPackageReference "azure-maps-ios-sdk-distribution" */;
