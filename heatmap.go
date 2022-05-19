@@ -162,16 +162,26 @@ type APServiceServer struct {
 	pb.UnimplementedAPServiceServer
 }
 
+// TODO implement request with ID of access point and appropriate response
 func (s *APServiceServer) GetAccessPoint(ctx context.Context, in *pb.Empty) (*pb.AccessPoint, error) {
 	log.Println("Received request from client! \n Returning \"apa99-k99\" as a sample response!")
 	return &pb.AccessPoint{Name: "apa99-k99"}, nil
 }
 
 func (s *APServiceServer) ListAccessPoints(in *pb.Empty, stream pb.APService_ListAccessPointsServer) error {
-	// TODO: get actual data; merge repo from master branch
-	for i := 0; i < 10; i++ {
-		n := fmt.Sprintf("%d", i)
-		if err:= stream.Send(&pb.AccessPoint{Name: "apa", Lat: n, Long: n, Intensity: n}); err != nil {
+	db := DBService.InitDB(ApstatTable)
+	apList := DBService.RetrieveAPs(db, true)
+	log.Printf("Sending %d APs ...", len(apList))
+	i := 1
+	for _, ap := range apList {
+		nty := fmt.Sprintf("%d", i)
+		i++
+		if err:= stream.Send(
+			&pb.AccessPoint{
+				Name: ap.Name, 
+				Lat: ap.Lat, 
+				Long: ap.Long, 
+				Intensity: nty}); err != nil { //TODO implement intensity
 			return err
 		}
 	}
