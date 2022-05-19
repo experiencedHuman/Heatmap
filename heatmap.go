@@ -69,7 +69,14 @@ func (s *APServiceServer) GetAccessPoint(ctx context.Context, in *pb.Empty) (*pb
 	return &pb.AccessPoint{Name: "apa99-k99"}, nil
 }
 
-func (s *APServiceServer) ListAccessPoints(in *pb.Empty, srv pb.APService_ListAccessPointsServer) error {
+func (s *APServiceServer) ListAccessPoints(in *pb.Empty, stream pb.APService_ListAccessPointsServer) error {
+	// TODO: get actual data; merge repo from master branch
+	for i := 0; i < 10; i++ {
+		n := fmt.Sprintf("%d", i)
+		if err:= stream.Send(&pb.AccessPoint{Name: "apa", Lat: n, Long: n, Intensity: n}); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

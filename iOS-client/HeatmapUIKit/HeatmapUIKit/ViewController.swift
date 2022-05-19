@@ -69,12 +69,14 @@ class ViewController: UIViewController, AzureMapDelegate {
     if let clusterCount = feature.properties["point_count"] as? Int {
       // let count = heatmapSource.leaves(of: feature, offset: 0, limit: .max)
       popupView.setText("\(selectedTime) Uhr: Cluster of \(clusterCount) APs")
-//      DataRepository.shared.greetServer(message: "cluster of \(clusterCount) APs")
       DataRepository.shared.getAP()
+      let res = DataRepository.shared.getAPs()
+      for ap in res {
+        print(ap.debugDescription)
+      }
     } else {
       let text = feature.properties["title"] as! String
       popupView.setText("\(selectedTime) Uhr: Nicht so stark besucht! \(text)")
-//      DataRepository.shared.greetServer(message: text)
       DataRepository.shared.getAP()
     }
     
@@ -187,6 +189,8 @@ class ViewController: UIViewController, AzureMapDelegate {
                                     .textOffset(CGVector(dx: 0, dy: 1)),
                                     //                                    .iconOffset(CGVector(dx: 0, dy: -10)),
                                     .textSize(20),
+                                    .textHaloBlur(1.0),
+                                    .textFont(["StandardFont-Bold"]),
                                     .filter(from: NSPredicate(format: "point_count != NIL"))
                                    ]
     )

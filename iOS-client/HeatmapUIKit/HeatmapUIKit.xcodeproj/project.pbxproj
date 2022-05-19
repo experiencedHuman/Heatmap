@@ -13,8 +13,6 @@
 		AA0DD2742836D12F00907282 /* AccessPoint.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DD2722836D12F00907282 /* AccessPoint.pb.swift */; };
 		AA24255F2806B6AF006BBD25 /* accessPoints.json in Resources */ = {isa = PBXBuildFile; fileRef = AA24255E2806B6AF006BBD25 /* accessPoints.json */; };
 		AA279D5A28339A9A00CB5930 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = AA279D5928339A9A00CB5930 /* GRPC */; };
-		AA279D6128339C8400CB5930 /* helloworld.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA279D5F28339C8400CB5930 /* helloworld.pb.swift */; };
-		AA279D6228339C8400CB5930 /* helloworld.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA279D6028339C8400CB5930 /* helloworld.grpc.swift */; };
 		AA8C0E7027E0F4C300D054C1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */; };
 		AA8C0E7227E0F4C300D054C1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E7127E0F4C300D054C1 /* SceneDelegate.swift */; };
 		AA8C0E7427E0F4C300D054C1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C0E7327E0F4C300D054C1 /* ViewController.swift */; };
@@ -32,8 +30,6 @@
 		AA0DD2712836D12F00907282 /* AccessPoint.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessPoint.grpc.swift; sourceTree = "<group>"; };
 		AA0DD2722836D12F00907282 /* AccessPoint.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessPoint.pb.swift; sourceTree = "<group>"; };
 		AA24255E2806B6AF006BBD25 /* accessPoints.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = accessPoints.json; sourceTree = "<group>"; };
-		AA279D5F28339C8400CB5930 /* helloworld.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = helloworld.pb.swift; sourceTree = "<group>"; };
-		AA279D6028339C8400CB5930 /* helloworld.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = helloworld.grpc.swift; sourceTree = "<group>"; };
 		AA8C0E6C27E0F4C300D054C1 /* HeatmapUIKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeatmapUIKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA8C0E7127E0F4C300D054C1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -83,8 +79,6 @@
 			children = (
 				AA0DD2712836D12F00907282 /* AccessPoint.grpc.swift */,
 				AA0DD2722836D12F00907282 /* AccessPoint.pb.swift */,
-				AA279D6028339C8400CB5930 /* helloworld.grpc.swift */,
-				AA279D5F28339C8400CB5930 /* helloworld.pb.swift */,
 				AA08D3F8282BBD9C009A6867 /* ap-2.json */,
 				AA24255E2806B6AF006BBD25 /* accessPoints.json */,
 				AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */,
@@ -190,8 +184,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA279D6228339C8400CB5930 /* helloworld.grpc.swift in Sources */,
-				AA279D6128339C8400CB5930 /* helloworld.pb.swift in Sources */,
 				AA8C0E7427E0F4C300D054C1 /* ViewController.swift in Sources */,
 				AA08D4322832FE96009A6867 /* DataRepository.swift in Sources */,
 				AA8C0E7027E0F4C300D054C1 /* AppDelegate.swift in Sources */,
