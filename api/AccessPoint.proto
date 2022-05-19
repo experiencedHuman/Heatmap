@@ -1,8 +1,15 @@
 syntax = "proto3";
 
+option go_package = "./";
+
+package api;
+
 service APService {
   rpc GetAccessPoint (Empty) returns (AccessPoint) {}
+  rpc ListAccessPoints (Empty) returns (stream AccessPoint) {}
 }
+
+message Empty {}
 
 message AccessPoint {
   string name = 1;

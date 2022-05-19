@@ -1,10 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
+	"log"
+	"net"
 	"net/http"
+
 	"github.com/experiencedHuman/heatmap/LRZscraper"
+	"google.golang.org/grpc"
+
+	pb "github.com/experiencedHuman/heatmap/api"
 )
 
 func readCSVFromUrl(url string) ([][]string, error) {
@@ -53,9 +60,37 @@ func getGraphiteDataFromLRZ() {
 	}
 }
 
+type APServiceServer struct {
+	pb.UnimplementedAPServiceServer
+}
+
+func (s *APServiceServer) GetAccessPoint(ctx context.Context, in *pb.Empty) (*pb.AccessPoint, error) {
+	log.Println("Received request from client! \n Returning \"apa99-k99\" as a sample response!")
+	return &pb.AccessPoint{Name: "apa99-k99"}, nil
+}
+
+func (s *APServiceServer) ListAccessPoints(in *pb.Empty, srv pb.APService_ListAccessPointsServer) error {
+	return nil
+}
+
 func main() {
 	if false {
 		LRZscraper.ScrapeData()
 	}
-	fmt.Println("test")
+	
+	port := 50051
+	
+	fmt.Println("Starting server...")
+	
+	lis, err := net.Listen("tcp", fmt.Sprintf("192.168.0.109:%d", port))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	s := grpc.NewServer()
+	pb.RegisterAPServiceServer(s, &APServiceServer{})
+	log.Printf("Server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

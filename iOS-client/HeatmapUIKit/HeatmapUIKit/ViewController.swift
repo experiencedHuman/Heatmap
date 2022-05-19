@@ -69,11 +69,13 @@ class ViewController: UIViewController, AzureMapDelegate {
     if let clusterCount = feature.properties["point_count"] as? Int {
       // let count = heatmapSource.leaves(of: feature, offset: 0, limit: .max)
       popupView.setText("\(selectedTime) Uhr: Cluster of \(clusterCount) APs")
-      DataRepository.shared.greetServer(message: "cluster of \(clusterCount) APs")
+//      DataRepository.shared.greetServer(message: "cluster of \(clusterCount) APs")
+      DataRepository.shared.getAP()
     } else {
       let text = feature.properties["title"] as! String
-      popupView.setText("\(selectedTime) Uhr: Nicht so stark besucht!")
-      DataRepository.shared.greetServer(message: text)
+      popupView.setText("\(selectedTime) Uhr: Nicht so stark besucht! \(text)")
+//      DataRepository.shared.greetServer(message: text)
+      DataRepository.shared.getAP()
     }
     
     // Set the text to the custom view.
