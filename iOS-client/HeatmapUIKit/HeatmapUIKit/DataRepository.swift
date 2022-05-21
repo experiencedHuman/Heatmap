@@ -32,7 +32,9 @@ class DataRepository {
   
   // TODO: pass ap name or id as parameter
   func getAP() {
-    let result = apClient?.getAccessPoint(Api_Empty(), callOptions: .none)
+    var request = Api_APRequest()
+    request.id = "apa34-kjl"
+    let result = apClient?.getAccessPoint(request, callOptions: .none)
     result?.response.whenComplete({ res in
       do {
         let reply = try res.get()
@@ -46,7 +48,7 @@ class DataRepository {
   func getAPs() -> [Api_AccessPoint] {
     var apList: [Api_AccessPoint] = []
     let result = apClient?.listAccessPoints(Api_Empty(), callOptions: .none, handler: { api_AccessPoint in
-      apList.append(api_AccessPoint)
+      apList.append(api_AccessPoint.accesspoint)
     })
     do {
       _ = try result?.status.wait()

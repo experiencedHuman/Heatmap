@@ -7,13 +7,17 @@ package api;
 import "google/api/annotations.proto";
 
 service APService {
-  rpc GetAccessPoint (Empty) returns (AccessPoint) {
+  rpc GetAccessPoint (APRequest) returns (AccessPoint) {
     option (google.api.http) = {
-      post: "/v1/example/echo"
-      body: "*"
+      get: "/heatmap/accesspoint/{id}"
     };
   }
-  rpc ListAccessPoints (Empty) returns (stream AccessPoint) {}
+  rpc ListAccessPoints (Empty) returns (stream APResponse) {
+    option (google.api.http) = {
+      get: "/heatmap/accesspoints",
+      response_body: "accesspoint"
+    };
+  }
 }
 
 message Empty {}
@@ -23,4 +27,12 @@ message AccessPoint {
   string lat  = 2;
   string long = 3;
   string intensity = 4;
+}
+
+message APRequest {
+  string id = 1;
+}
+
+message APResponse {
+  AccessPoint accesspoint = 1;
 }

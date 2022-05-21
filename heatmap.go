@@ -169,8 +169,8 @@ func NewServer() *server {
 }
 
 // TODO implement request with ID of access point and appropriate response
-func (s *server) GetAccessPoint(ctx context.Context, in *pb.Empty) (*pb.AccessPoint, error) {
-	log.Println("Received request from client! \n Returning \"apa99-k99\" as a sample response!")
+func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.AccessPoint, error) {
+	log.Printf("Received request from client for AP with id: %s", in.Id)
 	return &pb.AccessPoint{Name: "apa99-k99"}, nil
 }
 
@@ -183,11 +183,14 @@ func (s *server) ListAccessPoints(in *pb.Empty, stream pb.APService_ListAccessPo
 		nty := fmt.Sprintf("%d", i)
 		i++
 		if err:= stream.Send(
-			&pb.AccessPoint{
-				Name: ap.Name, 
-				Lat: ap.Lat, 
-				Long: ap.Long, 
-				Intensity: nty}); err != nil { //TODO implement intensity
+			&pb.APResponse{
+				Accesspoint: 
+					&pb.AccessPoint{
+						Name: ap.Name, 
+						Lat: ap.Lat, 
+						Long: ap.Long, 
+						Intensity: nty},
+			}); err != nil { //TODO implement intensity
 			return err
 		}
 	}

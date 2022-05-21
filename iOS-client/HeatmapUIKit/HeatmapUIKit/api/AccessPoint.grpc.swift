@@ -31,15 +31,15 @@ public protocol Api_APServiceClientProtocol: GRPCClient {
   var interceptors: Api_APServiceClientInterceptorFactoryProtocol? { get }
 
   func getAccessPoint(
-    _ request: Api_Empty,
+    _ request: Api_APRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Api_Empty, Api_AccessPoint>
+  ) -> UnaryCall<Api_APRequest, Api_AccessPoint>
 
   func listAccessPoints(
     _ request: Api_Empty,
     callOptions: CallOptions?,
-    handler: @escaping (Api_AccessPoint) -> Void
-  ) -> ServerStreamingCall<Api_Empty, Api_AccessPoint>
+    handler: @escaping (Api_APResponse) -> Void
+  ) -> ServerStreamingCall<Api_Empty, Api_APResponse>
 }
 
 extension Api_APServiceClientProtocol {
@@ -54,9 +54,9 @@ extension Api_APServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func getAccessPoint(
-    _ request: Api_Empty,
+    _ request: Api_APRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Api_Empty, Api_AccessPoint> {
+  ) -> UnaryCall<Api_APRequest, Api_AccessPoint> {
     return self.makeUnaryCall(
       path: "/api.APService/GetAccessPoint",
       request: request,
@@ -75,8 +75,8 @@ extension Api_APServiceClientProtocol {
   public func listAccessPoints(
     _ request: Api_Empty,
     callOptions: CallOptions? = nil,
-    handler: @escaping (Api_AccessPoint) -> Void
-  ) -> ServerStreamingCall<Api_Empty, Api_AccessPoint> {
+    handler: @escaping (Api_APResponse) -> Void
+  ) -> ServerStreamingCall<Api_Empty, Api_APResponse> {
     return self.makeServerStreamingCall(
       path: "/api.APService/ListAccessPoints",
       request: request,
@@ -90,10 +90,10 @@ extension Api_APServiceClientProtocol {
 public protocol Api_APServiceClientInterceptorFactoryProtocol {
 
   /// - Returns: Interceptors to use when invoking 'getAccessPoint'.
-  func makeGetAccessPointInterceptors() -> [ClientInterceptor<Api_Empty, Api_AccessPoint>]
+  func makeGetAccessPointInterceptors() -> [ClientInterceptor<Api_APRequest, Api_AccessPoint>]
 
   /// - Returns: Interceptors to use when invoking 'listAccessPoints'.
-  func makeListAccessPointsInterceptors() -> [ClientInterceptor<Api_Empty, Api_AccessPoint>]
+  func makeListAccessPointsInterceptors() -> [ClientInterceptor<Api_Empty, Api_APResponse>]
 }
 
 public final class Api_APServiceClient: Api_APServiceClientProtocol {

@@ -20,8 +20,8 @@
 		AA8C0E8527E0F6B800D054C1 /* AzureMapsControl in Frameworks */ = {isa = PBXBuildFile; productRef = AA8C0E8427E0F6B800D054C1 /* AzureMapsControl */; };
 		AA8C0E8827E0F85600D054C1 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */; };
 		AAA112992827E60A00452F84 /* AccessPointPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA112982827E60A00452F84 /* AccessPointPopup.swift */; };
-		AACC39F428395BDF005FA7F8 /* AccessPoint.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACC39F228395BDF005FA7F8 /* AccessPoint.grpc.swift */; };
-		AACC39F528395BDF005FA7F8 /* AccessPoint.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACC39F328395BDF005FA7F8 /* AccessPoint.pb.swift */; };
+		AACC39F9283977A8005FA7F8 /* AccessPoint.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACC39F7283977A8005FA7F8 /* AccessPoint.grpc.swift */; };
+		AACC39FA283977A8005FA7F8 /* AccessPoint.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACC39F8283977A8005FA7F8 /* AccessPoint.pb.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,8 +39,8 @@
 		AA8C0E8727E0F85600D054C1 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		AA8C0E8927E0FD6000D054C1 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		AAA112982827E60A00452F84 /* AccessPointPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AccessPointPopup.swift; path = ../../../../../Documents/AccessPointPopup.swift; sourceTree = "<group>"; };
-		AACC39F228395BDF005FA7F8 /* AccessPoint.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessPoint.grpc.swift; sourceTree = "<group>"; };
-		AACC39F328395BDF005FA7F8 /* AccessPoint.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessPoint.pb.swift; sourceTree = "<group>"; };
+		AACC39F7283977A8005FA7F8 /* AccessPoint.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessPoint.grpc.swift; sourceTree = "<group>"; };
+		AACC39F8283977A8005FA7F8 /* AccessPoint.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessPoint.pb.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,7 +77,7 @@
 		AA8C0E6E27E0F4C300D054C1 /* HeatmapUIKit */ = {
 			isa = PBXGroup;
 			children = (
-				AACC39F128395BDF005FA7F8 /* api */,
+				AACC39F6283977A8005FA7F8 /* api */,
 				AA08D3F8282BBD9C009A6867 /* ap-2.json */,
 				AA24255E2806B6AF006BBD25 /* accessPoints.json */,
 				AA8C0E6F27E0F4C300D054C1 /* AppDelegate.swift */,
@@ -102,11 +102,11 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		AACC39F128395BDF005FA7F8 /* api */ = {
+		AACC39F6283977A8005FA7F8 /* api */ = {
 			isa = PBXGroup;
 			children = (
-				AACC39F228395BDF005FA7F8 /* AccessPoint.grpc.swift */,
-				AACC39F328395BDF005FA7F8 /* AccessPoint.pb.swift */,
+				AACC39F7283977A8005FA7F8 /* AccessPoint.grpc.swift */,
+				AACC39F8283977A8005FA7F8 /* AccessPoint.pb.swift */,
 			);
 			path = api;
 			sourceTree = "<group>";
@@ -192,13 +192,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AACC39F528395BDF005FA7F8 /* AccessPoint.pb.swift in Sources */,
+				AACC39FA283977A8005FA7F8 /* AccessPoint.pb.swift in Sources */,
 				AA8C0E7427E0F4C300D054C1 /* ViewController.swift in Sources */,
 				AA08D4322832FE96009A6867 /* DataRepository.swift in Sources */,
 				AA8C0E7027E0F4C300D054C1 /* AppDelegate.swift in Sources */,
 				AA8C0E7227E0F4C300D054C1 /* SceneDelegate.swift in Sources */,
 				AAA112992827E60A00452F84 /* AccessPointPopup.swift in Sources */,
-				AACC39F428395BDF005FA7F8 /* AccessPoint.grpc.swift in Sources */,
+				AACC39F9283977A8005FA7F8 /* AccessPoint.grpc.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

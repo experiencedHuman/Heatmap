@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type APServiceClient interface {
-	GetAccessPoint(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AccessPoint, error)
+	GetAccessPoint(ctx context.Context, in *APRequest, opts ...grpc.CallOption) (*AccessPoint, error)
 	ListAccessPoints(ctx context.Context, in *Empty, opts ...grpc.CallOption) (APService_ListAccessPointsClient, error)
 }
 
@@ -34,7 +34,7 @@ func NewAPServiceClient(cc grpc.ClientConnInterface) APServiceClient {
 	return &aPServiceClient{cc}
 }
 
-func (c *aPServiceClient) GetAccessPoint(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AccessPoint, error) {
+func (c *aPServiceClient) GetAccessPoint(ctx context.Context, in *APRequest, opts ...grpc.CallOption) (*AccessPoint, error) {
 	out := new(AccessPoint)
 	err := c.cc.Invoke(ctx, "/api.APService/GetAccessPoint", in, out, opts...)
 	if err != nil {
@@ -59,7 +59,7 @@ func (c *aPServiceClient) ListAccessPoints(ctx context.Context, in *Empty, opts 
 }
 
 type APService_ListAccessPointsClient interface {
-	Recv() (*AccessPoint, error)
+	Recv() (*APResponse, error)
 	grpc.ClientStream
 }
 
@@ -67,8 +67,8 @@ type aPServiceListAccessPointsClient struct {
 	grpc.ClientStream
 }
 
-func (x *aPServiceListAccessPointsClient) Recv() (*AccessPoint, error) {
-	m := new(AccessPoint)
+func (x *aPServiceListAccessPointsClient) Recv() (*APResponse, error) {
+	m := new(APResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (x *aPServiceListAccessPointsClient) Recv() (*AccessPoint, error) {
 // All implementations must embed UnimplementedAPServiceServer
 // for forward compatibility
 type APServiceServer interface {
-	GetAccessPoint(context.Context, *Empty) (*AccessPoint, error)
+	GetAccessPoint(context.Context, *APRequest) (*AccessPoint, error)
 	ListAccessPoints(*Empty, APService_ListAccessPointsServer) error
 	mustEmbedUnimplementedAPServiceServer()
 }
@@ -88,7 +88,7 @@ type APServiceServer interface {
 type UnimplementedAPServiceServer struct {
 }
 
-func (UnimplementedAPServiceServer) GetAccessPoint(context.Context, *Empty) (*AccessPoint, error) {
+func (UnimplementedAPServiceServer) GetAccessPoint(context.Context, *APRequest) (*AccessPoint, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccessPoint not implemented")
 }
 func (UnimplementedAPServiceServer) ListAccessPoints(*Empty, APService_ListAccessPointsServer) error {
@@ -108,7 +108,7 @@ func RegisterAPServiceServer(s grpc.ServiceRegistrar, srv APServiceServer) {
 }
 
 func _APService_GetAccessPoint_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(APRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func _APService_GetAccessPoint_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/api.APService/GetAccessPoint",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APServiceServer).GetAccessPoint(ctx, req.(*Empty))
+		return srv.(APServiceServer).GetAccessPoint(ctx, req.(*APRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -134,7 +134,7 @@ func _APService_ListAccessPoints_Handler(srv interface{}, stream grpc.ServerStre
 }
 
 type APService_ListAccessPointsServer interface {
-	Send(*AccessPoint) error
+	Send(*APResponse) error
 	grpc.ServerStream
 }
 
@@ -142,7 +142,7 @@ type aPServiceListAccessPointsServer struct {
 	grpc.ServerStream
 }
 
-func (x *aPServiceListAccessPointsServer) Send(m *AccessPoint) error {
+func (x *aPServiceListAccessPointsServer) Send(m *APResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 

@@ -32,15 +32,24 @@ var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
 func request_APService_GetAccessPoint_0(ctx context.Context, marshaler runtime.Marshaler, client APServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq APRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := client.GetAccessPoint(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -49,19 +58,45 @@ func request_APService_GetAccessPoint_0(ctx context.Context, marshaler runtime.M
 }
 
 func local_request_APService_GetAccessPoint_0(ctx context.Context, marshaler runtime.Marshaler, server APServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq APRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
 	msg, err := server.GetAccessPoint(ctx, &protoReq)
 	return msg, metadata, err
+
+}
+
+func request_APService_ListAccessPoints_0(ctx context.Context, marshaler runtime.Marshaler, client APServiceClient, req *http.Request, pathParams map[string]string) (APService_ListAccessPointsClient, runtime.ServerMetadata, error) {
+	var protoReq Empty
+	var metadata runtime.ServerMetadata
+
+	stream, err := client.ListAccessPoints(ctx, &protoReq)
+	if err != nil {
+		return nil, metadata, err
+	}
+	header, err := stream.Header()
+	if err != nil {
+		return nil, metadata, err
+	}
+	metadata.HeaderMD = header
+	return stream, metadata, nil
 
 }
 
@@ -71,14 +106,14 @@ func local_request_APService_GetAccessPoint_0(ctx context.Context, marshaler run
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAPServiceHandlerFromEndpoint instead.
 func RegisterAPServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server APServiceServer) error {
 
-	mux.Handle("POST", pattern_APService_GetAccessPoint_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_APService_GetAccessPoint_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.APService/GetAccessPoint", runtime.WithHTTPPathPattern("/v1/example/echo"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.APService/GetAccessPoint", runtime.WithHTTPPathPattern("/heatmap/accesspoint/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -93,6 +128,13 @@ func RegisterAPServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 
 		forward_APService_GetAccessPoint_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
+	})
+
+	mux.Handle("GET", pattern_APService_ListAccessPoints_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
+		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+		return
 	})
 
 	return nil
@@ -136,12 +178,12 @@ func RegisterAPServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *
 // "APServiceClient" to call the correct interceptors.
 func RegisterAPServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client APServiceClient) error {
 
-	mux.Handle("POST", pattern_APService_GetAccessPoint_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_APService_GetAccessPoint_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/api.APService/GetAccessPoint", runtime.WithHTTPPathPattern("/v1/example/echo"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/api.APService/GetAccessPoint", runtime.WithHTTPPathPattern("/heatmap/accesspoint/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -157,13 +199,50 @@ func RegisterAPServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 
 	})
 
+	mux.Handle("GET", pattern_APService_ListAccessPoints_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/api.APService/ListAccessPoints", runtime.WithHTTPPathPattern("/heatmap/accesspoints"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_APService_ListAccessPoints_0(ctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_APService_ListAccessPoints_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) {
+			res, err := resp.Recv()
+			return response_APService_ListAccessPoints_0{res}, err
+		}, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
+type response_APService_ListAccessPoints_0 struct {
+	proto.Message
+}
+
+func (m response_APService_ListAccessPoints_0) XXX_ResponseBody() interface{} {
+	response := m.Message.(*APResponse)
+	return response.Accesspoint
+}
+
 var (
-	pattern_APService_GetAccessPoint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "example", "echo"}, ""))
+	pattern_APService_GetAccessPoint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"heatmap", "accesspoint", "id"}, ""))
+
+	pattern_APService_ListAccessPoints_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"heatmap", "accesspoints"}, ""))
 )
 
 var (
 	forward_APService_GetAccessPoint_0 = runtime.ForwardResponseMessage
+
+	forward_APService_ListAccessPoints_0 = runtime.ForwardResponseStream
 )

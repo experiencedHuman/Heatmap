@@ -69,7 +69,7 @@ class ViewController: UIViewController, AzureMapDelegate {
     if let clusterCount = feature.properties["point_count"] as? Int {
       // let count = heatmapSource.leaves(of: feature, offset: 0, limit: .max)
       popupView.setText("\(selectedTime) Uhr: Cluster of \(clusterCount) APs")
-      DataRepository.shared.getAP()
+//      DataRepository.shared.getAP()
       let res = DataRepository.shared.getAPs()
       for ap in res {
         print(ap.debugDescription)
