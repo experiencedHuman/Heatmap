@@ -15,8 +15,10 @@ import (
 	"strings"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
-	pb "github.com/kvogli/Heatmap/api"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	pb "github.com/kvogli/Heatmap/proto/api"
 
 	"github.com/kvogli/Heatmap/DBService"
 	"github.com/kvogli/Heatmap/NavigaTUM"
@@ -158,17 +160,21 @@ func scrapeNavigaTUM(res RoomFinder.Result) (count int) {
 }
 
 
-type APServiceServer struct {
+type server struct {
 	pb.UnimplementedAPServiceServer
 }
 
+func NewServer() *server {
+	return &server{}
+}
+
 // TODO implement request with ID of access point and appropriate response
-func (s *APServiceServer) GetAccessPoint(ctx context.Context, in *pb.Empty) (*pb.AccessPoint, error) {
+func (s *server) GetAccessPoint(ctx context.Context, in *pb.Empty) (*pb.AccessPoint, error) {
 	log.Println("Received request from client! \n Returning \"apa99-k99\" as a sample response!")
 	return &pb.AccessPoint{Name: "apa99-k99"}, nil
 }
 
-func (s *APServiceServer) ListAccessPoints(in *pb.Empty, stream pb.APService_ListAccessPointsServer) error {
+func (s *server) ListAccessPoints(in *pb.Empty, stream pb.APService_ListAccessPointsServer) error {
 	db := DBService.InitDB(ApstatTable)
 	apList := DBService.RetrieveAPs(db, true)
 	log.Printf("Sending %d APs ...", len(apList))
@@ -188,6 +194,7 @@ func (s *APServiceServer) ListAccessPoints(in *pb.Empty, stream pb.APService_Lis
 	return nil
 }
 
+
 func main() {
 	port := 50051
 	
@@ -199,12 +206,39 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterAPServiceServer(s, &APServiceServer{})
+	pb.RegisterAPServiceServer(s, &server{})
 	log.Printf("Server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+
+	// if err := s.Serve(lis); err != nil {
+	// 	log.Fatalf("failed to serve: %v", err)
+	// }
+	go func() {
+		log.Fatalln(s.Serve(lis))
+	}()
+
+	conn, err := grpc.DialContext(
+		context.Background(),
+		"192.168.0.109:50051",
+		grpc.WithBlock(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatalf("failed to dial server: %v", err)
 	}
 
+	gwmux := runtime.NewServeMux()
+	err = pb.RegisterAPServiceHandler(context.Background(), gwmux, conn)
+	if err != nil {
+		log.Fatalf("Failed to register gateway: %v", err)
+	}
+
+	gwServer := &http.Server {
+		Addr: "192.168.0.109:50052",
+		Handler: gwmux,
+	}
+
+	log.Println("Serving gRPC-Gateway on http://192.168.0.109:50052")
+	log.Fatalln(gwServer.ListenAndServe())
 
 	// result, totalLoad := scrapeRoomFinder() //Note that room finder must first be scraped to jump to navigatum this way
 	// cnt := scrapeNavigaTUM(result)

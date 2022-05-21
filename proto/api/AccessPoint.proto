@@ -1,11 +1,18 @@
 syntax = "proto3";
 
-option go_package = "./";
+option go_package = "github.com/kvogli/Heatmap/proto/api";
 
 package api;
 
+import "google/api/annotations.proto";
+
 service APService {
-  rpc GetAccessPoint (Empty) returns (AccessPoint) {}
+  rpc GetAccessPoint (Empty) returns (AccessPoint) {
+    option (google.api.http) = {
+      post: "/v1/example/echo"
+      body: "*"
+    };
+  }
   rpc ListAccessPoints (Empty) returns (stream AccessPoint) {}
 }
 
