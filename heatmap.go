@@ -26,7 +26,8 @@ import (
 	"github.com/kvogli/Heatmap/RoomFinder"
 )
 
-
+// makes a GET request to LRZ's Graphite "/renderer" endpoint
+// and stores the retrieved data in `filename` in csv format
 func getDataFromURL(filename, url string) {
 	resp, httpError := http.Get(url)
 	if httpError != nil {
@@ -85,6 +86,8 @@ const (
 
 var apstatDB = DBService.InitDB(ApstatTable)
 
+// Retrieves all access points from the database
+// and stores them in `dst` in JSON format
 func saveAPsToJSON(dst string, totalLoad int) {
 	APs := DBService.RetrieveAPs(apstatDB, true)
 	var jsonData []JsonEntry
@@ -169,20 +172,32 @@ func NewServer() *server {
 	return &server{}
 }
 
-// TODO implement request with ID of access point and appropriate response
 func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.AccessPoint, error) {
-	log.Printf("Received request from client for AP with id: %s", in.Id)
-	return &pb.AccessPoint{Name: "apa99-k99"}, nil
+	name := in.Name
+	
+	log.Printf("Received request for AP with name: %s", name)
+	
+	db := DBService.InitDB(ApstatTable)
+	ap := DBService.RetrieveAccessPointByName(db, name)
+	
+	return &pb.AccessPoint{
+		Name: ap.Name, 
+		Lat: ap.Lat, 
+		Long: ap.Long, 
+		Intensity: ap.Load}, nil
 }
 
 func (s *server) ListAccessPoints(in *emptypb.Empty, stream pb.APService_ListAccessPointsServer) error {
 	db := DBService.InitDB(ApstatTable)
 	apList := DBService.RetrieveAPs(db, true)
+	
 	log.Printf("Sending %d APs ...", len(apList))
+	
 	i := 1
 	for _, ap := range apList {
 		nty := fmt.Sprintf("%d", i)
 		i++
+		
 		if err:= stream.Send(
 			&pb.APResponse{
 				Accesspoint: 
@@ -195,16 +210,19 @@ func (s *server) ListAccessPoints(in *emptypb.Empty, stream pb.APService_ListAcc
 			return err
 		}
 	}
+
 	return nil
 }
 
 
 func main() {
+	host := "192.168.0.109"
 	port := 50051
+	
 	
 	fmt.Println("Starting server...")
 	
-	lis, err := net.Listen("tcp", fmt.Sprintf("192.168.0.109:%d", port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -213,16 +231,13 @@ func main() {
 	pb.RegisterAPServiceServer(s, &server{})
 	log.Printf("Server listening at %v", lis.Addr())
 
-	// if err := s.Serve(lis); err != nil {
-	// 	log.Fatalf("failed to serve: %v", err)
-	// }
 	go func() {
 		log.Fatalln(s.Serve(lis))
 	}()
 
 	conn, err := grpc.DialContext(
 		context.Background(),
-		"192.168.0.109:50051",
+		fmt.Sprintf("%s:%d", host, port),
 		grpc.WithBlock(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -237,11 +252,11 @@ func main() {
 	}
 
 	gwServer := &http.Server {
-		Addr: "192.168.0.109:50052",
+		Addr: fmt.Sprintf("%s:%d", host, 50052),
 		Handler: gwmux,
 	}
 
-	log.Println("Serving gRPC-Gateway on http://192.168.0.109:50052")
+	log.Printf("Serving gRPC-Gateway on http://%s:%d", host, 50052)
 	log.Fatalln(gwServer.ListenAndServe())
 
 	// result, totalLoad := scrapeRoomFinder() //Note that room finder must first be scraped to jump to navigatum this way

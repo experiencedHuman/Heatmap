@@ -31,17 +31,16 @@ class DataRepository {
     print("Connected to gRPC server")
   }
   
-  // TODO: pass ap name or id as parameter
-  func getAP() {
+  func getAccessPointByName(_ name: String) {
     var request = Api_APRequest()
-    request.id = "apa34-kjl"
+    request.name = name
     let result = apClient?.getAccessPoint(request, callOptions: .none)
     result?.response.whenComplete({ res in
       do {
         let reply = try res.get()
         print(reply.debugDescription)
       } catch {
-        print("Could not get the access point!")
+        print("Could not get the access point with name \(name)!")
       }
     })
   }
@@ -52,6 +51,7 @@ class DataRepository {
       apList.append(api_AccessPoint.accesspoint)
     })
     do {
+      // TODO: handle server not responding, can not wait forever! Optional: Read JSON instead.
       _ = try result?.status.wait()
     } catch {
       print("Could not get the list of access points!")

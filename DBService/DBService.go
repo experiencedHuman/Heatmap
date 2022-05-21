@@ -76,6 +76,25 @@ func RetrieveAPLoads(db *sql.DB, name string) []APLoad {
 	return result
 }
 
+func RetrieveAccessPointByName(db *sql.DB, name string) *AccessPoint {
+	stmt := fmt.Sprintf(`
+		SELECT Name, Lat, Long, Load
+		FROM apstat
+		WHERE Name='%s'
+	`,name)
+
+	row := db.QueryRow(stmt)
+	result := AccessPoint{}
+	switch err := row.Scan(&result.Name, &result.Lat, &result.Long, &result.Load); err {
+	case nil:
+		log.Printf("Returning result for access point with name %s!", name)
+	default:
+		log.Printf("No access point found with name %s in the DB!", name)
+		log.Println("Returning empty result.")
+	}
+	return &result
+}
+
 // Queries 'apstat' table and
 // returns all rows where 'address' contains "TUM" and 
 // Lat, Long are unassigned

@@ -15,6 +15,7 @@ class ViewController: UIViewController, AzureMapDelegate {
   private var popup = Popup()
   private var datePicker: UIDatePicker = UIDatePicker()
   private var selectedTime: String = ""
+  private let accessPoints = DataRepository.shared.getAPs()
   
   
   func azureMap(_ map: AzureMap, didTapAt location: CLLocationCoordinate2D) {
@@ -69,19 +70,12 @@ class ViewController: UIViewController, AzureMapDelegate {
     if let clusterCount = feature.properties["point_count"] as? Int {
       // let count = heatmapSource.leaves(of: feature, offset: 0, limit: .max)
       popupView.setText("\(selectedTime) Uhr: Cluster of \(clusterCount) APs")
-//      DataRepository.shared.getAP()
-      let res = DataRepository.shared.getAPs()
-      for ap in res {
-        print(ap.debugDescription)
-      }
+      print("selected cluster")
     } else {
-      let text = feature.properties["title"] as! String
-      popupView.setText("\(selectedTime) Uhr: Nicht so stark besucht! \(text)")
-      DataRepository.shared.getAP()
+      let name = feature.properties["name"] as! String
+      popupView.setText("\(selectedTime) Uhr: Nicht so stark besucht! \(name)")
+      DataRepository.shared.getAccessPointByName(name)
     }
-    
-    // Set the text to the custom view.
-    
     
     // Get the position of the tapped feature.
     let position = Math.positions(from: feature).first!
@@ -136,15 +130,15 @@ class ViewController: UIViewController, AzureMapDelegate {
   }
   
   private func setupDataSource(_ dataSource: DataSource) {
-    let locations = readCoordsFromJSON(file: "ap-2")
-    
-    var id = 1
-    for location in locations {
+    for accessPoint in accessPoints {
+      let lat = Double(accessPoint.lat) ?? 0.0
+      let long = Double(accessPoint.long) ?? 0.0
+      let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
       let feature = Feature(Point(location))
       
-      id += 1
-      // Add a property to the feature.
-      feature.addProperty("title", value: "Access Point \(id)")
+      // Add properties to the feature.
+      feature.addProperty("name", value: "\(accessPoint.name)")
+      
       dataSource.add(feature: feature)
     }
   }
