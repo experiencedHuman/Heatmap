@@ -1,4 +1,4 @@
-###### Link to thesis' pdf
+## Link to thesis' pdf
 https://gitlab.lrz.de/gbs-cm/ba/kamber/-/jobs/artifacts/main/raw/build/main.pdf?job=pdf
 
 ### How to include the generated swift classes for the iOS client
@@ -7,6 +7,6 @@ https://gitlab.lrz.de/gbs-cm/ba/kamber/-/jobs/artifacts/main/raw/build/main.pdf?
 3. Go to File > Add Files to "HeatmapUIKit"... and select the generated "/api" folder to add it in the project's root directory. Make sure to select "Create groups" instead of "Create folder references".
 4. Alternatively to Steps 2 and 3: Drag and drop the files to the XCode editor
 
-### Experiment with REST by sending HTTP requests
-*) curl -X GET http://192.168.0.109:50052/heatmap/accesspoints
-*) curl -X GET http://192.168.0.109:50052/heatmap/accesspoint/{99}
+##### Experiment with REST by sending HTTP requests
+- curl -X GET http://192.168.0.109:50052/heatmap/accesspoints
+- curl -X GET http://192.168.0.109:50052/heatmap/accesspoint/{99}

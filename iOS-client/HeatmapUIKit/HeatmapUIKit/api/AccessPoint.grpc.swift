@@ -36,10 +36,10 @@ public protocol Api_APServiceClientProtocol: GRPCClient {
   ) -> UnaryCall<Api_APRequest, Api_AccessPoint>
 
   func listAccessPoints(
-    _ request: Api_Empty,
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?,
     handler: @escaping (Api_APResponse) -> Void
-  ) -> ServerStreamingCall<Api_Empty, Api_APResponse>
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Api_APResponse>
 }
 
 extension Api_APServiceClientProtocol {
@@ -73,10 +73,10 @@ extension Api_APServiceClientProtocol {
   ///   - handler: A closure called when each response is received from the server.
   /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
   public func listAccessPoints(
-    _ request: Api_Empty,
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil,
     handler: @escaping (Api_APResponse) -> Void
-  ) -> ServerStreamingCall<Api_Empty, Api_APResponse> {
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Api_APResponse> {
     return self.makeServerStreamingCall(
       path: "/api.APService/ListAccessPoints",
       request: request,
@@ -93,7 +93,7 @@ public protocol Api_APServiceClientInterceptorFactoryProtocol {
   func makeGetAccessPointInterceptors() -> [ClientInterceptor<Api_APRequest, Api_AccessPoint>]
 
   /// - Returns: Interceptors to use when invoking 'listAccessPoints'.
-  func makeListAccessPointsInterceptors() -> [ClientInterceptor<Api_Empty, Api_APResponse>]
+  func makeListAccessPointsInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Api_APResponse>]
 }
 
 public final class Api_APServiceClient: Api_APServiceClientProtocol {

@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -84,7 +85,7 @@ func local_request_APService_GetAccessPoint_0(ctx context.Context, marshaler run
 }
 
 func request_APService_ListAccessPoints_0(ctx context.Context, marshaler runtime.Marshaler, client APServiceClient, req *http.Request, pathParams map[string]string) (APService_ListAccessPointsClient, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	stream, err := client.ListAccessPoints(ctx, &protoReq)

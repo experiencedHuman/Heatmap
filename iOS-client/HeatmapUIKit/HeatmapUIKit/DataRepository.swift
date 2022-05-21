@@ -8,6 +8,7 @@
 import Foundation
 import GRPC
 import Logging
+import SwiftProtobuf
 
 class DataRepository {
   static let shared = DataRepository()
@@ -47,7 +48,7 @@ class DataRepository {
   
   func getAPs() -> [Api_AccessPoint] {
     var apList: [Api_AccessPoint] = []
-    let result = apClient?.listAccessPoints(Api_Empty(), callOptions: .none, handler: { api_AccessPoint in
+    let result = apClient?.listAccessPoints(Google_Protobuf_Empty(), callOptions: .none, handler: { api_AccessPoint in
       apList.append(api_AccessPoint.accesspoint)
     })
     do {

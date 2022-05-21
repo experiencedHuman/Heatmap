@@ -19,6 +19,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/kvogli/Heatmap/proto/api"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/kvogli/Heatmap/DBService"
 	"github.com/kvogli/Heatmap/NavigaTUM"
@@ -174,7 +175,7 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 	return &pb.AccessPoint{Name: "apa99-k99"}, nil
 }
 
-func (s *server) ListAccessPoints(in *pb.Empty, stream pb.APService_ListAccessPointsServer) error {
+func (s *server) ListAccessPoints(in *emptypb.Empty, stream pb.APService_ListAccessPointsServer) error {
 	db := DBService.InitDB(ApstatTable)
 	apList := DBService.RetrieveAPs(db, true)
 	log.Printf("Sending %d APs ...", len(apList))
