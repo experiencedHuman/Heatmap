@@ -4,7 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"net/http"
+	"github.com/kvogli/Heatmap/RoomFinder"
+	"github.com/kvogli/Heatmap/DBService"
+)
+
+const (
+	ApstatTable = "./data/sqlite/apstat.db"
 )
 
 type Coords struct {
@@ -19,9 +26,42 @@ type NaviRes struct {
 	Coord Coords `json:"coords"`
 }
 
-// makes an HTTP request to nav.tum.sexy/api/get/<roomID>
-// e.g. roomID := "5602.EG.001"
-func GetRoomCoordinates(roomID string) (lat, long string, found bool) {
+func ScrapeNavigaTUM(res RoomFinder.Result) (count int) {
+	count = 0 // number of found coordinates
+	db := DBService.InitDB(ApstatTable)
+
+	for _, res := range res.Failures {
+		var roomID string
+		if strings.Contains(res.RoomNr, "OG") || res.RoomNr == "" || strings.Contains(res.RoomNr, "..") {
+			roomID = res.BuildingNr
+		} else {
+			roomID = fmt.Sprintf("%s.%s", res.BuildingNr, res.RoomNr)
+		}
+
+		lat, long, found := getRoomCoordinates(roomID)
+
+		if found {
+			where := fmt.Sprintf("ID='%s'", res.ID)
+			DBService.UpdateColumn(db, "apstat", "Lat", lat, where)
+			DBService.UpdateColumn(db, "apstat", "Long", long, where)
+			count++
+		} else {
+			lat, long, found = getRoomCoordinates(res.BuildingNr)
+			if found {
+				where := fmt.Sprintf("ID='%s'", res.ID)
+				DBService.UpdateColumn(db, "apstat", "Lat", lat, where)
+				DBService.UpdateColumn(db, "apstat", "Long", long, where)
+				count++
+			}
+		}
+	}
+
+	return
+}
+
+// makes an HTTP GET request to nav.tum.sexy/api/get/{roomID}
+// e.g. roomID := 5602.EG.001
+func getRoomCoordinates(roomID string) (lat, long string, found bool) {
 	lat, long, found = "", "", false
 
 	url := fmt.Sprintf("https://nav.tum.sexy/api/get/%s", roomID)

@@ -2,17 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -22,55 +18,9 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/kvogli/Heatmap/DBService"
-	"github.com/kvogli/Heatmap/NavigaTUM"
 	"github.com/kvogli/Heatmap/RoomFinder"
+	"github.com/kvogli/Heatmap/LRZscraper"
 )
-
-// makes a GET request to LRZ's Graphite "/renderer" endpoint
-// and stores the retrieved data in `filename` in csv format
-func getDataFromURL(filename, url string) {
-	resp, httpError := http.Get(url)
-	if httpError != nil {
-		log.Fatalf("Could not retrieve csv data from URL! %q", httpError)
-	}
-
-	defer resp.Body.Close()
-	csvReader := csv.NewReader(resp.Body)
-	csvReader.Comma = ','
-
-	file, osError := os.Create(filename)
-	if osError != nil {
-		log.Fatalf("Could not create file, err: %q", osError)
-	}
-	defer file.Close()
-
-	csvWriter := csv.NewWriter(file)
-	csvWriter.Comma = ';'
-	defer csvWriter.Flush()
-
-	var csvRecord []string
-	for i := 0; ; i++ {
-		csvRecord, httpError = csvReader.Read()
-		if httpError == io.EOF {
-			break
-		} else if httpError != nil {
-			panic(httpError)
-		} else {
-			fields := strings.Fields(csvRecord[0]) // get substrings separated by whitespaces
-			network := fields[0]
-			current := strings.Split(fields[1], ":")[1]
-			max := strings.Split(fields[2], ":")[1]
-			min := strings.Split(fields[3], ":")[1]
-
-			dateAndTime := csvRecord[1]
-			avg := csvRecord[2]
-
-			csvWriter.Write([]string{
-				network, current, max, min, dateAndTime, avg,
-			})
-		}
-	}
-}
 
 type JsonEntry struct {
 	Intensity float64
@@ -87,9 +37,9 @@ const (
 var apstatDB = DBService.InitDB(ApstatTable)
 
 // Retrieves all access points from the database
-// and stores them in `dst` in JSON format
+// and stores them in JSON format in `dst` e.g. "data/json/ap.json"
 func saveAPsToJSON(dst string, totalLoad int) {
-	APs := DBService.RetrieveAPs(apstatDB, true)
+	APs := DBService.RetrieveAPsOfTUM(apstatDB, true)
 	var jsonData []JsonEntry
 
 	for _, ap := range APs {
@@ -112,58 +62,6 @@ func saveAPsToJSON(dst string, totalLoad int) {
 	}
 }
 
-func scrapeRoomFinder() (RoomFinder.Result, int) {
-	db := DBService.InitDB(ApstatTable)
-	APs := DBService.RetrieveAPs(db, false)
-	roomInfos, totalLoad := RoomFinder.PrepareDataToScrape(APs)
-	res := RoomFinder.ScrapeURLs(roomInfos)
-	
-	log.Println("Number of retrieved APs:", len(APs))
-	log.Println("Number of retrieved URLs:", len(res.Successes))
-	
-	for _, val := range res.Successes {
-		where := fmt.Sprintf("ID='%s'", val.ID)
-		DBService.UpdateColumn(db, "apstat", "Lat", val.Lat, where)
-		DBService.UpdateColumn(db, "apstat", "Long", val.Long, where)
-	}
-
-	return res, totalLoad
-}
-
-func scrapeNavigaTUM(res RoomFinder.Result) (count int) {
-	count = 0 // number of found coordinates
-	db := DBService.InitDB(ApstatTable)
-	
-	for _, res := range res.Failures {
-		var roomID string
-		if strings.Contains(res.RoomNr, "OG") || res.RoomNr == "" || strings.Contains(res.RoomNr, ".."){
-			roomID = res.BuildingNr
-		} else {
-			roomID = fmt.Sprintf("%s.%s", res.BuildingNr, res.RoomNr)
-		}
-		
-		lat, long, found := NavigaTUM.GetRoomCoordinates(roomID)
-
-		if found {
-			where := fmt.Sprintf("ID='%s'", res.ID)
-			DBService.UpdateColumn(db, "apstat", "Lat", lat, where)
-			DBService.UpdateColumn(db, "apstat", "Long", long, where)
-			count++
-		} else {
-			lat, long, found = NavigaTUM.GetRoomCoordinates(res.BuildingNr)
-			if found {
-				where := fmt.Sprintf("ID='%s'", res.ID)
-				DBService.UpdateColumn(db, "apstat", "Lat", lat, where)
-				DBService.UpdateColumn(db, "apstat", "Long", long, where)
-				count++
-			}
-		}
-	}
-
-	return 
-}
-
-
 type server struct {
 	pb.UnimplementedAPServiceServer
 }
@@ -174,38 +72,37 @@ func NewServer() *server {
 
 func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.AccessPoint, error) {
 	name := in.Name
-	
+
 	log.Printf("Received request for AP with name: %s", name)
-	
+
 	db := DBService.InitDB(ApstatTable)
 	ap := DBService.RetrieveAccessPointByName(db, name)
-	
+
 	return &pb.AccessPoint{
-		Name: ap.Name, 
-		Lat: ap.Lat, 
-		Long: ap.Long, 
+		Name:      ap.Name,
+		Lat:       ap.Lat,
+		Long:      ap.Long,
 		Intensity: ap.Load}, nil
 }
 
 func (s *server) ListAccessPoints(in *emptypb.Empty, stream pb.APService_ListAccessPointsServer) error {
 	db := DBService.InitDB(ApstatTable)
-	apList := DBService.RetrieveAPs(db, true)
-	
+	apList := DBService.RetrieveAPsOfTUM(db, true)
+
 	log.Printf("Sending %d APs ...", len(apList))
-	
+
 	i := 1
 	for _, ap := range apList {
 		nty := fmt.Sprintf("%d", i)
 		i++
-		
-		if err:= stream.Send(
+
+		if err := stream.Send(
 			&pb.APResponse{
-				Accesspoint: 
-					&pb.AccessPoint{
-						Name: ap.Name, 
-						Lat: ap.Lat, 
-						Long: ap.Long, 
-						Intensity: nty},
+				Accesspoint: &pb.AccessPoint{
+					Name:      ap.Name,
+					Lat:       ap.Lat,
+					Long:      ap.Long,
+					Intensity: nty},
 			}); err != nil { //TODO implement intensity
 			return err
 		}
@@ -214,14 +111,26 @@ func (s *server) ListAccessPoints(in *emptypb.Empty, stream pb.APService_ListAcc
 	return nil
 }
 
-
 func main() {
+
+	_ = "http://graphite-kom.srv.lrz.de/render/?width=640&height=240&title=SSIDs%20(weekly)&areaMode=stacked&xFormat=%25d.%25m.&tz=CET&from=-8days&target=cactiStyle(group(alias(ap.apa01-0lj.ssid.eduroam,%22eduroam%22),alias(ap.apa01-0lj.ssid.lrz,%22lrz%22),alias(ap.apa01-0lj.ssid.mwn-events,%22mwn-events%22),alias(ap.apa01-0lj.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.apa01-0lj.ssid.other,%22other%22)))&fontName=Courier&format=csv"
+	// LRZscraper.GetGraphiteData("data/csv/apa01-0lj.csv", url)
+	// LRZscraper.GetGraphiteDataAsJSON("apa01-1mo", "")
+	res := LRZscraper.GetGraphiteDataAsJSON("apa02-1mo", "")
+
+	for _, val := range res {
+		fmt.Println(val.Datapoints)
+	}
+
+	if true {
+		return
+	}
+
 	host := "192.168.0.109"
 	port := 50051
-	
-	
+
 	fmt.Println("Starting server...")
-	
+
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -251,17 +160,11 @@ func main() {
 		log.Fatalf("Failed to register gateway: %v", err)
 	}
 
-	gwServer := &http.Server {
-		Addr: fmt.Sprintf("%s:%d", host, 50052),
+	gwServer := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", host, 50052),
 		Handler: gwmux,
 	}
 
 	log.Printf("Serving gRPC-Gateway on http://%s:%d", host, 50052)
 	log.Fatalln(gwServer.ListenAndServe())
-
-	// result, totalLoad := scrapeRoomFinder() //Note that room finder must first be scraped to jump to navigatum this way
-	// cnt := scrapeNavigaTUM(result)
-	// fmt.Println(cnt)
-	
-	// saveAPsToJSON("data/json/ap.json", totalLoad)
 }

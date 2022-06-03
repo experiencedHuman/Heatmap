@@ -19,6 +19,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+const (
+	ApstatTable = "./data/sqlite/apstat.db"
+)
+
 var (
 	validReq       = 0
 	failedRequests = 0
@@ -48,6 +52,24 @@ type RF_Info struct {
 	RoomFinderID string // = <architectNr>@<buildingNr>
 	ApLoad       int    // current total load of the AP
 	url          string // http://portal.mytum.de/displayRoomMap?<roomFinderID>
+}
+
+func ScrapeRoomFinder() (Result, int) {
+	db := DBService.InitDB(ApstatTable)
+	APs := DBService.RetrieveAPsOfTUM(db, false)
+	roomInfos, totalLoad := PrepareDataToScrape(APs)
+	res := ScrapeURLs(roomInfos)
+
+	log.Println("Number of retrieved APs:", len(APs))
+	log.Println("Number of retrieved URLs:", len(res.Successes))
+
+	for _, val := range res.Successes {
+		where := fmt.Sprintf("ID='%s'", val.ID)
+		DBService.UpdateColumn(db, "apstat", "Lat", val.Lat, where)
+		DBService.UpdateColumn(db, "apstat", "Long", val.Long, where)
+	}
+
+	return res, totalLoad
 }
 
 // It receives as input an array of APs and generates a roomFinderID & URL for each element.

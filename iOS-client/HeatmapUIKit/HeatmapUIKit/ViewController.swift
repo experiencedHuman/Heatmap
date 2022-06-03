@@ -9,13 +9,19 @@ import SwiftUI
 import UIKit
 import AzureMapsControl
 
+struct AccessPoint {
+  let coord: CLLocationCoordinate2D
+  let intensity: Double
+}
+
 class ViewController: UIViewController, AzureMapDelegate {
   private var azureMap: MapControl!
   private var heatmapSource, apSource: DataSource!
   private var popup = Popup()
-  private var datePicker: UIDatePicker = UIDatePicker()
-  private var selectedTime: String = ""
-  private let accessPoints = DataRepository.shared.getAPs()
+  private var datePicker = UIDatePicker()
+  private var selectedTime = "", selectedDate = ""
+  private var accessPoints: [Api_AccessPoint]!// = DataRepository.shared.getAPs()
+  private let fromJSON = true
   
   
   func azureMap(_ map: AzureMap, didTapAt location: CLLocationCoordinate2D) {
@@ -33,8 +39,13 @@ class ViewController: UIViewController, AzureMapDelegate {
     
     heatmapSource = DataSource()
     apSource = DataSource(options: [.cluster(true)])
-    setupDataSource(heatmapSource)
-    setupDataSource(apSource)
+    if (fromJSON) {
+      setupDataSourceFromJSON(heatmapSource)
+      setupDataSourceFromJSON(apSource)
+    } else {
+      setupDataSource(heatmapSource)
+      setupDataSource(apSource)
+    }
     
     azureMap.onReady { map in
       // Add two different sources, one for clustering, one for single Access Point Symbols
@@ -65,15 +76,23 @@ class ViewController: UIViewController, AzureMapDelegate {
     popupView.layer.cornerRadius = 30
     popupView.layer.masksToBounds = true
     
-    selectedTime = datePicker.date.formatted(date: .omitted, time: .shortened)
+    let date = Date()
+    let calendar = Calendar.current
+    let hour = calendar.component(.hour, from: date)
+    let minutes = calendar.component(.minute, from: date)
+    let time = "\(hour):\(minutes)"
+//    selectedTime = datePicker.date.formatted(date: .omitted, time: .shortened)
     
     if let clusterCount = feature.properties["point_count"] as? Int {
-      // let count = heatmapSource.leaves(of: feature, offset: 0, limit: .max)
-      popupView.setText("\(selectedTime) Uhr: Cluster of \(clusterCount) APs")
-      print("selected cluster")
+       let leaves = apSource.leaves(of: feature, offset: 0, limit: .max)
+      for _ in leaves {
+//        print(leaf.properties)
+      }
+      popupView.setText("\(time) Uhr: Momentan stark besucht: \(clusterCount) APs")
+      
     } else {
       let name = feature.properties["name"] as! String
-      popupView.setText("\(selectedTime) Uhr: Nicht so stark besucht! \(name)")
+      popupView.setText("\(time) Uhr: Momentan nicht so stark besucht! \(name)")
       DataRepository.shared.getAccessPointByName(name)
     }
     
@@ -123,10 +142,11 @@ class ViewController: UIViewController, AzureMapDelegate {
   @objc
   func datePickerValueChanged(_ sender: UIDatePicker) {
     let dateFormatter: DateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "MM/dd/yyyy hh:mm"
-    let selectedDate: String = dateFormatter.string(from: sender.date)
-    print("Selected hour \(selectedDate)")
+    dateFormatter.dateFormat = "YYYY-MM-DD hh"
+    let fullDate: String = dateFormatter.string(from: sender.date)
+    print("Selected full date \(fullDate)")
     selectedTime = sender.date.formatted(date: .omitted, time: .shortened)
+    selectedDate = sender.date.formatted(date: .numeric, time: .omitted)
   }
   
   private func setupDataSource(_ dataSource: DataSource) {
@@ -138,7 +158,18 @@ class ViewController: UIViewController, AzureMapDelegate {
       
       // Add properties to the feature.
       feature.addProperty("name", value: "\(accessPoint.name)")
+//      feature.addProperty("intensity", value: accessPoint.intensity)
       
+      dataSource.add(feature: feature)
+    }
+  }
+  
+  private func setupDataSourceFromJSON(_ dataSource: DataSource) {
+    let accessPoints = readCoordsFromJSON(file: "ap-2")
+    for accessPoint in accessPoints {
+      let feature = Feature(Point(accessPoint.coord))
+      feature.addProperty("name", value: "test")
+      feature.addProperty("intensity", value: accessPoint.intensity)
       dataSource.add(feature: feature)
     }
   }
@@ -166,6 +197,18 @@ class ViewController: UIViewController, AzureMapDelegate {
             ])
           )
         ),
+        
+        .heatmapWeight(
+          from: NSExpression(
+            forAZMInterpolating: NSExpression(forKeyPath: "intensity"),
+            curveType: .exponential,
+            parameters: NSExpression(forConstantValue: 3),
+            stops: NSExpression(forConstantValue: [
+              0.0: 1,
+              0.01: 5,
+              0.1: 10
+            ]))
+        ),
         .heatmapOpacity(0.8),
         .minZoom(1.0),
         .maxZoom(24),
@@ -180,10 +223,10 @@ class ViewController: UIViewController, AzureMapDelegate {
                                     .iconImage("cluster"),
                                     .iconSize(0.25),
                                     .textField(from: NSExpression(forKeyPath: "point_count")),
-                                    .textOffset(CGVector(dx: 0, dy: 1)),
-                                    //                                    .iconOffset(CGVector(dx: 0, dy: -10)),
+                                    .textOffset(CGVector(dx: 0, dy: -1.5)),
+                                    .iconOffset(CGVector(dx: 0, dy: 100)),
                                     .textSize(20),
-                                    .textHaloBlur(1.0),
+//                                    .textHaloBlur(12.0),
                                     .textFont(["StandardFont-Bold"]),
                                     .filter(from: NSPredicate(format: "point_count != NIL"))
                                    ]
@@ -201,8 +244,8 @@ class ViewController: UIViewController, AzureMapDelegate {
     map.layers.addLayer(accessPointLayer)
   }
   
-  private func readCoordsFromJSON(file filename: String) -> [CLLocationCoordinate2D] {
-    var coordinates: [CLLocationCoordinate2D] = []
+  private func readCoordsFromJSON(file filename: String) -> [AccessPoint] {
+    var accessPoints: [AccessPoint] = []
     do {
       if let path = Bundle.main.url(forResource: filename, withExtension: "json") {
         let data = try Data(contentsOf: path)
@@ -212,14 +255,16 @@ class ViewController: UIViewController, AzureMapDelegate {
             let lat  = item["Lat"] as? Double ?? 0.0
             let long = item["Long"] as? Double ?? 0.0
             let coord = CLLocationCoordinate2D(latitude: lat, longitude: long)
-            coordinates.append(coord)
+            let intensity = item["intensity"] as? Double ?? 0.0
+            let ap = AccessPoint(coord: coord, intensity: intensity)
+            accessPoints.append(ap)
           }
         }
       }
     } catch {
       print("Could not read json file!")
-      return coordinates
+      return accessPoints
     }
-    return coordinates
+    return accessPoints
   }
 }

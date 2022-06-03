@@ -98,7 +98,7 @@ func RetrieveAccessPointByName(db *sql.DB, name string) *AccessPoint {
 // Queries 'apstat' table and
 // returns all rows where 'address' contains "TUM" and 
 // Lat, Long are unassigned
-func RetrieveAPs(db *sql.DB, withCoordinate bool) []AccessPoint {
+func RetrieveAPsOfTUM(db *sql.DB, withCoordinate bool) []AccessPoint {
 	var query string
 	
 	if withCoordinate {

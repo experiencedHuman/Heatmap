@@ -39,13 +39,13 @@ func ScrapeApstat(filename string) {
 	c.OnHTML("html", func(e *colly.HTMLElement) {
 		e.DOM.Find("table#aptable > tbody > tr").Each(func(i int, s *goquery.Selection) {
 			// scrape overview data for each access point
-			address  := s.ChildrenFiltered("td:nth-child(1)").Text()
-			room 	 := s.ChildrenFiltered("td:nth-child(2)").Text()
-			apName 	 := s.ChildrenFiltered("td:nth-child(3)").Text()
+			address := s.ChildrenFiltered("td:nth-child(1)").Text()
+			room := s.ChildrenFiltered("td:nth-child(2)").Text()
+			apName := s.ChildrenFiltered("td:nth-child(3)").Text()
 			apStatus := s.ChildrenFiltered("td:nth-child(4)").Text()
-			apStatus  = strings.TrimSpace(apStatus)
-			apType 	 := s.ChildrenFiltered("td:nth-child(5)").Text()
-			load 	 := s.ChildrenFiltered("td:nth-child(6)").Text()
+			apStatus = strings.TrimSpace(apStatus)
+			apType := s.ChildrenFiltered("td:nth-child(5)").Text()
+			load := s.ChildrenFiltered("td:nth-child(6)").Text()
 			// store scraped data to csv file
 			writer.Write([]string{
 				address,
