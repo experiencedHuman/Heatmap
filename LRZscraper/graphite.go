@@ -133,16 +133,11 @@ func GetGraphiteDataAsCSV(apName string, time string) {
 }
 
 type NetworkLoad struct {
+	Datapoints [][]float64 `json:"datapoints"`
 	Target     string      `json:"target"`
-	Datapoints []DataPoint `json:"datapoints"`
 }
 
-type DataPoint struct {
-	devices   string //nr of connected devices
-	timestamp int
-}
-
-func GetGraphiteDataAsJSON(apName string, time string) []NetworkLoad {
+func GetGraphiteDataAsJSON(apName string, time string) ([]NetworkLoad, error) {
 	if !strings.HasPrefix(apName, "apa") {
 		log.Fatalf("Name of the Access Point must start with \"apa\"!")
 	}
@@ -151,21 +146,24 @@ func GetGraphiteDataAsJSON(apName string, time string) []NetworkLoad {
 	log.Printf("url: %s", url)
 	resp, httpError := http.Get(url)
 	if httpError != nil {
-		log.Fatalf("Could not retrieve json data from URL! %q", httpError)
+		log.Printf("Could not retrieve json data from URL! %q", httpError)
+		return nil, httpError
 	}
 	defer resp.Body.Close()
 
 	var networks []NetworkLoad
 	err := json.NewDecoder(resp.Body).Decode(&networks)
 	if err != nil {
-		log.Fatalf("Could not decode JSON response: %v", err)
+		// sometimes server sends bad JSON resp
+		log.Printf("Could not decode JSON response: %v", err)
+		return nil, err
 	}
 
-	for _, network := range networks {
-		fmt.Println(network.Target)
-	}
+	// for _, network := range networks {
+	// 	fmt.Println(network.Target)
+	// }
 
-	return networks
+	return networks, nil
 }
 
 func GetMessage(networks []NetworkLoad) string {
@@ -223,63 +221,72 @@ func Last30Days() {
 	// save it in last30days.csv (or sqlite table)
 	// 2400 aps * 30 days * 24 hr = 1,728,000 entries
 	APs := DBService.RetrieveAPsOfTUM(apstatDB, true)
-	fmt.Printf("Nr or retrieved APs: %d", len(APs))
+	unprocessedAPs := DBService.GetUnprocessedAPs()
+	
+	// DBService.InsertAPsLast30Days(APs)
+	fmt.Printf("Nr or retrieved APs: %d\n", len(APs))
 
-	var gesamt []DataPoint
-	var totDevices = 0
-	for _, ap := range APs {
-		networks := GetGraphiteDataAsJSON(ap.Name, "")
-		for i := range networks[0].Datapoints {
-			n0, err := strconv.Atoi(networks[0].Datapoints[i].devices)
-			if err == nil {
-				totDevices += n0
-			}
-			n1, err := strconv.Atoi(networks[1].Datapoints[i].devices)
-			if err == nil {
-				totDevices += n1
-			}
-			n2, err := strconv.Atoi(networks[2].Datapoints[i].devices)
-			if err == nil {
-				totDevices += n2
-			}
-			n3, err := strconv.Atoi(networks[3].Datapoints[i].devices)
-			if err == nil {
-				totDevices += n3
-			}
-			n4, err := strconv.Atoi(networks[4].Datapoints[i].devices)
-			if err == nil {
-				totDevices += n4
-			}
-
-			ts := networks[0].Datapoints[i].timestamp
-			newDataPoint := DataPoint{"10", ts}
-			gesamt = append(gesamt, newDataPoint)
+	for i, ap := range APs {
+		_, ok := unprocessedAPs[ap.Name]
+		if ok {
+			SaveLast30DaysForAP(ap)
+			log.Printf("%d of %d done.", i, len(APs))
 		}
 	}
-
-	storeHourlyAvgForLast30Days(gesamt)
 }
 
-func storeHourlyAvgForLast30Days(datapoints []DataPoint) {
+func SaveLast30DaysForAP(ap DBService.AccessPoint) {
+	networks, err := GetGraphiteDataAsJSON(ap.Name, "")
+	if err != nil {
+		fmt.Printf("Skipping %s. Bad JSON response from server.\n", ap.Name)
+		return
+	}
+	gesamt := networks[0].Datapoints
+
+	n := len(networks)
+	for i := 1; i < n; i++ {
+		printed := false
+		for j := range gesamt {
+			lenGesamt := len(gesamt)
+			lenOtherNetwork := len(networks[i].Datapoints)
+			if lenGesamt != lenOtherNetwork && !printed {
+				log.Printf("Different lengths: %d vs %d", lenGesamt, lenOtherNetwork)
+				printed = true
+			}
+
+			if j < lenOtherNetwork {
+				gesamt[j][0] += networks[i].Datapoints[j][0]
+			}
+		}
+	}
+	storeHourlyAvgForLast30Days(gesamt, ap.Name)
+}
+
+// for every hour there are 4 datapoints being collected, one each 15 min
+// calculate hourly avg and store it in the database
+func storeHourlyAvgForLast30Days(datapoints [][]float64, apName string) {
 	var lastHour *int
 	var n, cnt = 0, 0
 
 	for _, datapoint := range datapoints {
-		devices, err := strconv.Atoi(datapoint.devices)
-		if err == nil {
-			n += devices
-		}
-		t := getTimeFromTimestamp(datapoint.timestamp)
+		devices := datapoint[0]
+		n += int(devices)
+
+		ts := int(datapoint[1])
+		t := getTimeFromTimestamp(ts)
 		hr := t.Hour()
 		if lastHour == nil {
-			*lastHour = hr
+			lastHour = &hr
+			// fmt.Println(*lastHour)
 		}
 
 		if hr != *lastHour {
 			*lastHour = hr
 			avg := n / cnt
-			fmt.Println(avg) // save avg value for this hr
+			// save avg value for this hr
 			// day := t.Day() save day as well in the entry ?
+			// fmt.Printf("hr: %d, avg: %d, day: %d\n", t.Hour(), avg, t.Day())
+			DBService.UpdateLast30Days(t.Day(), t.Hour(), avg, apName)
 			cnt = 0
 			n = 0
 		} else {

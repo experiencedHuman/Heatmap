@@ -10,12 +10,12 @@ import "google/protobuf/empty.proto";
 service APService {
   rpc GetAccessPoint (APRequest) returns (AccessPoint) {
     option (google.api.http) = {
-      get: "/heatmap/accesspoint/{name}"
+      get: "/accesspoints/heatmap/{name}"
     };
   }
   rpc ListAccessPoints (google.protobuf.Empty) returns (stream APResponse) {
     option (google.api.http) = {
-      get: "/heatmap/accesspoints",
+      get: "/accesspoints/heatmap",
       response_body: "accesspoint"
     };
   }

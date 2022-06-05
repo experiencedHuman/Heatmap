@@ -10,6 +10,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const (
+	last30daysTable = "./data/sqlite/last30days.db"
+)
+
 type AccessPoint struct {
 	ID      string	// primary key
 	Address string
@@ -39,6 +43,7 @@ func InitDB(dbPath string) *sql.DB {
 	if sqlError != nil {
 		log.Panicf("Could not open sqlite instance at path %s! %s", dbPath, sqlError)
 	}
+	// defer db.Close()
 	if db == nil {
 		panic("db is nil")
 	}

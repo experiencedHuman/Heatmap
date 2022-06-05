@@ -51,7 +51,7 @@ class DataRepository {
       apList.append(api_AccessPoint.accesspoint)
     })
     do {
-      // TODO: handle server not responding, can not wait forever! Optional: Read JSON instead.
+      // TODO: handle server not responding, can not wait forever! Optional: Read local JSON instead.
       _ = try result?.status.wait()
     } catch {
       print("Could not get the list of access points!")

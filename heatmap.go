@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -18,8 +19,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/kvogli/Heatmap/DBService"
-	"github.com/kvogli/Heatmap/RoomFinder"
 	"github.com/kvogli/Heatmap/LRZscraper"
+	"github.com/kvogli/Heatmap/RoomFinder"
 )
 
 type JsonEntry struct {
@@ -115,12 +116,31 @@ func main() {
 
 	_ = "http://graphite-kom.srv.lrz.de/render/?width=640&height=240&title=SSIDs%20(weekly)&areaMode=stacked&xFormat=%25d.%25m.&tz=CET&from=-8days&target=cactiStyle(group(alias(ap.apa01-0lj.ssid.eduroam,%22eduroam%22),alias(ap.apa01-0lj.ssid.lrz,%22lrz%22),alias(ap.apa01-0lj.ssid.mwn-events,%22mwn-events%22),alias(ap.apa01-0lj.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.apa01-0lj.ssid.other,%22other%22)))&fontName=Courier&format=csv"
 	// LRZscraper.GetGraphiteData("data/csv/apa01-0lj.csv", url)
+	// LRZscraper.GetGraphiteDataAsCSV("apa05-0mg", "")
 	// LRZscraper.GetGraphiteDataAsJSON("apa01-1mo", "")
-	res := LRZscraper.GetGraphiteDataAsJSON("apa02-1mo", "")
+	
+	// res := LRZscraper.GetGraphiteDataAsJSON("apa02-1mo", "")
 
-	for _, val := range res {
-		fmt.Println(val.Datapoints)
-	}
+	// for _, val := range res {
+	// 	fmt.Println(val.Datapoints)
+	// }
+
+	//Could not decode JSON response: invalid character 'T' looking for beginning of value
+	//http://graphite-kom.srv.lrz.de/render/?width=640&height=240&title=&title=SSIDs%20(weekly)&areaMode=stacked&xFormat=%25d.%25m.&tz=CET&from=-30days&target=cactiStyle(group(alias(ap.apa05-1mm.ssid.eduroam,%22eduroam%22),alias(ap.apa05-1mm.ssid.lrz,%22lrz%22),alias(ap.apa05-1mm.ssid.mwn-events,%22mwn-events%22),alias(ap.apa05-1mm.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.apa05-1mm.ssid.other,%22other%22)))&fontName=Courier&format=json
+	//http://graphite-kom.srv.lrz.de/render/?width=640&height=240&title=&title=SSIDs%20(weekly)&areaMode=stacked&xFormat=%25d.%25m.&tz=CET&from=-30days&target=cactiStyle(group(alias(ap.apa04-1w6.ssid.eduroam,%22eduroam%22),alias(ap.apa04-1w6.ssid.lrz,%22lrz%22),alias(ap.apa04-1w6.ssid.mwn-events,%22mwn-events%22),alias(ap.apa04-1w6.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.apa04-1w6.ssid.other,%22other%22)))&fontName=Courier&format=json
+
+	// DBService.CreateLast30DaysTable()
+	// DBService.InsertLast30Days("apa02-1mo")
+	// DBService.UpdateLast30Days(2, 13, 34, "apa02-1mo")
+
+	//apa03-2qu
+	// apa09-1w6 -> different lengths 8640 vs 2880
+	// LRZscraper.SaveLast30DaysForAP(
+	// 	DBService.AccessPoint{Name: "apa05-0mg"})
+	start := time.Now()
+	LRZscraper.Last30Days()
+	elapsed := time.Since(start)
+	fmt.Printf("Elapsed time: %v", elapsed)
 
 	if true {
 		return
