@@ -31,9 +31,10 @@ class DataRepository {
     print("Connected to gRPC server")
   }
   
-  func getAccessPointByName(_ name: String) {
+  func getAccessPointByName(_ name: String, timestamp: String) {
     var request = Api_APRequest()
     request.name = name
+    request.timestamp = timestamp
     let result = apClient?.getAccessPoint(request, callOptions: .none)
     result?.response.whenComplete({ res in
       do {
@@ -45,9 +46,12 @@ class DataRepository {
     })
   }
   
-  func getAPs() -> [Api_AccessPoint] {
+  func getAPs(timestamp: String) -> [Api_AccessPoint] {
+    var request = Api_APRequest()
+    request.name = ""
+    request.timestamp = timestamp
     var apList: [Api_AccessPoint] = []
-    let result = apClient?.listAccessPoints(Google_Protobuf_Empty(), callOptions: .none, handler: { api_AccessPoint in
+    let result = apClient?.listAccessPoints(request, callOptions: .none, handler: { api_AccessPoint in
       apList.append(api_AccessPoint.accesspoint)
     })
     do {

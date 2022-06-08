@@ -80,3 +80,55 @@ func GetUnprocessedAPs() map[string]bool {
 	db.Close()
 	return names
 }
+
+func GetApDataFromLast30Days(name string, day int, hr int) AccessPoint {
+	db := InitDB(last30daysTable)
+	query := fmt.Sprintf(`
+		SELECT T%d
+		FROM last30days
+		WHERE AP_Name = '%s'
+		AND Day = %d
+	`, hr, name, day)
+
+	row := db.QueryRow(query)
+	result := AccessPoint{}
+	switch err := row.Scan(&result.Load); err {
+	case nil:
+		log.Println("Returning result from history!")
+	default:
+		log.Println("No data found in history! Returning empty result.")
+	}
+	
+	db.Close()
+	return result
+}
+
+func GetAllDataFromHistory(day int, hr int) []AccessPoint {
+	db := InitDB(last30daysTable)
+	query := fmt.Sprintf(`
+		SELECT DISTINCT AP_Name, T%d
+		FROM last30days
+		WHERE Day = %d
+	`, hr, day)
+
+	
+	rows, err := db.Query(query)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	var result []AccessPoint
+	result = make([]AccessPoint, 0)
+	
+	for rows.Next() {
+		var ap AccessPoint
+		err = rows.Scan(&ap.Name, &ap.Load);
+		if err == nil {
+			result = append(result, ap)
+		}
+	}
+	
+	db.Close()
+	return result
+}

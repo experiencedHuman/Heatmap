@@ -45,6 +45,8 @@ public struct Api_APRequest {
 
   public var name: String = String()
 
+  public var timestamp: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -135,6 +137,7 @@ extension Api_APRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   public static let protoMessageName: String = _protobuf_package + ".APRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "name"),
+    2: .same(proto: "timestamp"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -144,6 +147,7 @@ extension Api_APRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.timestamp) }()
       default: break
       }
     }
@@ -153,11 +157,15 @@ extension Api_APRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
     }
+    if !self.timestamp.isEmpty {
+      try visitor.visitSingularStringField(value: self.timestamp, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Api_APRequest, rhs: Api_APRequest) -> Bool {
     if lhs.name != rhs.name {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

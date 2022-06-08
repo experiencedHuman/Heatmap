@@ -19,7 +19,7 @@ class ViewController: UIViewController, AzureMapDelegate {
   private var heatmapSource, apSource: DataSource!
   private var popup = Popup()
   private var datePicker = UIDatePicker()
-  private var selectedTime = "", selectedDate = ""
+  private var selectedTime = "", selectedDate = "", timestamp = ""
   private var accessPoints: [Api_AccessPoint]!// = DataRepository.shared.getAPs()
   private let fromJSON = true
   
@@ -93,7 +93,7 @@ class ViewController: UIViewController, AzureMapDelegate {
     } else {
       let name = feature.properties["name"] as! String
       popupView.setText("\(time) Uhr: Momentan nicht so stark besucht! \(name)")
-      DataRepository.shared.getAccessPointByName(name)
+      DataRepository.shared.getAccessPointByName(name, timestamp: timestamp)
     }
     
     // Get the position of the tapped feature.
@@ -142,11 +142,14 @@ class ViewController: UIViewController, AzureMapDelegate {
   @objc
   func datePickerValueChanged(_ sender: UIDatePicker) {
     let dateFormatter: DateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "YYYY-MM-DD hh"
-    let fullDate: String = dateFormatter.string(from: sender.date)
-    print("Selected full date \(fullDate)")
+    dateFormatter.dateFormat = "Y-mm-d H"
+    timestamp = dateFormatter.string(from: sender.date)
+    print("Selected timestamp \(timestamp)")
     selectedTime = sender.date.formatted(date: .omitted, time: .shortened)
     selectedDate = sender.date.formatted(date: .numeric, time: .omitted)
+    
+    var apList = DataRepository.shared.getAPs(timestamp: timestamp)
+    //TODO: update heatmap source
   }
   
   private func setupDataSource(_ dataSource: DataSource) {

@@ -21,7 +21,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -31,6 +30,10 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
+
+var (
+	filter_APService_GetAccessPoint_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+)
 
 func request_APService_GetAccessPoint_0(ctx context.Context, marshaler runtime.Marshaler, client APServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq APRequest
@@ -51,6 +54,13 @@ func request_APService_GetAccessPoint_0(ctx context.Context, marshaler runtime.M
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_APService_GetAccessPoint_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetAccessPoint(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -79,14 +89,32 @@ func local_request_APService_GetAccessPoint_0(ctx context.Context, marshaler run
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_APService_GetAccessPoint_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := server.GetAccessPoint(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
+var (
+	filter_APService_ListAccessPoints_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_APService_ListAccessPoints_0(ctx context.Context, marshaler runtime.Marshaler, client APServiceClient, req *http.Request, pathParams map[string]string) (APService_ListAccessPointsClient, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
+	var protoReq APRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_APService_ListAccessPoints_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	stream, err := client.ListAccessPoints(ctx, &protoReq)
 	if err != nil {
@@ -114,7 +142,7 @@ func RegisterAPServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.APService/GetAccessPoint", runtime.WithHTTPPathPattern("/heatmap/accesspoint/{name}"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.APService/GetAccessPoint", runtime.WithHTTPPathPattern("/accesspoints/heatmap/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -184,7 +212,7 @@ func RegisterAPServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/api.APService/GetAccessPoint", runtime.WithHTTPPathPattern("/heatmap/accesspoint/{name}"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/api.APService/GetAccessPoint", runtime.WithHTTPPathPattern("/accesspoints/heatmap/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -205,7 +233,7 @@ func RegisterAPServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/api.APService/ListAccessPoints", runtime.WithHTTPPathPattern("/heatmap/accesspoints"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/api.APService/ListAccessPoints", runtime.WithHTTPPathPattern("/accesspoints/heatmap"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -237,9 +265,9 @@ func (m response_APService_ListAccessPoints_0) XXX_ResponseBody() interface{} {
 }
 
 var (
-	pattern_APService_GetAccessPoint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"heatmap", "accesspoint", "name"}, ""))
+	pattern_APService_GetAccessPoint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"accesspoints", "heatmap", "name"}, ""))
 
-	pattern_APService_ListAccessPoints_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"heatmap", "accesspoints"}, ""))
+	pattern_APService_ListAccessPoints_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"accesspoints", "heatmap"}, ""))
 )
 
 var (

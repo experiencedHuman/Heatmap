@@ -9,17 +9,19 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"time"
+	"strings"
+
+	// "time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/kvogli/Heatmap/proto/api"
-	"google.golang.org/protobuf/types/known/emptypb"
+	// "google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/kvogli/Heatmap/DBService"
-	"github.com/kvogli/Heatmap/LRZscraper"
+	// "github.com/kvogli/Heatmap/LRZscraper"
 	"github.com/kvogli/Heatmap/RoomFinder"
 )
 
@@ -73,11 +75,14 @@ func NewServer() *server {
 
 func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.AccessPoint, error) {
 	name := in.Name
-
-	log.Printf("Received request for AP with name: %s", name)
+	ts := in.Timestamp
+	log.Printf("Received request for AP with name: %s and timestamp: %s", name, in.Timestamp)
 
 	db := DBService.InitDB(ApstatTable)
-	ap := DBService.RetrieveAccessPointByName(db, name)
+	// ap := DBService.RetrieveAccessPointByName(db, name)
+	day, hr := getDayAndHourFromTimestamp(ts)
+	ap := DBService.GetApDataFromLast30Days(name, day, hr)
+	db.Close()
 
 	return &pb.AccessPoint{
 		Name:      ap.Name,
@@ -86,9 +91,28 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 		Intensity: ap.Load}, nil
 }
 
-func (s *server) ListAccessPoints(in *emptypb.Empty, stream pb.APService_ListAccessPointsServer) error {
-	db := DBService.InitDB(ApstatTable)
-	apList := DBService.RetrieveAPsOfTUM(db, true)
+func getDayAndHourFromTimestamp(timestamp string) (int, int) {
+	ts := strings.Split(timestamp, " ")
+	date := ts[0]
+	ymd := strings.Split(date, "-")
+	day, err := strconv.Atoi(ymd[2])
+	if err != nil {
+		day = 0
+	}
+	hr, err := strconv.Atoi(ts[1])
+	if err != nil {
+		hr = 0
+	}
+	return day, hr
+}
+
+func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAccessPointsServer) error {
+	ts := in.Timestamp
+	// db := DBService.InitDB(ApstatTable)
+	_, hr := getDayAndHourFromTimestamp(ts)
+	apList := DBService.GetAllDataFromHistory(5, hr)
+	// apList := DBService.RetrieveAPsOfTUM(db, true)
+	// db.Close()
 
 	log.Printf("Sending %d APs ...", len(apList))
 
@@ -137,14 +161,18 @@ func main() {
 	// apa09-1w6 -> different lengths 8640 vs 2880
 	// LRZscraper.SaveLast30DaysForAP(
 	// 	DBService.AccessPoint{Name: "apa05-0mg"})
-	start := time.Now()
-	LRZscraper.Last30Days()
-	elapsed := time.Since(start)
-	fmt.Printf("Elapsed time: %v", elapsed)
+	
+	// start := time.Now()
+	// LRZscraper.Last30Days()
+	// elapsed := time.Since(start)
+	// fmt.Printf("Elapsed time: %v", elapsed)
 
-	if true {
-		return
-	}
+	// ap := DBService.GetApDataFromLast30Days("apa05-0mg", 5, 12)
+	// fmt.Printf("Network load = %s", ap.Load)
+
+	// if true {
+	// 	return
+	// }
 
 	host := "192.168.0.109"
 	port := 50051

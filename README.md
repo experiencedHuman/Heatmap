@@ -10,3 +10,7 @@ https://gitlab.lrz.de/gbs-cm/ba/kamber/-/jobs/artifacts/main/raw/build/main.pdf?
 ##### Experiment with REST by sending HTTP requests
 - curl -X GET http://192.168.0.109:50052/heatmap/accesspoints
 - curl -X GET http://192.168.0.109:50052/heatmap/accesspoint/{99}
+
+#### Forecasting on Docker
+1. docker build -t heatmap .
+2. docker run -it heatmap /bin/bash

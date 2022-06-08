@@ -5,7 +5,6 @@ option go_package = "github.com/kvogli/Heatmap/proto/api";
 package api;
 
 import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
 
 service APService {
   rpc GetAccessPoint (APRequest) returns (AccessPoint) {
@@ -13,7 +12,7 @@ service APService {
       get: "/accesspoints/heatmap/{name}"
     };
   }
-  rpc ListAccessPoints (google.protobuf.Empty) returns (stream APResponse) {
+  rpc ListAccessPoints (APRequest) returns (stream APResponse) {
     option (google.api.http) = {
       get: "/accesspoints/heatmap",
       response_body: "accesspoint"
@@ -30,6 +29,7 @@ message AccessPoint {
 
 message APRequest {
   string name = 1;
+  string timestamp = 2;
 }
 
 message APResponse {
