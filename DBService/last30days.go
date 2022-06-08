@@ -103,14 +103,15 @@ func GetApDataFromLast30Days(name string, day int, hr int) AccessPoint {
 	return result
 }
 
-func GetAllDataFromHistory(day int, hr int) []AccessPoint {
+// queries the database and returns a list of the names and intensities (network load)
+// of all access points, based on the selected day and hour.
+func GetHistoryOfAllAccessPoints(day int, hr int) []AccessPoint {
 	db := InitDB(last30daysTable)
 	query := fmt.Sprintf(`
 		SELECT DISTINCT AP_Name, T%d
 		FROM last30days
 		WHERE Day = %d
 	`, hr, day)
-
 	
 	rows, err := db.Query(query)
 	if err != nil {
@@ -126,6 +127,8 @@ func GetAllDataFromHistory(day int, hr int) []AccessPoint {
 		err = rows.Scan(&ap.Name, &ap.Load);
 		if err == nil {
 			result = append(result, ap)
+		} else {
+			panic(err)
 		}
 	}
 	

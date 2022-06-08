@@ -56,6 +56,7 @@ func ScrapeNavigaTUM(res RoomFinder.Result) (count int) {
 		}
 	}
 
+	db.Close() // TODO check for other opened DB instances that must get close
 	return
 }
 

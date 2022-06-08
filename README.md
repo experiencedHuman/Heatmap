@@ -8,8 +8,8 @@ https://gitlab.lrz.de/gbs-cm/ba/kamber/-/jobs/artifacts/main/raw/build/main.pdf?
 4. Alternatively to Steps 2 and 3: Drag and drop the files to the XCode editor
 
 ##### Experiment with REST by sending HTTP requests
-- curl -X GET http://192.168.0.109:50052/heatmap/accesspoints
-- curl -X GET http://192.168.0.109:50052/heatmap/accesspoint/{99}
+- curl -X GET http://192.168.0.109:50052//accesspoints/heatmap/
+- curl -X GET http://192.168.0.109:50052/accesspoints/heatmap/{99}
 
 #### Forecasting on Docker
 1. docker build -t heatmap .

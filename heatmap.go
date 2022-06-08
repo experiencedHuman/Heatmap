@@ -108,11 +108,8 @@ func getDayAndHourFromTimestamp(timestamp string) (int, int) {
 
 func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAccessPointsServer) error {
 	ts := in.Timestamp
-	// db := DBService.InitDB(ApstatTable)
-	_, hr := getDayAndHourFromTimestamp(ts)
-	apList := DBService.GetAllDataFromHistory(5, hr)
-	// apList := DBService.RetrieveAPsOfTUM(db, true)
-	// db.Close()
+	day, hr := getDayAndHourFromTimestamp(ts)
+	apList := DBService.GetHistoryOfAllAccessPoints(day, hr)
 
 	log.Printf("Sending %d APs ...", len(apList))
 
@@ -170,9 +167,15 @@ func main() {
 	// ap := DBService.GetApDataFromLast30Days("apa05-0mg", 5, 12)
 	// fmt.Printf("Network load = %s", ap.Load)
 
-	// if true {
-	// 	return
-	// }
+	list := DBService.GetHistoryOfAllAccessPoints(5, 20)
+	for _, ap := range list {
+		fmt.Println(ap.Name, ap.Load)
+	}
+	fmt.Println(len(list))
+
+	if true {
+		return
+	}
 
 	host := "192.168.0.109"
 	port := 50051
