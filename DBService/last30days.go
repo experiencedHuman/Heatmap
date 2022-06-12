@@ -6,17 +6,17 @@ import (
 	"log"
 )
 
-func CreateLast30DaysTable() {
+func CreateHistoryTable(tableName string, dbName string) {
 	hourColumns := createColumnsFor24Hrs()
 	createQuery := fmt.Sprintf(`
-	CREATE TABLE IF NOT EXISTS "last30days" (
+	CREATE TABLE IF NOT EXISTS "%s" (
 		ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 		AP_Name TEXT NOT NULL,
 		Day INTEGER,
 		%s
 	);
-	`, hourColumns)
-	db := InitDB(last30daysTable)
+	`, tableName, hourColumns)
+	db := InitDB(dbName)
 	runQuery(db, createQuery)
 	db.Close()
 }
@@ -39,23 +39,35 @@ func UpdateLast30Days(day int, hour int, avg int, apName string) {
 	db.Close()
 }
 
-func InsertAPsLast30Days(accessPoints []AccessPoint) {
+func UpdateLast31Days(day int, hour int, avg int, apName string) {
+	updateQuery := fmt.Sprintf(`
+		UPDATE last31days SET Day = ?, T%d = ? WHERE AP_NAME = '%s'
+	`, hour, apName)
 	db := InitDB(last30daysTable)
+	runQuery(db, updateQuery, day, avg)
+	db.Close()
+}
+
+// Populates the last31days table with 31 name entries
+// for each access point (one entry per day).
+func PopulateLast30DaysTable(accessPoints []AccessPoint) {
+	db := InitDB(historyDB)
 	for _, ap := range accessPoints {
-		for j := 0; j < 30; j++ {
+		for j := 0; j < 31; j++ {
 			InsertLast30Days(ap.Name, db)
+			fmt.Println("Inserted")
 		}
 	}
 	db.Close()
 }
 
 func InsertLast30Days(apName string, db *sql.DB) {
-	insertQuery := "INSERT INTO last30days(AP_Name) VALUES (?)"
+	insertQuery := "INSERT INTO last31days(AP_Name) VALUES (?)"
 	runQuery(db, insertQuery, apName)
 }
 
-// returns a map of AP names
-// whose last 30 day data hasn't been stored in the database yet
+// returns a map of AP names, whose last 30 day data
+// hasn't been stored in the database yet
 func GetUnprocessedAPs() map[string]bool {
 	db := InitDB(last30daysTable)
 	query := `
@@ -81,7 +93,9 @@ func GetUnprocessedAPs() map[string]bool {
 	return names
 }
 
-func GetApDataFromLast30Days(name string, day int, hr int) AccessPoint {
+// queries the database and returns the intensity of
+// the access point, based on the selected day and hour
+func GetHistoryOfSingleAP(name string, day int, hr int) AccessPoint {
 	db := InitDB(last30daysTable)
 	query := fmt.Sprintf(`
 		SELECT T%d

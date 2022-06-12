@@ -21,7 +21,7 @@ import (
 	// "google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/kvogli/Heatmap/DBService"
-	// "github.com/kvogli/Heatmap/LRZscraper"
+	"github.com/kvogli/Heatmap/LRZscraper"
 	"github.com/kvogli/Heatmap/RoomFinder"
 )
 
@@ -81,7 +81,7 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 	db := DBService.InitDB(ApstatTable)
 	// ap := DBService.RetrieveAccessPointByName(db, name)
 	day, hr := getDayAndHourFromTimestamp(ts)
-	ap := DBService.GetApDataFromLast30Days(name, day, hr)
+	ap := DBService.GetHistoryOfSingleAP(name, day, hr)
 	db.Close()
 
 	return &pb.AccessPoint{
@@ -122,10 +122,10 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 			&pb.APResponse{
 				Accesspoint: &pb.AccessPoint{
 					Name:      ap.Name,
-					Lat:       ap.Lat,
-					Long:      ap.Long,
+					Lat:       ap.Lat, // TODO handle nil value
+					Long:      ap.Long, // TODO handle nil value
 					Intensity: nty},
-			}); err != nil { //TODO implement intensity
+			}); err != nil {
 			return err
 		}
 	}
@@ -134,8 +134,6 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 }
 
 func main() {
-
-	_ = "http://graphite-kom.srv.lrz.de/render/?width=640&height=240&title=SSIDs%20(weekly)&areaMode=stacked&xFormat=%25d.%25m.&tz=CET&from=-8days&target=cactiStyle(group(alias(ap.apa01-0lj.ssid.eduroam,%22eduroam%22),alias(ap.apa01-0lj.ssid.lrz,%22lrz%22),alias(ap.apa01-0lj.ssid.mwn-events,%22mwn-events%22),alias(ap.apa01-0lj.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.apa01-0lj.ssid.other,%22other%22)))&fontName=Courier&format=csv"
 	// LRZscraper.GetGraphiteData("data/csv/apa01-0lj.csv", url)
 	// LRZscraper.GetGraphiteDataAsCSV("apa05-0mg", "")
 	// LRZscraper.GetGraphiteDataAsJSON("apa01-1mo", "")
@@ -167,11 +165,17 @@ func main() {
 	// ap := DBService.GetApDataFromLast30Days("apa05-0mg", 5, 12)
 	// fmt.Printf("Network load = %s", ap.Load)
 
-	list := DBService.GetHistoryOfAllAccessPoints(5, 20)
-	for _, ap := range list {
-		fmt.Println(ap.Name, ap.Load)
-	}
-	fmt.Println(len(list))
+	// -------------------------
+	// list := DBService.GetHistoryOfAllAccessPoints(5, 20)
+	// for _, ap := range list {
+	// 	fmt.Println(ap.Name, ap.Load)
+	// }
+	// fmt.Println(len(list))
+	// -------------------------
+
+	// ap := DBService.AccessPoint{Name: "apa05-0mg"}
+	// LRZscraper.SetupHistoryTable()
+	LRZscraper.Last31Days()
 
 	if true {
 		return

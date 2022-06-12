@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/kvogli/Heatmap/DBService"
@@ -18,6 +20,7 @@ import (
 const (
 	ApstatTable = "./data/sqlite/apstat.db"
 	ApstatCSV   = "data/csv/apstat.csv"
+	historyDB   = "./data/sqlite/history.db"
 )
 
 var apstatDB = DBService.InitDB(ApstatTable)
@@ -137,14 +140,18 @@ type NetworkLoad struct {
 	Target     string      `json:"target"`
 }
 
-func GetGraphiteDataAsJSON(apName string, time string) ([]NetworkLoad, error) {
+func GetGraphiteDataAsJSON(apName string, time string, t *http.Transport) ([]NetworkLoad, error) {
 	if !strings.HasPrefix(apName, "apa") {
 		log.Fatalf("Name of the Access Point must start with \"apa\"!")
 	}
 
 	url := buildURL(apName, time, "json")
-	log.Printf("url: %s", url)
-	resp, httpError := http.Get(url)
+	// log.Printf("url: %s", url)
+	c := &http.Client{
+		Transport: t,
+	}
+	// log.Println("Requesting", apName)
+	resp, httpError := c.Get(url)
 	if httpError != nil {
 		log.Printf("Could not retrieve json data from URL! %q", httpError)
 		return nil, httpError
@@ -214,6 +221,72 @@ func getCurrMaxMin(networkLoad string) (curr, max, min float64) {
 	return
 }
 
+func SetupHistoryTable() {
+	tableName := "last31days"
+	DBService.CreateHistoryTable(tableName, historyDB)
+	apList := DBService.RetrieveAPsOfTUM(apstatDB, true)
+	fmt.Println(len(apList))
+	DBService.PopulateLast30DaysTable(apList)
+}
+
+type APHistory struct {
+	name string
+	historyPtr *history
+}
+
+func Last31Days() {
+	APs := DBService.RetrieveAPsOfTUM(apstatDB, true)
+	var wg sync.WaitGroup
+	channel := make(chan APHistory)
+
+	t := http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   60 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 60 * time.Second,
+		MaxConnsPerHost:     50,
+		MaxIdleConns:        50,
+	}
+
+	start := time.Now()
+	log.Println("Start time:", start)
+	wg.Add(len(APs))
+	for i, ap := range APs {
+		go func(apName string, idx int) {
+			SaveLast30DaysForAP(apName, channel, &t, idx)
+			wg.Done()
+		}(ap.Name, i)
+	}
+	
+	go func() {
+		wg.Wait()
+		close(channel)
+		elapsed := time.Since(start)
+		log.Println("Elapsed time:", elapsed)
+	}()
+
+	skipped := 0
+	for val := range channel {
+		ptr := val.historyPtr
+		if ptr == nil {
+			skipped += 1
+		}
+		// fmt.Println("Reading", val.name)
+	}
+
+	fmt.Println("Total skipped:", skipped)
+
+	// for apName, history := range histories {
+	// 	for day := 0; day < len(history); day++ {
+	// 		for hr := 0; hr < len(history[0]); hr++ {
+	// 			fmt.Println(day, hr, history[day][hr], apName)
+	// 			// DBService.UpdateLast31Days(day, hr, history[day][hr], apName)
+	// 		}
+	// 	}
+	// }
+}
+
 func Last30Days() {
 	// get list of 2400 APs
 	// get json data for each one for the last 30 days
@@ -222,23 +295,24 @@ func Last30Days() {
 	// 2400 aps * 30 days * 24 hr = 1,728,000 entries
 	APs := DBService.RetrieveAPsOfTUM(apstatDB, true)
 	unprocessedAPs := DBService.GetUnprocessedAPs()
-	
-	// DBService.InsertAPsLast30Days(APs)
+
+	// DBService.PopulateLast30DaysTable(APs)
 	fmt.Printf("Nr or retrieved APs: %d\n", len(APs))
 
 	for i, ap := range APs {
 		_, ok := unprocessedAPs[ap.Name]
 		if ok {
-			SaveLast30DaysForAP(ap)
+			// SaveLast30DaysForAP(ap)
 			log.Printf("%d of %d done.", i, len(APs))
 		}
 	}
 }
 
-func SaveLast30DaysForAP(ap DBService.AccessPoint) {
-	networks, err := GetGraphiteDataAsJSON(ap.Name, "")
+func SaveLast30DaysForAP(apName string, c chan APHistory, t *http.Transport, idx int) {
+	networks, err := GetGraphiteDataAsJSON(apName, "", t)
 	if err != nil {
-		fmt.Printf("Skipping %s. Bad JSON response from server.\n", ap.Name)
+		fmt.Printf("Skipping %s. Bad JSON response from server.\n", apName)
+		c <- APHistory{apName, nil}
 		return
 	}
 	gesamt := networks[0].Datapoints
@@ -259,40 +333,56 @@ func SaveLast30DaysForAP(ap DBService.AccessPoint) {
 			}
 		}
 	}
-	storeHourlyAvgForLast30Days(gesamt, ap.Name)
+	history := storeHourlyAvgForLast30Days(gesamt)
+	c <- APHistory{apName, &history}
+	// log.Println("Sending", apName, idx)
 }
 
-// for every hour there are 4 datapoints being collected, one each 15 min
-// calculate hourly avg and store it in the database
-func storeHourlyAvgForLast30Days(datapoints [][]float64, apName string) {
-	var lastHour *int
-	var n, cnt = 0, 0
+type history [31][24]int
+
+// It calculates hourly averages of network load for the given AP data.
+// Returns a 31x24 matrix, where cell (i,j) holds
+// the hourly avg. of day i and hour j.
+func storeHourlyAvgForLast30Days(datapoints [][]float64) history {
+	var history history //last 30 days + today
+	day := 31
+	var prevHour, prevDay *int
+	var n = 0 // network load (Nr of connected devices)
+	var cnt = 0
+	var avg = 0
 
 	for _, datapoint := range datapoints {
-		devices := datapoint[0]
-		n += int(devices)
-
+		n += int(datapoint[0])
 		ts := int(datapoint[1])
+
 		t := getTimeFromTimestamp(ts)
 		hr := t.Hour()
-		if lastHour == nil {
-			lastHour = &hr
-			// fmt.Println(*lastHour)
+		currDay := t.Day()
+
+		if prevHour == nil || prevDay == nil {
+			prevHour = &hr
+			prevDay = &currDay
 		}
 
-		if hr != *lastHour {
-			*lastHour = hr
-			avg := n / cnt
-			// save avg value for this hr
-			// day := t.Day() save day as well in the entry ?
-			// fmt.Printf("hr: %d, avg: %d, day: %d\n", t.Hour(), avg, t.Day())
-			DBService.UpdateLast30Days(t.Day(), t.Hour(), avg, apName)
+		if hr != *prevHour {
+			*prevHour = hr
+			avg = n / cnt
+			history[day-1][hr] = avg
+			// DBService.UpdateLast30Days(t.Day(), t.Hour(), avg, apName)
 			cnt = 0
 			n = 0
 		} else {
 			cnt += 1
 		}
+
+		if currDay != *prevDay {
+			*prevDay = currDay
+			day -= 1
+		}
 	}
+
+	history[day-1][*prevHour] = avg
+	return history
 }
 
 // parses a Unix timestamp (i.e. milliseconds from EPOCH) and

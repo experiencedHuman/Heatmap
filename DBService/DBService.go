@@ -12,14 +12,15 @@ import (
 
 const (
 	last30daysTable = "./data/sqlite/last30days.db"
+	historyDB       = "./data/sqlite/history.db"
 )
 
 type AccessPoint struct {
-	ID      string	// primary key
+	ID      string // primary key
 	Address string
 	Room    string
 	Name    string
-	Floor	string
+	Floor   string
 	Status  string
 	Type    string
 	Load    string
@@ -28,7 +29,7 @@ type AccessPoint struct {
 }
 
 type APLoad struct {
-	Name    string	// primary key
+	Name    string // primary key
 	Network string
 	Current string
 	Max     string
@@ -50,7 +51,7 @@ func InitDB(dbPath string) *sql.DB {
 	return db
 }
 
-// Queries 'accesspoints' table and 
+// Queries 'accesspoints' table and
 // returns rows where primary key Name = 'name'
 func RetrieveAPLoads(db *sql.DB, name string) []APLoad {
 	query := fmt.Sprintf(`
@@ -67,12 +68,12 @@ func RetrieveAPLoads(db *sql.DB, name string) []APLoad {
 	var result []APLoad
 	for rows.Next() {
 		item := APLoad{}
-		err2 := rows.Scan(&item.Name, 
-						  &item.Network, 
-						  &item.Current, 
-						  &item.Max, 
-						  &item.Min, 
-						  &item.Avg)
+		err2 := rows.Scan(&item.Name,
+			&item.Network,
+			&item.Current,
+			&item.Max,
+			&item.Min,
+			&item.Avg)
 		if err2 != nil {
 			panic(err2)
 		}
@@ -86,7 +87,7 @@ func RetrieveAccessPointByName(db *sql.DB, name string) *AccessPoint {
 		SELECT Name, Lat, Long, Load
 		FROM apstat
 		WHERE Name='%s'
-	`,name)
+	`, name)
 
 	row := db.QueryRow(stmt)
 	result := AccessPoint{}
@@ -101,11 +102,11 @@ func RetrieveAccessPointByName(db *sql.DB, name string) *AccessPoint {
 }
 
 // Queries 'apstat' table and
-// returns all rows where 'address' contains "TUM" and 
+// returns all rows where 'address' contains "TUM" and
 // Lat, Long are unassigned
 func RetrieveAPsOfTUM(db *sql.DB, withCoordinate bool) []AccessPoint {
 	var query string
-	
+
 	if withCoordinate {
 		query = `
 			SELECT ID, Address, Room, Name, Floor, Load, Lat, Long
@@ -133,14 +134,14 @@ func RetrieveAPsOfTUM(db *sql.DB, withCoordinate bool) []AccessPoint {
 	var result []AccessPoint
 	for rows.Next() {
 		item := AccessPoint{}
-		err2 := rows.Scan(&item.ID, 
-						  &item.Address, 
-						  &item.Room,
-						  &item.Name,
-						  &item.Floor, 
-						  &item.Load,
-						  &item.Lat, 
-						  &item.Long)
+		err2 := rows.Scan(&item.ID,
+			&item.Address,
+			&item.Room,
+			&item.Name,
+			&item.Floor,
+			&item.Load,
+			&item.Lat,
+			&item.Long)
 		if err2 != nil {
 			panic(err2)
 		}
@@ -177,9 +178,9 @@ func StoreAPLoadInDB(csvPath, dbPath, tableName string) {
 	for r := range csvData {
 		network := csvData[r][0]
 		current := csvData[r][1]
-		max 	:= csvData[r][2]
-		min 	:= csvData[r][3]
-		avg 	:= csvData[r][4]
+		max := csvData[r][2]
+		min := csvData[r][3]
+		avg := csvData[r][4]
 
 		_, err := stmt.Exec(network, current, max, min, avg)
 		if err != nil {
@@ -241,12 +242,12 @@ func StoreApstatInDB(csvPath, dbPath, tableName string) {
 
 	for r := range csvData {
 		address := csvData[r][0]
-		room 	:= csvData[r][1]
-		apName  := csvData[r][2]
-		floor 	:= string(apName[6])
-		status  := csvData[r][3]
-		apType  := csvData[r][4]
-		apLoad  := csvData[r][5]
+		room := csvData[r][1]
+		apName := csvData[r][2]
+		floor := string(apName[6])
+		status := csvData[r][3]
+		apType := csvData[r][4]
+		apLoad := csvData[r][5]
 
 		_, err := stmt.Exec(address, room, apName, floor, status, apType, apLoad)
 		if err != nil {
@@ -282,7 +283,7 @@ func runQuery(db *sql.DB, query string, params ...interface{}) {
 		panic(err)
 	}
 	defer stmt.Close()
-	
+
 	_, err = stmt.Exec(params...)
 	if err != nil {
 		panic(err)

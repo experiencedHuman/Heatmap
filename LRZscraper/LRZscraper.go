@@ -12,7 +12,7 @@ import (
 	"github.com/gocolly/colly/debug"
 )
 
-// It scrapes the table data from URL https://wlan.lrz.de/apstat/ and
+// It scrapes the html table data from "https://wlan.lrz.de/apstat/"" and
 // stores the scraped data in csv format under the destination path 'filename'
 func ScrapeApstat(filename string) {
 	apstatURL := "https://wlan.lrz.de/apstat/"
@@ -61,7 +61,7 @@ func ScrapeApstat(filename string) {
 	c.Visit(apstatURL)
 }
 
-// It scrapes the table data from URL https://wlan.lrz.de/apstat/ublist/ and
+// It scrapes the html table data from "https://wlan.lrz.de/apstat/ublist/"" and
 // stores the scraped data in csv format under the path parameter 'filename'
 func ScrapeApstatUblist(filename string) {
 	ublistURL := "https://wlan.lrz.de/apstat/ublist/"
