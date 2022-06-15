@@ -19,10 +19,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-const (
-	ApstatTable = "./data/sqlite/apstat.db"
-)
-
 var (
 	validReq       = 0
 	failedRequests = 0
@@ -55,8 +51,7 @@ type RF_Info struct {
 }
 
 func ScrapeRoomFinder() (Result, int) {
-	db := DBService.InitDB(ApstatTable)
-	APs := DBService.RetrieveAPsOfTUM(db, false)
+	APs := DBService.RetrieveAPsOfTUM(false) // TODO
 	roomInfos, totalLoad := PrepareDataToScrape(APs)
 	res := ScrapeURLs(roomInfos)
 
@@ -65,8 +60,8 @@ func ScrapeRoomFinder() (Result, int) {
 
 	for _, val := range res.Successes {
 		where := fmt.Sprintf("ID='%s'", val.ID)
-		DBService.UpdateColumn(db, "apstat", "Lat", val.Lat, where)
-		DBService.UpdateColumn(db, "apstat", "Long", val.Long, where)
+		DBService.UpdateColumn("apstat", "Lat", val.Lat, where)
+		DBService.UpdateColumn("apstat", "Long", val.Long, where)
 	}
 
 	return res, totalLoad
@@ -250,8 +245,7 @@ func scrapeURL(rfInfo RF_Info, wg *sync.WaitGroup, t *http.Transport, result *Re
 	}
 }
 
-// It scrapes latitude and longitude from url and
-// returns them as strings
+// Retrieves latitude and longitude from url
 func getLatLongFromURL(url string) (lat, long string) {
 	parts := strings.Split(url, "&")
 	latLong := strings.Split(parts[0], "=")[1]

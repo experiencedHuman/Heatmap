@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"net/http"
-	"github.com/kvogli/Heatmap/RoomFinder"
+	"strings"
+
 	"github.com/kvogli/Heatmap/DBService"
+	"github.com/kvogli/Heatmap/RoomFinder"
 )
 
 const (
-	ApstatTable = "./data/sqlite/apstat.db"
+	heatmapDB = "./data/sqlite/heatmap.db"
 )
 
 type Coords struct {
@@ -20,15 +21,14 @@ type Coords struct {
 	Src  string  `json:"source"`
 }
 
-// Navigatum Response
-type NaviRes struct {
+// JSON response from NavigaTUM
+type NaviResponse struct {
 	Type  string `json:"type"`
 	Coord Coords `json:"coords"`
 }
 
 func ScrapeNavigaTUM(res RoomFinder.Result) (count int) {
 	count = 0 // number of found coordinates
-	db := DBService.InitDB(ApstatTable)
 
 	for _, res := range res.Failures {
 		var roomID string
@@ -38,26 +38,30 @@ func ScrapeNavigaTUM(res RoomFinder.Result) (count int) {
 			roomID = fmt.Sprintf("%s.%s", res.BuildingNr, res.RoomNr)
 		}
 
-		lat, long, found := getRoomCoordinates(roomID)
+		lat, long, found := getRoomCoordinates(roomID) // TODO see line 97
 
 		if found {
-			where := fmt.Sprintf("ID='%s'", res.ID)
-			DBService.UpdateColumn(db, "apstat", "Lat", lat, where)
-			DBService.UpdateColumn(db, "apstat", "Long", long, where)
+			storeCoordinateOfAP(res, lat, long)
 			count++
-		} else {
+		} else { // if no exact coord was found, store that of the building
 			lat, long, found = getRoomCoordinates(res.BuildingNr)
 			if found {
-				where := fmt.Sprintf("ID='%s'", res.ID)
-				DBService.UpdateColumn(db, "apstat", "Lat", lat, where)
-				DBService.UpdateColumn(db, "apstat", "Long", long, where)
+				storeCoordinateOfAP(res, lat, long)
 				count++
 			}
 		}
 	}
 
-	db.Close() // TODO check for other opened DB instances that must get close
 	return
+}
+
+// stores the coordinates of the access point in the database
+func storeCoordinateOfAP(result RoomFinder.Failure, lat, long string) {
+	db := DBService.InitDB(heatmapDB) // TODO remove this ?
+	whereStmt := fmt.Sprintf("ID='%s'", result.ID)
+	DBService.UpdateColumn("apstat", "Lat", lat, whereStmt)
+	DBService.UpdateColumn("apstat", "Long", long, whereStmt)
+	db.Close()
 }
 
 // makes an HTTP GET request to nav.tum.sexy/api/get/{roomID}
@@ -77,10 +81,10 @@ func getRoomCoordinates(roomID string) (lat, long string, found bool) {
 		log.Printf("%v for url: %s", resp.Status, url)
 		return
 	}
-
-	var nResp NaviRes
-	err = json.NewDecoder(resp.Body).Decode(&nResp)
 	defer resp.Body.Close()
+
+	var respNavi NaviResponse
+	err = json.NewDecoder(resp.Body).Decode(&respNavi)
 
 	if err != nil {
 		log.Printf("JSON decoding failed! %q", err)
@@ -88,12 +92,12 @@ func getRoomCoordinates(roomID string) (lat, long string, found bool) {
 		return
 	}
 
-	lat = fmt.Sprintf("%f", nResp.Coord.Lat)
-	long = fmt.Sprintf("%f", nResp.Coord.Long)
-	found = true
+	lat = fmt.Sprintf("%f", respNavi.Coord.Lat)
+	long = fmt.Sprintf("%f", respNavi.Coord.Long)
+	found = true // TODO ?
 
-	typ := nResp.Type
-	fmt.Println(typ)
+	typ := respNavi.Type
+	fmt.Println(typ) // TODO
 
 	return
 }
