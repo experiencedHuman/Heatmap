@@ -33,6 +33,8 @@ type AccessPoint struct {
 	Load    string
 	Lat     string
 	Long    string
+	Max			int
+	Min			int
 }
 
 // Opens a database at dbPath and

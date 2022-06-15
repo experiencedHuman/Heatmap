@@ -87,7 +87,10 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 		Name:      ap.Name,
 		Lat:       ap.Lat,
 		Long:      ap.Long,
-		Intensity: ap.Load}, nil
+		Intensity: ap.Load,
+		Max: int64(ap.Max),
+		Min: int64(ap.Min),
+	}, nil
 }
 
 func getDayAndHourFromTimestamp(timestamp string) (int, int) {
@@ -123,7 +126,10 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 					Name:      ap.Name,
 					Lat:       ap.Lat,  // TODO handle nil value
 					Long:      ap.Long, // TODO handle nil value
-					Intensity: nty},
+					Intensity: nty,
+					Max: int64(ap.Max),
+					Min: int64(ap.Min),
+					},
 			}); err != nil {
 			return err
 		}
@@ -184,7 +190,8 @@ func main() {
 
 	// DBService.AddColumn("history", "Max", "INTEGER")
 	// DBService.AddColumn("history", "Min", "INTEGER")
-	DBService.JoinMaxMin()
+	
+	// DBService.JoinMaxMin()
 
 	// 2
 	// DBService.AddColumn("apstat", "Max", "INTEGER")
@@ -192,6 +199,8 @@ func main() {
 
 	// forecast()
 
+
+	startServer()
 }
 
 func startServer() {

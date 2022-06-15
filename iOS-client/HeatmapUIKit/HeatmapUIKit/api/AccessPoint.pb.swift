@@ -33,6 +33,10 @@ public struct Api_AccessPoint {
 
   public var intensity: String = String()
 
+  public var max: Int64 = 0
+
+  public var min: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -90,6 +94,8 @@ extension Api_AccessPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     2: .same(proto: "lat"),
     3: .same(proto: "long"),
     4: .same(proto: "intensity"),
+    5: .same(proto: "max"),
+    6: .same(proto: "min"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -102,6 +108,8 @@ extension Api_AccessPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       case 2: try { try decoder.decodeSingularStringField(value: &self.lat) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.long) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.intensity) }()
+      case 5: try { try decoder.decodeSingularInt64Field(value: &self.max) }()
+      case 6: try { try decoder.decodeSingularInt64Field(value: &self.min) }()
       default: break
       }
     }
@@ -120,6 +128,12 @@ extension Api_AccessPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if !self.intensity.isEmpty {
       try visitor.visitSingularStringField(value: self.intensity, fieldNumber: 4)
     }
+    if self.max != 0 {
+      try visitor.visitSingularInt64Field(value: self.max, fieldNumber: 5)
+    }
+    if self.min != 0 {
+      try visitor.visitSingularInt64Field(value: self.min, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -128,6 +142,8 @@ extension Api_AccessPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if lhs.lat != rhs.lat {return false}
     if lhs.long != rhs.long {return false}
     if lhs.intensity != rhs.intensity {return false}
+    if lhs.max != rhs.max {return false}
+    if lhs.min != rhs.min {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

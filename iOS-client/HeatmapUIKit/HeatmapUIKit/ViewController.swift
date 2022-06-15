@@ -43,6 +43,11 @@ class ViewController: UIViewController, AzureMapDelegate {
       setupDataSourceFromJSON(heatmapSource)
       setupDataSourceFromJSON(apSource)
     } else {
+      let date = Date()
+      let dateFormatter: DateFormatter = DateFormatter()
+      dateFormatter.dateFormat = "Y-mm-d H:mm:ss"
+      timestamp = dateFormatter.string(from: date)
+      accessPoints = DataRepository.shared.getAPs(timestamp: timestamp)
       setupDataSource(heatmapSource)
       setupDataSource(apSource)
     }
@@ -142,7 +147,7 @@ class ViewController: UIViewController, AzureMapDelegate {
   @objc
   func datePickerValueChanged(_ sender: UIDatePicker) {
     let dateFormatter: DateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "Y-mm-d H"
+    dateFormatter.dateFormat = "Y-mm-d H:mm:ss"
     timestamp = dateFormatter.string(from: sender.date)
     print("Selected timestamp \(timestamp)")
     selectedTime = sender.date.formatted(date: .omitted, time: .shortened)
@@ -150,6 +155,81 @@ class ViewController: UIViewController, AzureMapDelegate {
     
     var apList = DataRepository.shared.getAPs(timestamp: timestamp)
     //TODO: update heatmap source
+    updateHeatmap(apList: apList)
+  }
+  
+  private func updateHeatmap(apList: [Api_AccessPoint]) {
+    azureMap.onReady { map in
+      let newDataSource = DataSource()
+      var max = 0, min = 0
+      for ap in apList {
+        let lat = Double(ap.lat) ?? 0.0
+        let long = Double(ap.long) ?? 0.0
+        let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
+        let apMax = Int(ap.max)
+        let apMin = Int(ap.min)
+        
+        if apMax > max {
+          max = apMax
+        }
+        
+        if apMin < min {
+          min = apMin
+        }
+        
+        let feature = Feature(Point(location))
+        // Add properties to the feature.
+        feature.addProperty("name", value: "\(ap.name)")
+        feature.addProperty("intensity", value: ap.intensity)
+        
+        newDataSource.add(feature: feature)
+        
+        self.updateIntensities(map, max: max, min: min)
+      }
+    }
+  }
+  
+  private func updateIntensities(_ map: AzureMap, max: Int, min: Int) {
+    let heatmapLayer = HeatMapLayer(
+      source: heatmapSource,
+      options: [
+        .heatmapRadius(
+          from: NSExpression(
+            forAZMInterpolating: .zoomLevelAZMVariable,
+            curveType: .exponential,
+            parameters: NSExpression(forConstantValue: 7),
+            stops: NSExpression(forConstantValue: [
+              // Add multiple interpolation points, x:y
+              // In the x-Axis the zoom levels (1-24)
+              // In the y-Axis the radius values
+              1: 2,
+              15: 15,
+              16: 30,
+              17: 40,
+              18: 45,
+              19: 50,
+              23: 1000
+            ])
+          )
+        ),
+        
+        .heatmapWeight(
+          from: NSExpression(
+            forAZMInterpolating: NSExpression(forKeyPath: "intensity"),
+            curveType: .exponential,
+            parameters: NSExpression(forConstantValue: 3),
+            stops: NSExpression(forConstantValue: [
+              0.0: min,
+              0.1: max
+            ]))
+        ),
+        .heatmapOpacity(0.8),
+        .minZoom(1.0),
+        .maxZoom(24),
+      ]
+    )
+    
+    map.layers.addLayer(heatmapLayer)
   }
   
   private func setupDataSource(_ dataSource: DataSource) {

@@ -111,7 +111,7 @@ func GetHistoryOfSingleAP(name string, day int, hr int) AccessPoint {
 func GetHistoryOfAllAccessPoints(day int, hr int) []AccessPoint {
 	db := InitDB(heatmapDB)
 	query := fmt.Sprintf(`
-		SELECT DISTINCT AP_Name, T%d
+		SELECT DISTINCT AP_Name, T%d, Max, Min
 		FROM %s
 		WHERE Day = %d
 	`, hr, historyTable, day)
@@ -127,11 +127,11 @@ func GetHistoryOfAllAccessPoints(day int, hr int) []AccessPoint {
 	
 	for rows.Next() {
 		var ap AccessPoint
-		err = rows.Scan(&ap.Name, &ap.Load);
+		err = rows.Scan(&ap.Name, &ap.Load, &ap.Max, &ap.Min);
 		if err == nil {
 			apList = append(apList, ap)
 		} else {
-			panic(err)
+			log.Println(err)
 		}
 	}
 	

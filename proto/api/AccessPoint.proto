@@ -25,6 +25,8 @@ message AccessPoint {
   string lat  = 2;
   string long = 3;
   string intensity = 4;
+  int64 max = 5;
+  int64 min = 6;
 }
 
 message APRequest {
