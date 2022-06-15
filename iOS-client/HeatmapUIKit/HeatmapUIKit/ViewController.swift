@@ -45,7 +45,7 @@ class ViewController: UIViewController, AzureMapDelegate {
     } else {
       let date = Date()
       let dateFormatter: DateFormatter = DateFormatter()
-      dateFormatter.dateFormat = "Y-mm-d H:mm:ss"
+      dateFormatter.dateFormat = "Y-mm-d H"
       timestamp = dateFormatter.string(from: date)
       accessPoints = DataRepository.shared.getAPs(timestamp: timestamp)
       setupDataSource(heatmapSource)
@@ -147,13 +147,17 @@ class ViewController: UIViewController, AzureMapDelegate {
   @objc
   func datePickerValueChanged(_ sender: UIDatePicker) {
     let dateFormatter: DateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "Y-mm-d H:mm:ss"
+    dateFormatter.dateFormat = "yyyy-MM-dd HH"
     timestamp = dateFormatter.string(from: sender.date)
-    print("Selected timestamp \(timestamp)")
+    
     selectedTime = sender.date.formatted(date: .omitted, time: .shortened)
     selectedDate = sender.date.formatted(date: .numeric, time: .omitted)
     
-    var apList = DataRepository.shared.getAPs(timestamp: timestamp)
+    print("Selected timestamp: \(timestamp)")
+    print("Selected date: \(sender.date)")
+    
+    
+    let apList = DataRepository.shared.getAPs(timestamp: timestamp)
     //TODO: update heatmap source
     updateHeatmap(apList: apList)
   }
@@ -183,7 +187,7 @@ class ViewController: UIViewController, AzureMapDelegate {
         feature.addProperty("intensity", value: ap.intensity)
         
         newDataSource.add(feature: feature)
-        
+//        map.sources.add(newDataSource)
         self.updateIntensities(map, max: max, min: min)
       }
     }

@@ -131,7 +131,7 @@ func GetHistoryOfAllAccessPoints(day int, hr int) []AccessPoint {
 		if err == nil {
 			apList = append(apList, ap)
 		} else {
-			log.Println(err)
+			// log.Println(err)
 		}
 	}
 	

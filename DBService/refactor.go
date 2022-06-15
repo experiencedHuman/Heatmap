@@ -48,29 +48,12 @@ func HistoryCSVtoSQLite() {
 
 // JOIN
 func JoinMaxMin() {
-	// query := `
-	// 	UPDATE history
-	// 	SET history.Max = apstat.Max, history.Min = apstat.Min
-	// 	FROM history INNER JOIN apstat ON history.AP_Name = apstat.Name
-	// `
-	
-	// max
-	// query := `
-	// 	UPDATE history
-	// 	SET Max = (SELECT Max 
-	// 	FROM apstat WHERE history.AP_Name = Name)
-	// `
-
-	// min
 	query := `
 		UPDATE history
 		SET Min = (SELECT Min
-		FROM apstat WHERE history.AP_Name = Name)
+			FROM apstat WHERE history.AP_Name = Name),
+		SET Max = (SELECT Max 
+			FROM apstat WHERE history.AP_Name = Name)
 	`
 	runQuery(query)
-}
-
-// READ AP HISTORY with max min values
-func ReadHistoryWithMaxMin(apName string, day int, hour int) {
-
 }

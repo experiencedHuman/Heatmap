@@ -95,7 +95,9 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 
 func getDayAndHourFromTimestamp(timestamp string) (int, int) {
 	ts := strings.Split(timestamp, " ")
+	// log.Println("timestamp:", ts)
 	date := ts[0]
+	// log.Println("date:", ts[0])
 	ymd := strings.Split(date, "-")
 	day, err := strconv.Atoi(ymd[2])
 	if err != nil {
@@ -111,6 +113,7 @@ func getDayAndHourFromTimestamp(timestamp string) (int, int) {
 func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAccessPointsServer) error {
 	ts := in.Timestamp
 	day, hr := getDayAndHourFromTimestamp(ts)
+	log.Println("Requested day and hour:", day, hr)
 	apList := DBService.GetHistoryOfAllAccessPoints(day, hr)
 
 	log.Printf("Sending %d APs ...", len(apList))
@@ -139,68 +142,9 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 }
 
 func main() {
-	// TODO migrate all tables from different DB into heatmapDB. [done]
-
-	// TODO restructure DB [done]
-	// TODO code refactor [db done]
-
-	// TODO handle Different lengths:
-	// TODO handle Skipping ... Bad JSON response form server
-	
-	// TODO store data in DB
-	// TODO store data for the day mapping, store max and min avg values of each ap
-	
-	// TODO query history db from client
-
-	// TODO call python script and check its output (csv file) from golang [half done]
-	// TODO STORE forecasting csv in forecasting table in the DB
-	
-	// TODO improve forecasting
-
-	// TODO update proto & implement new functionality
-
-	//Could not decode JSON response: invalid character 'T' looking for beginning of value
-	//http://graphite-kom.srv.lrz.de/render/?width=640&height=240&title=&title=SSIDs%20(weekly)&areaMode=stacked&xFormat=%25d.%25m.&tz=CET&from=-30days&target=cactiStyle(group(alias(ap.apa05-1mm.ssid.eduroam,%22eduroam%22),alias(ap.apa05-1mm.ssid.lrz,%22lrz%22),alias(ap.apa05-1mm.ssid.mwn-events,%22mwn-events%22),alias(ap.apa05-1mm.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.apa05-1mm.ssid.other,%22other%22)))&fontName=Courier&format=json
-	//http://graphite-kom.srv.lrz.de/render/?width=640&height=240&title=&title=SSIDs%20(weekly)&areaMode=stacked&xFormat=%25d.%25m.&tz=CET&from=-30days&target=cactiStyle(group(alias(ap.apa04-1w6.ssid.eduroam,%22eduroam%22),alias(ap.apa04-1w6.ssid.lrz,%22lrz%22),alias(ap.apa04-1w6.ssid.mwn-events,%22mwn-events%22),alias(ap.apa04-1w6.ssid.@BayernWLAN,%22@BayernWLAN%22),alias(ap.apa04-1w6.ssid.other,%22other%22)))&fontName=Courier&format=json
-
-	//apa03-2qu
-	// apa09-1w6 -> different lengths 8640 vs 2880
-	// LRZscraper.SaveLast30DaysForAP(
-	// 	DBService.AccessPoint{Name: "apa05-0mg"})
-
-	// ap := DBService.GetApDataFromLast30Days("apa05-0mg", 5, 12)
-	// fmt.Printf("Network load = %s", ap.Load)
-
-	// -------------------------
-	// list := DBService.GetHistoryOfAllAccessPoints(5, 20)
-	// for _, ap := range list {
-	// 	fmt.Println(ap.Name, ap.Load)
-	// }
-	// fmt.Println(len(list))
-	// -------------------------
-
-	// ap := DBService.AccessPoint{Name: "apa05-0mg"}
-
-	// DBService.SetupHistoryTable()
-
-	// 1
-	// LRZscraper.StoreHistory()
-
-	// DBService.HistoryCSVtoSQLite()
-
-	// DBService.AddColumn("history", "Max", "INTEGER")
-	// DBService.AddColumn("history", "Min", "INTEGER")
-	
-	// DBService.JoinMaxMin()
-
-	// 2
-	// DBService.AddColumn("apstat", "Max", "INTEGER")
-	// DBService.AddColumn("apstat", "Min", "INTEGER")
-
-	// forecast()
-
 
 	startServer()
+
 }
 
 func startServer() {
