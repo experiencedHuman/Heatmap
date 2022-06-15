@@ -31,7 +31,7 @@ public struct Api_AccessPoint {
 
   public var long: String = String()
 
-  public var intensity: String = String()
+  public var intensity: Int64 = 0
 
   public var max: Int64 = 0
 
@@ -107,7 +107,7 @@ extension Api_AccessPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.lat) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.long) }()
-      case 4: try { try decoder.decodeSingularStringField(value: &self.intensity) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.intensity) }()
       case 5: try { try decoder.decodeSingularInt64Field(value: &self.max) }()
       case 6: try { try decoder.decodeSingularInt64Field(value: &self.min) }()
       default: break
@@ -125,8 +125,8 @@ extension Api_AccessPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if !self.long.isEmpty {
       try visitor.visitSingularStringField(value: self.long, fieldNumber: 3)
     }
-    if !self.intensity.isEmpty {
-      try visitor.visitSingularStringField(value: self.intensity, fieldNumber: 4)
+    if self.intensity != 0 {
+      try visitor.visitSingularInt64Field(value: self.intensity, fieldNumber: 4)
     }
     if self.max != 0 {
       try visitor.visitSingularInt64Field(value: self.max, fieldNumber: 5)

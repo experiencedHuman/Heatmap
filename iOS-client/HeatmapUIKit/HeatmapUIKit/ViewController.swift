@@ -21,7 +21,18 @@ class ViewController: UIViewController, AzureMapDelegate {
   private var datePicker = UIDatePicker()
   private var selectedTime = "", selectedDate = "", timestamp = ""
   private var accessPoints: [Api_AccessPoint]!// = DataRepository.shared.getAPs()
-  private let fromJSON = true
+  private let fromJSON = false
+//  private var locations: [String : CLLocationCoordinate2D]!
+  
+  private func initLocations(accessPoints: [Api_AccessPoint]) {
+    var locations: [String : CLLocationCoordinate2D] = [:]
+    for ap in accessPoints {
+      let lat = Double(ap.lat) ?? 0.0
+      let long = Double(ap.long) ?? 0.0
+      let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
+      locations[ap.name] = location
+    }
+  }
   
   
   func azureMap(_ map: AzureMap, didTapAt location: CLLocationCoordinate2D) {
@@ -39,15 +50,21 @@ class ViewController: UIViewController, AzureMapDelegate {
     
     heatmapSource = DataSource()
     apSource = DataSource(options: [.cluster(true)])
+    
     if (fromJSON) {
       setupDataSourceFromJSON(heatmapSource)
       setupDataSourceFromJSON(apSource)
     } else {
       let date = Date()
       let dateFormatter: DateFormatter = DateFormatter()
-      dateFormatter.dateFormat = "Y-mm-d H"
+      dateFormatter.dateFormat = "yyyy-MM-dd HH"
       timestamp = dateFormatter.string(from: date)
+//      print("Requesting current APs data for timestamp: \(timestamp)")
       accessPoints = DataRepository.shared.getAPs(timestamp: timestamp)
+//      print("Nr of retrieved APs: \(accessPoints.count)")
+      for ap in accessPoints {
+        print("Retrieved ap data: \(ap.name), \(ap.lat), \(ap.long), max: \(ap.max), min: \(ap.min), int: \(ap.intensity)")
+      }
       setupDataSource(heatmapSource)
       setupDataSource(apSource)
     }
@@ -237,15 +254,26 @@ class ViewController: UIViewController, AzureMapDelegate {
   }
   
   private func setupDataSource(_ dataSource: DataSource) {
+    var max = 0, min = 0
     for accessPoint in accessPoints {
       let lat = Double(accessPoint.lat) ?? 0.0
       let long = Double(accessPoint.long) ?? 0.0
       let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
-      let feature = Feature(Point(location))
+      let apMax = Int(accessPoint.max)
+      let apMin = Int(accessPoint.min)
       
+      if apMax > max {
+        max = apMax
+      }
+      
+      if apMin < min {
+        min = apMin
+      }
+      
+      let feature = Feature(Point(location))
       // Add properties to the feature.
       feature.addProperty("name", value: "\(accessPoint.name)")
-//      feature.addProperty("intensity", value: accessPoint.intensity)
+      feature.addProperty("intensity", value: accessPoint.intensity)
       
       dataSource.add(feature: feature)
     }

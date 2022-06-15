@@ -75,7 +75,7 @@ func PrepareDataToScrape(APs []DBService.AccessPoint) ([]RF_Info, int) {
 	for _, ap := range APs {
 		architectNr := scrapeRoomNrFromRoomName(ap.Room)
 		buildingNr := scrapeBuildingNrFromAddress(ap.Address)
-		currTotalLoad := GetCurrentTotalLoad(ap.Load)
+		currTotalLoad := 0 // TODO fix GetCurrentTotalLoad(ap.Load)
 
 		total += currTotalLoad
 		roomFinderID := fmt.Sprintf("%s@%s", architectNr, buildingNr)

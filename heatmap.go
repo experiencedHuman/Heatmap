@@ -24,7 +24,7 @@ import (
 
 	"github.com/kvogli/Heatmap/DBService"
 	// "github.com/kvogli/Heatmap/LRZscraper"
-	"github.com/kvogli/Heatmap/RoomFinder"
+	// "github.com/kvogli/Heatmap/RoomFinder"
 )
 
 type JsonEntry struct {
@@ -45,7 +45,7 @@ func saveAPsToJSON(dst string, totalLoad int) {
 	var jsonData []JsonEntry
 
 	for _, ap := range APs {
-		currTotLoad := RoomFinder.GetCurrentTotalLoad(ap.Load)
+		currTotLoad := 0 // TODO RoomFinder.GetCurrentTotalLoad(ap.Load)
 		var intensity float64 = float64(currTotLoad) / float64(totalLoad)
 		lat, _ := strconv.ParseFloat(ap.Lat, 64)
 		lng, _ := strconv.ParseFloat(ap.Long, 64)
@@ -83,11 +83,13 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 	ap := DBService.GetHistoryOfSingleAP(name, day, hr)
 	db.Close()
 
+	load, _ := strconv.Atoi(ap.Load)
+
 	return &pb.AccessPoint{
 		Name:      ap.Name,
 		Lat:       ap.Lat,
 		Long:      ap.Long,
-		Intensity: ap.Load,
+		Intensity: int64(load),
 		Max: int64(ap.Max),
 		Min: int64(ap.Min),
 	}, nil
@@ -118,18 +120,19 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 
 	log.Printf("Sending %d APs ...", len(apList))
 
-	i := 1
 	for _, ap := range apList {
-		nty := fmt.Sprintf("%d", i)
-		i++
+		// log.Println("Load:", ap.Load)
+		location := locations[ap.Name]
+
+		load, _ := strconv.Atoi(ap.Load)
 
 		if err := stream.Send(
 			&pb.APResponse{
 				Accesspoint: &pb.AccessPoint{
 					Name:      ap.Name,
-					Lat:       ap.Lat,  // TODO handle nil value
-					Long:      ap.Long, // TODO handle nil value
-					Intensity: nty,
+					Lat:       location.lat,  // TODO handle nil value
+					Long:      location.long, // TODO handle nil value
+					Intensity: int64(load),
 					Max: int64(ap.Max),
 					Min: int64(ap.Min),
 					},
@@ -141,7 +144,19 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 	return nil
 }
 
+type location struct {
+	lat string
+	long string
+}
+var locations map[string]location
+
 func main() {
+
+	locations = make(map[string]location)
+	apList := DBService.RetrieveAPsOfTUM(true)
+	for _, ap := range apList {
+		locations[ap.Name] = location{ap.Lat, ap.Long}
+	}
 
 	startServer()
 
