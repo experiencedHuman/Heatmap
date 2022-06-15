@@ -199,6 +199,11 @@ func UpdateColumn(tableName, column, newValue, where string) {
 	runQuery(query, newValue)
 }
 
+func UpdateColumnInt(tableName, column string, newValue int, where string) {
+	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s`, tableName, column, where)
+	runQuery(query, newValue)
+}
+
 // Updates name of 'currName' column to 'newName'.
 func UpdateColumnName(tableName, currName, newName string) {
 	query := fmt.Sprintf(`ALTER TABLE %s RENAME COLUMN %s TO %s;`, tableName, currName, newName)

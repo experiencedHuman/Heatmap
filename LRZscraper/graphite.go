@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"math"
 
 	"github.com/kvogli/Heatmap/DBService"
 )
@@ -144,49 +145,47 @@ func GetGraphiteDataAsJSON(apName string, time string, t *http.Transport) ([]Net
 	return networks, nil
 }
 
-func GetMessage(networks []NetworkLoad) string {
+func getTotalMaxMin(networks []NetworkLoad) (int, int) {
 	totCurr, totMax, totMin := 0.0, 0.0, 0.0
 	for _, network := range networks {
 		curr, max, min := getCurrMaxMin(network.Target)
+		// log.Println("151:", max, min)
 		totCurr += curr
 		totMax += max
 		totMin += min
 	}
 
-	diff := totMax - totMin
-	if diff > 0.0 {
-		if totCurr > 0.85*totMin {
-			return "Queue of death"
-		} else if totCurr > 0.6*totMin {
-			return "Batch processing"
-		} else if totCurr > 0.3*totMin {
-			return "Here we go!"
-		} else {
-			return "All good"
-		}
-	}
-	return "Keine Information!"
+	// log.Println("before returniing",totMax, totMin)
+	mx, mn := int(totMax), int(totMin)
+	log.Println("returning", mx, mn)
+	return mx, mn
 }
 
 func getCurrMaxMin(networkLoad string) (curr, max, min float64) {
 	fields := strings.Fields(networkLoad) //remove whitespaces
+	
+	// log.Println("Fields=", fields)
+	// log.Println("Fields=", strings.Split(fields[1], ":"))
 
-	currStr := strings.Split(fields[0], ":")[1]
+	currStr := strings.Split(fields[1], ":")[1]
 	curr, err := strconv.ParseFloat(currStr, 32)
-	if err != nil {
+	if err != nil || math.IsNaN(curr) {
 		curr = 0.0
+		// log.Println("err parsing curr")
 	}
 
-	maxStr := strings.Split(fields[1], ":")[1]
+	maxStr := strings.Split(fields[2], ":")[1]
 	max, err = strconv.ParseFloat(maxStr, 32)
-	if err != nil {
+	if err != nil || math.IsNaN(max) {
 		max = 0.0
+		// log.Println("err parsing max")
 	}
 
-	minStr := strings.Split(fields[2], ":")[1]
+	minStr := strings.Split(fields[3], ":")[1]
 	min, err = strconv.ParseFloat(minStr, 32)
-	if err != nil {
+	if err != nil || math.IsNaN(min) {
 		min = 0.0
+		// log.Println("err parsing min")
 	}
 
 	return
@@ -195,6 +194,8 @@ func getCurrMaxMin(networkLoad string) (curr, max, min float64) {
 type APHistory struct {
 	name       string
 	historyPtr *history
+	max int
+	min int
 }
 
 func StoreHistory() {
@@ -238,7 +239,7 @@ func StoreHistory() {
 			skippedAPs = append(skippedAPs, val.name)
 		} else {
 			// storeHistoryOfAP(val.name, history)
-			// fmt.Println("Storing", val.name)
+			log.Println("Storing", val.name)
 			histories = append(histories, val)
 			
 			n := len(histories)
@@ -249,9 +250,24 @@ func StoreHistory() {
 	}
 
 	log.Println("Started storing in DB:", time.Now())
-	storeHistories(histories)
-	fmt.Println("Total nr of skipped APs:", skipped)
-	saveSkippedToCSV(skippedAPs)
+	// storeHistories(histories)
+	fmt.Println("Total nr of skipped APs:", skipped, skippedAPs)
+	// saveSkippedToCSV(skippedAPs)
+
+	// storeMaxMins(histories)
+	storeInCSV(histories)
+}
+
+func storeMaxMins(histories []APHistory) {
+	for i, apHistory := range histories {
+		apName := apHistory.name
+		max := apHistory.max
+		min := apHistory.min
+		where := fmt.Sprintf("Name='%s'", apName)
+		DBService.UpdateColumnInt("apstat", "Max", max, where)
+		DBService.UpdateColumnInt("apstat", "Min", min, where)
+		log.Println("finished storing", apName, i)
+	}
 }
 
 // Saves names of skipped Access Points in a csv file.
@@ -321,9 +337,10 @@ func Last30Days() {
 
 func SaveLast30DaysForAP(apName string, c chan APHistory, t *http.Transport, idx int) {
 	networks, err := GetGraphiteDataAsJSON(apName, "", t)
+	max, min := getTotalMaxMin(networks)
 	if err != nil {
 		fmt.Printf("Skipping %s. Bad JSON response from server.\n", apName)
-		c <- APHistory{apName, nil}
+		c <- APHistory{apName, nil, 0, 0}
 		return
 	}
 	gesamt := networks[0].Datapoints
@@ -345,7 +362,7 @@ func SaveLast30DaysForAP(apName string, c chan APHistory, t *http.Transport, idx
 		}
 	}
 	history := storeHourlyAvgForHistory(gesamt)
-	c <- APHistory{apName, &history}
+	c <- APHistory{apName, &history, max, min}
 	// log.Println("Sending", apName, idx)
 }
 
@@ -405,4 +422,34 @@ func getTimeFromTimestamp(timestamp int) time.Time {
 	}
 	tm := time.Unix(t, 0)
 	return tm
+}
+
+func storeInCSV(histories []APHistory) {
+	f, err := os.Create("./data/csv/histories2.csv")
+	if err != nil {
+		log.Fatalln("Failed to create ./data/csv/histories2.csv")
+	}
+	writer := csv.NewWriter(f)
+	defer writer.Flush()
+
+	for i, apHistory := range histories {
+		maxStr, minStr := apHistory.max, apHistory.min
+		max := strconv.Itoa(maxStr)
+		min := strconv.Itoa(minStr)
+		// log.Println("Before conversion: ", maxStr, max)
+		if err := writer.Write(
+			[]string{
+				apHistory.name, 
+				max,
+				min,
+			}); err != nil {
+				log.Println("Failed to write ap history!", err)
+		} else {
+			log.Println("AP history saved successfully:", apHistory.name, i)
+		}
+	}
+}
+
+func storeAPhistoryCSV(apName string) {
+
 }
