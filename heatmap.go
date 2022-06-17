@@ -68,9 +68,9 @@ type server struct {
 	pb.UnimplementedAPServiceServer
 }
 
-func NewServer() *server {
-	return &server{}
-}
+// func NewServer() *server {
+// 	return &server{}
+// }
 
 func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.AccessPoint, error) {
 	name := in.Name
@@ -90,8 +90,8 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 		Lat:       ap.Lat,
 		Long:      ap.Long,
 		Intensity: int64(load),
-		Max: int64(ap.Max),
-		Min: int64(ap.Min),
+		Max:       int64(ap.Max),
+		Min:       int64(ap.Min),
 	}, nil
 }
 
@@ -133,9 +133,9 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 					Lat:       location.lat,  // TODO handle nil value
 					Long:      location.long, // TODO handle nil value
 					Intensity: int64(load),
-					Max: int64(ap.Max),
-					Min: int64(ap.Min),
-					},
+					Max:       int64(ap.Max),
+					Min:       int64(ap.Min),
+				},
 			}); err != nil {
 			return err
 		}
@@ -145,9 +145,10 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 }
 
 type location struct {
-	lat string
+	lat  string
 	long string
 }
+
 var locations map[string]location
 
 func main() {
@@ -164,7 +165,7 @@ func main() {
 
 func startServer() {
 	host := "192.168.0.109"
-	port := 50051
+	port := 50053
 
 	fmt.Println("Starting server...")
 
@@ -197,17 +198,18 @@ func startServer() {
 		log.Fatalf("Failed to register gateway: %v", err)
 	}
 
+	grcpPort := 50054
 	gwServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", host, 50052),
+		Addr:    fmt.Sprintf("%s:%d", host, grcpPort),
 		Handler: gwmux,
 	}
 
-	log.Printf("Serving gRPC-Gateway on http://%s:%d", host, 50052)
+	log.Printf("Serving gRPC-Gateway on http://%s:%d", host, grcpPort)
 	log.Fatalln(gwServer.ListenAndServe())
 }
 
 func forecast() {
-	path := "./forecast-script.py"
+	path := "./forecasting.py"
 	cmd := exec.Command("python", "-u", path)
 	out, err := cmd.Output()
 

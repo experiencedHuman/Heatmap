@@ -23,7 +23,7 @@ class DataRepository {
 //      .usingPlatformAppropriateTLS(for: eventLoopGroup)
 //      .withBackgroundActivityLogger(logger)
       .insecure(group: eventLoopGroup)
-      .connect(host: "192.168.0.109", port: 50051)
+      .connect(host: "192.168.0.109", port: 50053)
     
     let callOptions = CallOptions(logger: logger)
     

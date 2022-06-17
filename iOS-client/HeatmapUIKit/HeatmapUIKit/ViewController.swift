@@ -22,18 +22,6 @@ class ViewController: UIViewController, AzureMapDelegate {
   private var selectedTime = "", selectedDate = "", timestamp = ""
   private var accessPoints: [Api_AccessPoint]!// = DataRepository.shared.getAPs()
   private let fromJSON = false
-//  private var locations: [String : CLLocationCoordinate2D]!
-  
-  private func initLocations(accessPoints: [Api_AccessPoint]) {
-    var locations: [String : CLLocationCoordinate2D] = [:]
-    for ap in accessPoints {
-      let lat = Double(ap.lat) ?? 0.0
-      let long = Double(ap.long) ?? 0.0
-      let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
-      locations[ap.name] = location
-    }
-  }
-  
   
   func azureMap(_ map: AzureMap, didTapAt location: CLLocationCoordinate2D) {
     print("did tap at lat: \(location.latitude) , long: \(location.longitude)")
@@ -65,6 +53,7 @@ class ViewController: UIViewController, AzureMapDelegate {
       for ap in accessPoints {
         print("Retrieved ap data: \(ap.name), \(ap.lat), \(ap.long), max: \(ap.max), min: \(ap.min), int: \(ap.intensity)")
       }
+      
       setupDataSource(heatmapSource)
       setupDataSource(apSource)
     }
@@ -180,34 +169,16 @@ class ViewController: UIViewController, AzureMapDelegate {
   }
   
   private func updateHeatmap(apList: [Api_AccessPoint]) {
-    azureMap.onReady { map in
-      let newDataSource = DataSource()
-      var max = 0, min = 0
-      for ap in apList {
-        let lat = Double(ap.lat) ?? 0.0
-        let long = Double(ap.long) ?? 0.0
-        let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
-        let apMax = Int(ap.max)
-        let apMin = Int(ap.min)
-        
-        if apMax > max {
-          max = apMax
-        }
-        
-        if apMin < min {
-          min = apMin
-        }
-        
-        let feature = Feature(Point(location))
-        // Add properties to the feature.
-        feature.addProperty("name", value: "\(ap.name)")
-        feature.addProperty("intensity", value: ap.intensity)
-        
-        newDataSource.add(feature: feature)
-//        map.sources.add(newDataSource)
-        self.updateIntensities(map, max: max, min: min)
-      }
+    var features: [Feature] = []
+    for accessPoint in apList {
+      let lat = Double(accessPoint.lat) ?? 0.0
+      let long = Double(accessPoint.long) ?? 0.0
+      let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
+      let feature = Feature(Point(location))
+      feature.addProperty("intensity", value: accessPoint.intensity)
+      features.append(feature)
     }
+    heatmapSource.set(features: features)
   }
   
   private func updateIntensities(_ map: AzureMap, max: Int, min: Int) {
