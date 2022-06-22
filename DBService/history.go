@@ -18,7 +18,7 @@ func CreateHistoryTable(tableName string) {
 	`, tableName, hourColumns)
 	db := InitDB(heatmapDB)
 	runQuery(createQuery)
-	db.Close()//TODO close? YES!!! One time action.
+	db.Close()
 }
 
 
@@ -46,11 +46,11 @@ func PopulateHistoryTable(accessPoints []AccessPoint) {
 			InsertHistory(ap.Name, j, db)
 		}
 	}
-	db.Close() //TODO close? YES!!! One time action!
+	db.Close()
 }
 
 func InsertHistory(apName string, day int, db *sql.DB) {
-	insertQuery := fmt.Sprintf("INSERT INTO %s(AP_Name, Day) VALUES (?, ?)", historyTable)
+	insertQuery := "INSERT INTO history(AP_Name, Day) VALUES (?, ?)"
 	runQuery(insertQuery, apName, day)
 }
 
@@ -78,7 +78,7 @@ func GetUnprocessedAPs() map[string]bool {
 		names[ap] = true
 	}
 
-	db.Close()//TODO remove?
+	db.Close()
 	return names
 }
 
@@ -102,7 +102,7 @@ func GetHistoryOfSingleAP(name string, day int, hr int) AccessPoint {
 		log.Println("No data found in history! Returning empty result.")
 	}
 	
-	db.Close()//TODO remove?
+	db.Close()
 	return result
 }
 
@@ -131,10 +131,10 @@ func GetHistoryOfAllAccessPoints(day int, hr int) []AccessPoint {
 		if err == nil {
 			apList = append(apList, ap)
 		} else {
-			// log.Println(err)
+			// log.Println(err) // TODO
 		}
 	}
 	
-	db.Close()//TODO remove?
+	db.Close()
 	return apList
 }

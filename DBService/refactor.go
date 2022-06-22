@@ -15,6 +15,13 @@ func SetupHistoryTable() {
 	PopulateHistoryTable(apList)
 }
 
+func SetupFutureTable() {
+	tableName := "future"
+	CreateHistoryTable(tableName)
+	apList := RetrieveAPsOfTUM(true)
+	PopulateFutureTable(apList)
+}
+
 func HistoryCSVtoSQLite() {
 	file, err := os.Open("./data/csv/histories2.csv")
 	if err != nil {

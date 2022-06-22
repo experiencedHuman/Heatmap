@@ -19,9 +19,11 @@ class ViewController: UIViewController, AzureMapDelegate {
   private var heatmapSource, apSource: DataSource!
   private var popup = Popup()
   private var datePicker = UIDatePicker()
-  private var selectedTime = "", selectedDate = "", timestamp = ""
+  private var backToCurrentButton = UIButton()
+  private var timestamp = ""
   private var accessPoints: [Api_AccessPoint]!// = DataRepository.shared.getAPs()
   private let fromJSON = false
+  private var maxIntensity = 0, minIntensity = 0
   
   func azureMap(_ map: AzureMap, didTapAt location: CLLocationCoordinate2D) {
     print("did tap at lat: \(location.latitude) , long: \(location.longitude)")
@@ -47,8 +49,8 @@ class ViewController: UIViewController, AzureMapDelegate {
       let dateFormatter: DateFormatter = DateFormatter()
       dateFormatter.dateFormat = "yyyy-MM-dd HH"
       timestamp = dateFormatter.string(from: date)
-//      print("Requesting current APs data for timestamp: \(timestamp)")
       accessPoints = DataRepository.shared.getAPs(timestamp: timestamp)
+//      print("Requesting current APs data for timestamp: \(timestamp)")
 //      print("Nr of retrieved APs: \(accessPoints.count)")
       for ap in accessPoints {
         print("Retrieved ap data: \(ap.name), \(ap.lat), \(ap.long), max: \(ap.max), min: \(ap.min), int: \(ap.intensity)")
@@ -70,7 +72,6 @@ class ViewController: UIViewController, AzureMapDelegate {
       map.events.addDelegate(self)
       map.popups.add(self.popup)
     }
-    
     
     self.view.addSubview(azureMap)
   }
@@ -138,7 +139,14 @@ class ViewController: UIViewController, AzureMapDelegate {
       self.addClusterLayer(map)
     }
     
+    addDatePickerView()
+    addBackToCurrentView()
+  }
+  
+  private func addDatePickerView() {
     datePicker.frame = CGRect(x: 150, y: 750, width: 170, height: 35)
+    datePicker.minimumDate = dateBeforeDaysToSubstract(daysToSubstract: 31)
+    datePicker.maximumDate = dateAfterDaysToAdd(daysToAdd: 15)
     datePicker.tintColor = .black
     datePicker.backgroundColor = .gray
     datePicker.layer.cornerRadius = 10
@@ -150,83 +158,82 @@ class ViewController: UIViewController, AzureMapDelegate {
     view.addSubview(datePicker)
   }
   
+  private func addBackToCurrentView() {
+    backToCurrentButton.frame = CGRect(x: 340, y: 750, width: 60, height: 35)
+    backToCurrentButton.isEnabled = false // disable button
+    backToCurrentButton.alpha = 0.0 // make button invisible
+    backToCurrentButton.setTitle("Today", for: .normal)
+    backToCurrentButton.backgroundColor = UIColor(red: 0/255, green: 123/255, blue: 224/255, alpha: 1.0)
+    backToCurrentButton.layer.cornerRadius = 10
+    backToCurrentButton.clipsToBounds = true
+    backToCurrentButton.addTarget(self, action: #selector(revertHeatmapToToday), for: .touchUpInside)
+    view.addSubview(backToCurrentButton)
+  }
+  
+  @objc
+  private func revertHeatmapToToday() {
+    print("todo: revert heatmap to today")
+//    datePicker.date = Date()
+    let dateFormatter: DateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy-MM-dd HH"
+    timestamp = dateFormatter.string(from: Date())
+    
+    let apList = DataRepository.shared.getAPs(timestamp: timestamp)
+    
+    updateHeatmap(apList: apList)
+  }
+  
+  private func dateBeforeDaysToSubstract(daysToSubstract: Int) -> Date? {
+    let currentDate = Date()
+    let earlierDate = Calendar.current.date(byAdding: .day, value: -daysToSubstract, to: currentDate)
+    return earlierDate
+  }
+  
+  private func dateAfterDaysToAdd(daysToAdd: Int) -> Date? {
+    let currentDate = Date()
+    let laterDate = Calendar.current.date(byAdding: .day, value: daysToAdd, to: currentDate)
+    return laterDate
+  }
+  
   @objc
   func datePickerValueChanged(_ sender: UIDatePicker) {
     let dateFormatter: DateFormatter = DateFormatter()
     dateFormatter.dateFormat = "yyyy-MM-dd HH"
     timestamp = dateFormatter.string(from: sender.date)
+    let timestampCurrent = dateFormatter.string(from: Date())
     
-    selectedTime = sender.date.formatted(date: .omitted, time: .shortened)
-    selectedDate = sender.date.formatted(date: .numeric, time: .omitted)
-    
-    print("Selected timestamp: \(timestamp)")
-    print("Selected date: \(sender.date)")
-    
+    print("ts: \(timestamp)")
+    print("tsCurr: \(timestampCurrent)")
+    if timestamp != timestampCurrent {
+      // enable & show button
+      backToCurrentButton.isEnabled = true
+      backToCurrentButton.alpha = 1.0 //make button visible
+    } else {
+      backToCurrentButton.isEnabled = false
+      backToCurrentButton.alpha = 0.0 //make button visible
+    }
     
     let apList = DataRepository.shared.getAPs(timestamp: timestamp)
-    //TODO: update heatmap source
+    
     updateHeatmap(apList: apList)
   }
   
-  private func updateHeatmap(apList: [Api_AccessPoint]) {
-    var features: [Feature] = []
-    for accessPoint in apList {
-      let lat = Double(accessPoint.lat) ?? 0.0
-      let long = Double(accessPoint.long) ?? 0.0
-      let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
-      let feature = Feature(Point(location))
-      feature.addProperty("intensity", value: accessPoint.intensity)
-      features.append(feature)
-    }
-    heatmapSource.set(features: features)
-  }
-  
-  private func updateIntensities(_ map: AzureMap, max: Int, min: Int) {
-    let heatmapLayer = HeatMapLayer(
-      source: heatmapSource,
-      options: [
-        .heatmapRadius(
-          from: NSExpression(
-            forAZMInterpolating: .zoomLevelAZMVariable,
-            curveType: .exponential,
-            parameters: NSExpression(forConstantValue: 7),
-            stops: NSExpression(forConstantValue: [
-              // Add multiple interpolation points, x:y
-              // In the x-Axis the zoom levels (1-24)
-              // In the y-Axis the radius values
-              1: 2,
-              15: 15,
-              16: 30,
-              17: 40,
-              18: 45,
-              19: 50,
-              23: 1000
-            ])
-          )
-        ),
-        
-        .heatmapWeight(
-          from: NSExpression(
-            forAZMInterpolating: NSExpression(forKeyPath: "intensity"),
-            curveType: .exponential,
-            parameters: NSExpression(forConstantValue: 3),
-            stops: NSExpression(forConstantValue: [
-              0.0: min,
-              0.1: max
-            ]))
-        ),
-        .heatmapOpacity(0.8),
-        .minZoom(1.0),
-        .maxZoom(24),
-      ]
-    )
-    
-    map.layers.addLayer(heatmapLayer)
-  }
-  
   private func setupDataSource(_ dataSource: DataSource) {
+    let features = updateIntensities(apList: accessPoints)
+    dataSource.add(features: features)
+  }
+  
+  private func updateHeatmap(apList: [Api_AccessPoint]) {
+    let features = updateIntensities(apList: apList)
+    heatmapSource.set(features: features)
+    apSource.set(features: features)
+  }
+  
+  private func updateIntensities(apList: [Api_AccessPoint]) -> [Feature] {
     var max = 0, min = 0
-    for accessPoint in accessPoints {
+    var features: [Feature] = []
+    
+    for accessPoint in apList {
       let lat = Double(accessPoint.lat) ?? 0.0
       let long = Double(accessPoint.long) ?? 0.0
       let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
@@ -245,9 +252,13 @@ class ViewController: UIViewController, AzureMapDelegate {
       // Add properties to the feature.
       feature.addProperty("name", value: "\(accessPoint.name)")
       feature.addProperty("intensity", value: accessPoint.intensity)
-      
-      dataSource.add(feature: feature)
+      features.append(feature)
     }
+    
+    maxIntensity = max
+    minIntensity = min
+    
+    return features
   }
   
   private func setupDataSourceFromJSON(_ dataSource: DataSource) {
@@ -275,10 +286,10 @@ class ViewController: UIViewController, AzureMapDelegate {
               // In the y-Axis the radius values
               1: 2,
               15: 15,
-              16: 30,
-              17: 40,
-              18: 45,
-              19: 50,
+              16: 20, //+1
+              17: 30, //+1
+              18: 35, //+1
+              19: 40, //+1
               23: 1000
             ])
           )
@@ -288,11 +299,11 @@ class ViewController: UIViewController, AzureMapDelegate {
           from: NSExpression(
             forAZMInterpolating: NSExpression(forKeyPath: "intensity"),
             curveType: .exponential,
-            parameters: NSExpression(forConstantValue: 3),
+            parameters: NSExpression(forConstantValue: 2),
             stops: NSExpression(forConstantValue: [
-              0.0: 1,
-              0.01: 5,
-              0.1: 10
+              0.0: 1, //0.0: minIntensity,
+//              0.01: 5,
+              0.1: 10 //0.1: maxIntensity
             ]))
         ),
         .heatmapOpacity(0.8),

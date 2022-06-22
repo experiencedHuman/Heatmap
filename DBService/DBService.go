@@ -17,7 +17,7 @@ const (
 	// tables inside heatmapDB
 	apstatTable   = "apstat"
 	historyTable  = "history"
-	forecastTable = "forecast"
+	forecastTable = "future"
 )
 
 var DB = InitDB(heatmapDB)

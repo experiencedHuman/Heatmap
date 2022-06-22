@@ -153,6 +153,12 @@ var locations map[string]location
 
 func main() {
 
+	// DBService.SetupFutureTable()
+
+	// if true {
+	// 	return
+	// }
+
 	locations = make(map[string]location)
 	apList := DBService.RetrieveAPsOfTUM(true)
 	for _, ap := range apList {
