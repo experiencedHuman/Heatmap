@@ -51,8 +51,6 @@ class ViewController: UIViewController, AzureMapDelegate {
       dateFormatter.dateFormat = "yyyy-MM-dd HH"
       timestamp = dateFormatter.string(from: date)
       accessPoints = DataRepository.shared.getAPs(timestamp: timestamp)
-//      print("Requesting current APs data for timestamp: \(timestamp)")
-//      print("Nr of retrieved APs: \(accessPoints.count)")
       for ap in accessPoints {
         print("Retrieved ap data: \(ap.name), \(ap.lat), \(ap.long), max: \(ap.max), min: \(ap.min), int: \(ap.intensity)")
       }
@@ -77,7 +75,7 @@ class ViewController: UIViewController, AzureMapDelegate {
     self.view.addSubview(azureMap)
   }
   
-  // handle clicking on an access point icon
+  // MARK: Popup annotation
   func azureMap(_ map: AzureMap, didTapOn features: [Feature]) {
     guard let feature = features.first else {
       // Popup has been released or no features provided
@@ -94,14 +92,15 @@ class ViewController: UIViewController, AzureMapDelegate {
     let hour = calendar.component(.hour, from: date)
     let minutes = calendar.component(.minute, from: date)
     let time = "\(hour):\(minutes)"
-//    selectedTime = datePicker.date.formatted(date: .omitted, time: .shortened)
     
-    if let clusterCount = feature.properties["point_count"] as? Int {
-       let leaves = apSource.leaves(of: feature, offset: 0, limit: .max)
-      for _ in leaves {
-//        print(leaf.properties)
+    if let _ = feature.properties["point_count"] as? Int {
+      let leaves = apSource.leaves(of: feature, offset: 0, limit: .max)
+      var connectedDevices = 0
+      for leaf in leaves {
+        let apLoad = leaf.properties["intensity"] as? Int ?? 0
+        connectedDevices += apLoad
       }
-      popupView.setText("\(time) Uhr: Momentan stark besucht: \(clusterCount) APs")
+      popupView.setText("\(time) Uhr: Momentan stark besucht: \(connectedDevices) connected devices.")
       
     } else {
       let name = feature.properties["name"] as! String
@@ -173,8 +172,6 @@ class ViewController: UIViewController, AzureMapDelegate {
   
   @objc
   private func revertHeatmapToNow() {
-    print("todo: revert heatmap to now")
-//    datePicker.date = Date()
     let dateFormatter: DateFormatter = DateFormatter()
     dateFormatter.dateFormat = "yyyy-MM-dd HH"
     timestamp = dateFormatter.string(from: Date())
@@ -203,8 +200,6 @@ class ViewController: UIViewController, AzureMapDelegate {
     timestamp = dateFormatter.string(from: sender.date)
     let timestampCurrent = dateFormatter.string(from: Date())
     
-    print("ts: \(timestamp)")
-    print("tsCurr: \(timestampCurrent)")
     if timestamp != timestampCurrent {
       // enable & show button
       backToCurrentButton.isEnabled = true
@@ -240,6 +235,10 @@ class ViewController: UIViewController, AzureMapDelegate {
       let location = CLLocationCoordinate2D(latitude: lat, longitude: long)
       let apMax = Int(accessPoint.max)
       let apMin = Int(accessPoint.min)
+      
+      if accessPoint.intensity == 0 {
+        continue
+      }
       
       if apMax > max {
         max = apMax
@@ -296,21 +295,23 @@ class ViewController: UIViewController, AzureMapDelegate {
           )
         ),
         
-        .heatmapWeight(
-          from: NSExpression(
-            forAZMInterpolating: NSExpression(forKeyPath: "intensity"),
-            curveType: .linear,
-            parameters: NSExpression(forConstantValue: 2),
-            stops: NSExpression(forConstantValue: [
-              minIntensity: 0, //0.0: minIntensity,
-//              0.01: 5,
-              maxIntensity: 1000 //0.1: maxIntensity
-            ]))
-        ),
-//        .heatmapIntensity(0.35),
+          .heatmapWeight(
+            from: NSExpression(
+              forAZMInterpolating: NSExpression(forKeyPath: "intensity"),
+              curveType: .linear,
+              parameters: NSExpression(forConstantValue: 2),
+              stops: NSExpression(forConstantValue: [
+                minIntensity: 0, //0.0: minIntensity,
+                //              0.01: 5,
+                maxIntensity: 1000 //0.1: maxIntensity
+              ]))
+          ),
+        //        .heatmapIntensity(0.35),
         .heatmapOpacity(0.8),
         .minZoom(1.0),
         .maxZoom(24),
+        //        .filter(from: NSPredicate(format: "point_count = NIL"))
+        .filter(from: NSPredicate(format: "intensity > 0"))
       ]
     )
     map.layers.addLayer(heatmapLayer)
@@ -325,7 +326,7 @@ class ViewController: UIViewController, AzureMapDelegate {
                                     .textOffset(CGVector(dx: 0, dy: -1.5)),
                                     .iconOffset(CGVector(dx: 0, dy: 100)),
                                     .textSize(20),
-//                                    .textHaloBlur(12.0),
+                                    //                                    .textHaloBlur(12.0),
                                     .textFont(["StandardFont-Bold"]),
                                     .filter(from: NSPredicate(format: "point_count != NIL"))
                                    ]
