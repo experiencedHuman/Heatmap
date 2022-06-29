@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -24,6 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 type APServiceClient interface {
 	GetAccessPoint(ctx context.Context, in *APRequest, opts ...grpc.CallOption) (*AccessPoint, error)
 	ListAccessPoints(ctx context.Context, in *APRequest, opts ...grpc.CallOption) (APService_ListAccessPointsClient, error)
+	ListAllAPNames(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (APService_ListAllAPNamesClient, error)
 }
 
 type aPServiceClient struct {
@@ -75,12 +77,45 @@ func (x *aPServiceListAccessPointsClient) Recv() (*APResponse, error) {
 	return m, nil
 }
 
+func (c *aPServiceClient) ListAllAPNames(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (APService_ListAllAPNamesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &APService_ServiceDesc.Streams[1], "/api.APService/ListAllAPNames", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &aPServiceListAllAPNamesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type APService_ListAllAPNamesClient interface {
+	Recv() (*APName, error)
+	grpc.ClientStream
+}
+
+type aPServiceListAllAPNamesClient struct {
+	grpc.ClientStream
+}
+
+func (x *aPServiceListAllAPNamesClient) Recv() (*APName, error) {
+	m := new(APName)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // APServiceServer is the server API for APService service.
 // All implementations must embed UnimplementedAPServiceServer
 // for forward compatibility
 type APServiceServer interface {
 	GetAccessPoint(context.Context, *APRequest) (*AccessPoint, error)
 	ListAccessPoints(*APRequest, APService_ListAccessPointsServer) error
+	ListAllAPNames(*emptypb.Empty, APService_ListAllAPNamesServer) error
 	mustEmbedUnimplementedAPServiceServer()
 }
 
@@ -93,6 +128,9 @@ func (UnimplementedAPServiceServer) GetAccessPoint(context.Context, *APRequest) 
 }
 func (UnimplementedAPServiceServer) ListAccessPoints(*APRequest, APService_ListAccessPointsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListAccessPoints not implemented")
+}
+func (UnimplementedAPServiceServer) ListAllAPNames(*emptypb.Empty, APService_ListAllAPNamesServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListAllAPNames not implemented")
 }
 func (UnimplementedAPServiceServer) mustEmbedUnimplementedAPServiceServer() {}
 
@@ -146,6 +184,27 @@ func (x *aPServiceListAccessPointsServer) Send(m *APResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _APService_ListAllAPNames_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(APServiceServer).ListAllAPNames(m, &aPServiceListAllAPNamesServer{stream})
+}
+
+type APService_ListAllAPNamesServer interface {
+	Send(*APName) error
+	grpc.ServerStream
+}
+
+type aPServiceListAllAPNamesServer struct {
+	grpc.ServerStream
+}
+
+func (x *aPServiceListAllAPNamesServer) Send(m *APName) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // APService_ServiceDesc is the grpc.ServiceDesc for APService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -162,6 +221,11 @@ var APService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ListAccessPoints",
 			Handler:       _APService_ListAccessPoints_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ListAllAPNames",
+			Handler:       _APService_ListAllAPNames_Handler,
 			ServerStreams: true,
 		},
 	},

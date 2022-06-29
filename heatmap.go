@@ -16,6 +16,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/kvogli/Heatmap/proto/api"
@@ -23,7 +24,7 @@ import (
 	// "google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/kvogli/Heatmap/DBService"
-	// "github.com/kvogli/Heatmap/LRZscraper"
+	"github.com/kvogli/Heatmap/LRZscraper"
 	// "github.com/kvogli/Heatmap/RoomFinder"
 )
 
@@ -80,7 +81,7 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 	db := DBService.InitDB(heatmapDB)
 	// ap := DBService.RetrieveAccessPointByName(db, name)
 	day, hr := getDayAndHourFromTimestamp(ts)
-	ap := DBService.GetHistoryOfSingleAP(name, day, hr)
+	ap := DBService.GetHistoryForSingleAP(name, day, hr)
 	db.Close()
 
 	load, _ := strconv.Atoi(ap.Load)
@@ -116,7 +117,7 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 	ts := in.Timestamp
 	day, hr := getDayAndHourFromTimestamp(ts)
 	log.Println("Requested day and hour:", day, hr)
-	apList := DBService.GetHistoryOfAllAccessPoints(day, hr)
+	apList := DBService.GetHistoryForAllAPs(day, hr)
 
 	log.Printf("Sending %d APs ...", len(apList))
 
@@ -144,6 +145,19 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 	return nil
 }
 
+func (s *server) ListAllAPNames(in *emptypb.Empty, stream pb.APService_ListAllAPNamesServer) error {
+	names := DBService.GetAllNames()
+	for _, name := range names {
+		if err := stream.Send(
+			&pb.APName{
+				Name: name,
+			}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type location struct {
 	lat  string
 	long string
@@ -154,6 +168,13 @@ var locations map[string]location
 func main() {
 
 	// DBService.SetupFutureTable()
+
+	// DBService.UpdateToday()
+
+	// _ = LRZscraper.GetTodaysData()
+	LRZscraper.Nothing()
+
+	// DBService.UpdateTomorrow()
 
 	// if true {
 	// 	return

@@ -58,12 +58,11 @@ func InsertHistory(apName string, day int, db *sql.DB) {
 // hasn't been stored in the database yet
 func GetUnprocessedAPs() map[string]bool {
 	db := InitDB(heatmapDB)
-	query := fmt.Sprintf(`
+	query := `
 		SELECT DISTINCT AP_Name
-		FROM %s
+		FROM history
 		WHERE T0 IS NULL
-	`, historyTable)
-
+	`
 	rows, err := db.Query(query)
 	if err != nil {
 		log.Println(err)
@@ -84,7 +83,7 @@ func GetUnprocessedAPs() map[string]bool {
 
 // queries the database and returns the intensity of
 // the access point, based on the selected day and hour
-func GetHistoryOfSingleAP(name string, day int, hr int) AccessPoint {
+func GetHistoryForSingleAP(name string, day int, hr int) AccessPoint {
 	db := InitDB(heatmapDB)
 	query := fmt.Sprintf(`
 		SELECT T%d
@@ -108,7 +107,7 @@ func GetHistoryOfSingleAP(name string, day int, hr int) AccessPoint {
 
 // queries the database and returns a list of the names and intensities (network load)
 // of all access points, based on the selected day and hour.
-func GetHistoryOfAllAccessPoints(day int, hr int) []AccessPoint {
+func GetHistoryForAllAPs(day int, hr int) []AccessPoint {
 	db := InitDB(heatmapDB)
 	query := fmt.Sprintf(`
 		SELECT DISTINCT AP_Name, T%d, Max, Min
@@ -137,4 +136,28 @@ func GetHistoryOfAllAccessPoints(day int, hr int) []AccessPoint {
 	
 	db.Close()
 	return apList
+}
+
+// TODO pass today's data as param
+func UpdateToday(averages map[string][24]int) {
+	// remove day 30 + add new day 0 = replace 30 with day -1 AND
+	// shift days 0-29 by adding 1 day AND
+	// update day 0 with new data
+	
+	deleteDayEq30 := "UPDATE history SET Day = -1 WHERE Day = 30"
+	runQuery(deleteDayEq30)
+	
+	for i := 29; i >= -1; i-- {
+		increaseDays := fmt.Sprintf("UPDATE history SET Day = %d WHERE Day = %d", i + 1, i)
+		runQuery(increaseDays)
+	}
+
+	for apName, dailyAvgs := range averages {
+		for i, dailyAvg := range dailyAvgs {
+			query := fmt.Sprintf(`
+				UPDATE history SET T%d = ? WHERE AP_Name = ? AND Day = 0
+			`, i)
+			runQuery(query, dailyAvg, apName)
+		}
+	}
 }

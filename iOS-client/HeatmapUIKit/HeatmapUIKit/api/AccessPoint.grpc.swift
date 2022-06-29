@@ -40,6 +40,12 @@ public protocol Api_APServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?,
     handler: @escaping (Api_APResponse) -> Void
   ) -> ServerStreamingCall<Api_APRequest, Api_APResponse>
+
+  func listAllAPNames(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?,
+    handler: @escaping (Api_APName) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Api_APName>
 }
 
 extension Api_APServiceClientProtocol {
@@ -85,6 +91,27 @@ extension Api_APServiceClientProtocol {
       handler: handler
     )
   }
+
+  /// Server streaming call to ListAllAPNames
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ListAllAPNames.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func listAllAPNames(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Api_APName) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, Api_APName> {
+    return self.makeServerStreamingCall(
+      path: "/api.APService/ListAllAPNames",
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListAllAPNamesInterceptors() ?? [],
+      handler: handler
+    )
+  }
 }
 
 public protocol Api_APServiceClientInterceptorFactoryProtocol {
@@ -94,6 +121,9 @@ public protocol Api_APServiceClientInterceptorFactoryProtocol {
 
   /// - Returns: Interceptors to use when invoking 'listAccessPoints'.
   func makeListAccessPointsInterceptors() -> [ClientInterceptor<Api_APRequest, Api_APResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'listAllAPNames'.
+  func makeListAllAPNamesInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Api_APName>]
 }
 
 public final class Api_APServiceClient: Api_APServiceClientProtocol {

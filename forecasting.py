@@ -41,7 +41,9 @@ def process_json(jsonResp):
 
 json = get_json_from_AP()
 processed = process_json(json)
-print(processed)
+for time, val in processed:
+  print(time, val)
+# print(processed)
 
 def forecast():
   df1 = pd.DataFrame(total)

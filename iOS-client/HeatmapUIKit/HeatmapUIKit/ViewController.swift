@@ -31,6 +31,7 @@ class ViewController: UIViewController, AzureMapDelegate {
   
   override func loadView() {
     super.loadView()
+    print("erieri")
     azureMap = MapControl.init(frame: CGRect(x: 0, y: 0, width: 500, height: 800),
                                options: [
                                 CameraOption.center(lat: 48.2692083204, lng: 11.6690079838),
@@ -162,17 +163,17 @@ class ViewController: UIViewController, AzureMapDelegate {
     backToCurrentButton.frame = CGRect(x: 340, y: 750, width: 60, height: 35)
     backToCurrentButton.isEnabled = false // disable button
     backToCurrentButton.alpha = 0.0 // make button invisible
-    backToCurrentButton.setTitle("Today", for: .normal)
+    backToCurrentButton.setTitle("Now", for: .normal)
     backToCurrentButton.backgroundColor = UIColor(red: 0/255, green: 123/255, blue: 224/255, alpha: 1.0)
     backToCurrentButton.layer.cornerRadius = 10
     backToCurrentButton.clipsToBounds = true
-    backToCurrentButton.addTarget(self, action: #selector(revertHeatmapToToday), for: .touchUpInside)
+    backToCurrentButton.addTarget(self, action: #selector(revertHeatmapToNow), for: .touchUpInside)
     view.addSubview(backToCurrentButton)
   }
   
   @objc
-  private func revertHeatmapToToday() {
-    print("todo: revert heatmap to today")
+  private func revertHeatmapToNow() {
+    print("todo: revert heatmap to now")
 //    datePicker.date = Date()
     let dateFormatter: DateFormatter = DateFormatter()
     dateFormatter.dateFormat = "yyyy-MM-dd HH"
@@ -298,14 +299,15 @@ class ViewController: UIViewController, AzureMapDelegate {
         .heatmapWeight(
           from: NSExpression(
             forAZMInterpolating: NSExpression(forKeyPath: "intensity"),
-            curveType: .exponential,
+            curveType: .linear,
             parameters: NSExpression(forConstantValue: 2),
             stops: NSExpression(forConstantValue: [
-              0.0: 1, //0.0: minIntensity,
+              minIntensity: 0, //0.0: minIntensity,
 //              0.01: 5,
-              0.1: 10 //0.1: maxIntensity
+              maxIntensity: 1000 //0.1: maxIntensity
             ]))
         ),
+//        .heatmapIntensity(0.35),
         .heatmapOpacity(0.8),
         .minZoom(1.0),
         .maxZoom(24),

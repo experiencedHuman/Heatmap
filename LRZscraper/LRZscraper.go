@@ -6,25 +6,29 @@ import (
 	"log"
 	"os"
 	"strings"
+	"regexp"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/debug"
 )
 
-// It scrapes the html table data from "https://wlan.lrz.de/apstat/"" and
-// stores the scraped data in csv format under the destination path 'filename'
-func ScrapeApstat(filename string) {
-	apstatURL := "https://wlan.lrz.de/apstat/"
-	file, err := os.Create(filename)
-	if err != nil {
-		log.Fatalf("System error: could not create file! %q", err)
-	}
-	defer file.Close()
+type AP struct {
+	address string
+	room    string
+	name    string
+	status  string
+	typ     string
+	load    string
+}
 
-	writer := csv.NewWriter(file)
-	writer.Comma = ';'
-	defer writer.Flush()
+func Nothing() {
+	
+}
+
+// It scrapes the html table data from "https://wlan.lrz.de/apstat/""
+func ScrapeApstat(filename string) []AP {
+	apstatURL := "https://wlan.lrz.de/apstat/"
 
 	c := colly.NewCollector(
 		colly.AllowedDomains("wlan.lrz.de"),
@@ -34,6 +38,8 @@ func ScrapeApstat(filename string) {
 	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL.String())
 	})
+
+	aps := make([]AP, 0)
 
 	// it uses jQuery selectors to scrape the table with id "aptable" row by row
 	c.OnHTML("html", func(e *colly.HTMLElement) {
@@ -47,18 +53,48 @@ func ScrapeApstat(filename string) {
 			apType := s.ChildrenFiltered("td:nth-child(5)").Text()
 			load := s.ChildrenFiltered("td:nth-child(6)").Text()
 			// store scraped data to csv file
-			writer.Write([]string{
-				address,
-				room,
-				apName,
-				apStatus,
-				apType,
-				load,
-			})
+			ap := AP{address, room, apName, apStatus, apType, load}
+			aps = append(aps, ap)
 		})
 	})
 
 	c.Visit(apstatURL)
+	c.Wait()
+
+	return aps
+}
+
+func getTotAvg(load string) string {
+	rgx := regexp.MustCompile(`\((.*?)\)`)
+	loadStr := rgx.FindStringSubmatch(load)
+	loads := strings.Split(loadStr[1], " - ")
+	totAvg := loads[3]
+	return totAvg
+}
+
+
+// Stores the scraped data in csv format under the destination path 'filename'.
+func StoreApstatInCSV(aps []AP, filename string) {
+	file, err := os.Create(filename)
+	if err != nil {
+		log.Fatalf("System error: could not create file! %q", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	writer.Comma = ';'
+	defer writer.Flush()
+
+	for _, ap := range aps {
+		writer.Write([]string{
+			ap.address,
+			ap.room,
+			ap.name,
+			ap.status,
+			ap.typ,
+			ap.load,
+		})
+	}
 }
 
 // It scrapes the html table data from "https://wlan.lrz.de/apstat/ublist/"" and

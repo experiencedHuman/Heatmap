@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -129,6 +130,23 @@ func request_APService_ListAccessPoints_0(ctx context.Context, marshaler runtime
 
 }
 
+func request_APService_ListAllAPNames_0(ctx context.Context, marshaler runtime.Marshaler, client APServiceClient, req *http.Request, pathParams map[string]string) (APService_ListAllAPNamesClient, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
+	var metadata runtime.ServerMetadata
+
+	stream, err := client.ListAllAPNames(ctx, &protoReq)
+	if err != nil {
+		return nil, metadata, err
+	}
+	header, err := stream.Header()
+	if err != nil {
+		return nil, metadata, err
+	}
+	metadata.HeaderMD = header
+	return stream, metadata, nil
+
+}
+
 // RegisterAPServiceHandlerServer registers the http handlers for service APService to "mux".
 // UnaryRPC     :call APServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -160,6 +178,13 @@ func RegisterAPServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 	})
 
 	mux.Handle("GET", pattern_APService_ListAccessPoints_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
+		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+		return
+	})
+
+	mux.Handle("GET", pattern_APService_ListAllAPNames_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
 		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -252,6 +277,30 @@ func RegisterAPServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 
 	})
 
+	mux.Handle("GET", pattern_APService_ListAllAPNames_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/api.APService/ListAllAPNames", runtime.WithHTTPPathPattern("/accesspoints/all-names"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_APService_ListAllAPNames_0(ctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_APService_ListAllAPNames_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) {
+			res, err := resp.Recv()
+			return response_APService_ListAllAPNames_0{res}, err
+		}, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -264,14 +313,27 @@ func (m response_APService_ListAccessPoints_0) XXX_ResponseBody() interface{} {
 	return response.Accesspoint
 }
 
+type response_APService_ListAllAPNames_0 struct {
+	proto.Message
+}
+
+func (m response_APService_ListAllAPNames_0) XXX_ResponseBody() interface{} {
+	response := m.Message.(*APName)
+	return response.Name
+}
+
 var (
 	pattern_APService_GetAccessPoint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"accesspoints", "heatmap", "name"}, ""))
 
 	pattern_APService_ListAccessPoints_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"accesspoints", "heatmap"}, ""))
+
+	pattern_APService_ListAllAPNames_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"accesspoints", "all-names"}, ""))
 )
 
 var (
 	forward_APService_GetAccessPoint_0 = runtime.ForwardResponseMessage
 
 	forward_APService_ListAccessPoints_0 = runtime.ForwardResponseStream
+
+	forward_APService_ListAllAPNames_0 = runtime.ForwardResponseStream
 )
