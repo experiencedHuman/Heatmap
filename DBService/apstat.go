@@ -1,7 +1,6 @@
 package DBService
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 )
@@ -33,18 +32,14 @@ func GetAllNames() []string {
 	return names
 }
 
-func retrieveLocationsOfAPs() {
-
-}
-
-func RetrieveAccessPointByName(db *sql.DB, name string) *AccessPoint {
+func GetAccessPointByName(name string) *AccessPoint {
 	stmt := fmt.Sprintf(`
 		SELECT Name, Lat, Long, Load
 		FROM apstat
 		WHERE Name='%s'
 	`, name)
 
-	row := db.QueryRow(stmt)
+	row := DB.QueryRow(stmt)
 	result := AccessPoint{}
 	switch err := row.Scan(&result.Name, &result.Lat, &result.Long, &result.Load); err {
 	case nil:

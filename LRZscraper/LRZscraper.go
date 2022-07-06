@@ -23,11 +23,11 @@ type AP struct {
 }
 
 func Nothing() {
-	
+
 }
 
 // It scrapes the html table data from "https://wlan.lrz.de/apstat/""
-func ScrapeApstat(filename string) []AP {
+func ScrapeApstat() []AP {
 	apstatURL := "https://wlan.lrz.de/apstat/"
 
 	c := colly.NewCollector(

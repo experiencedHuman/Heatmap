@@ -303,10 +303,10 @@ class ViewController: UIViewController, AzureMapDelegate {
               stops: NSExpression(forConstantValue: [
                 minIntensity: 0, //0.0: minIntensity,
                 //              0.01: 5,
-                maxIntensity: 1000 //0.1: maxIntensity
+                maxIntensity: 500 //0.1: maxIntensity
               ]))
           ),
-        //        .heatmapIntensity(0.35),
+        .heatmapIntensity(0.35),
         .heatmapOpacity(0.8),
         .minZoom(1.0),
         .maxZoom(24),

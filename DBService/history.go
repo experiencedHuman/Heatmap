@@ -147,10 +147,8 @@ func UpdateToday(averages map[string][24]int) {
 	deleteDayEq30 := "UPDATE history SET Day = -1 WHERE Day = 30"
 	runQuery(deleteDayEq30)
 	
-	for i := 29; i >= -1; i-- {
-		increaseDays := fmt.Sprintf("UPDATE history SET Day = %d WHERE Day = %d", i + 1, i)
-		runQuery(increaseDays)
-	}
+	increaseDays := "UPDATE history SET Day = Day + 1"
+	runQuery(increaseDays)
 
 	for apName, dailyAvgs := range averages {
 		for i, dailyAvg := range dailyAvgs {
