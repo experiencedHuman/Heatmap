@@ -51,7 +51,7 @@ type RF_Info struct {
 }
 
 func ScrapeRoomFinder() (Result, int) {
-	APs := DBService.RetrieveAPsOfTUM(false) // TODO
+	APs := DBService.RetrieveAPsOfTUM(false)
 	roomInfos, totalLoad := PrepareDataToScrape(APs)
 	res := ScrapeURLs(roomInfos)
 
@@ -59,9 +59,8 @@ func ScrapeRoomFinder() (Result, int) {
 	log.Println("Number of retrieved URLs:", len(res.Successes))
 
 	for _, val := range res.Successes {
-		where := fmt.Sprintf("ID='%s'", val.ID)
-		DBService.UpdateColumn("apstat", "Lat", val.Lat, where)
-		DBService.UpdateColumn("apstat", "Long", val.Long, where)
+		DBService.UpdateLatLong("Lat", val.Lat, val.ID)
+		DBService.UpdateLatLong("Long", val.Long, val.ID)
 	}
 
 	return res, totalLoad
@@ -75,7 +74,7 @@ func PrepareDataToScrape(APs []DBService.AccessPoint) ([]RF_Info, int) {
 	for _, ap := range APs {
 		architectNr := scrapeRoomNrFromRoomName(ap.Room)
 		buildingNr := scrapeBuildingNrFromAddress(ap.Address)
-		currTotalLoad := 0 // TODO fix GetCurrentTotalLoad(ap.Load)
+		currTotalLoad := 0
 
 		total += currTotalLoad
 		roomFinderID := fmt.Sprintf("%s@%s", architectNr, buildingNr)
@@ -158,10 +157,10 @@ func GetCurrentTotalLoad(load string) int {
 		log.Println("FIXME")
 		return 0
 	}
-	currentLoad, err := strconv.Atoi(match[1]) // TODO error handling
+	currentLoad, err := strconv.Atoi(match[1])
 	if err != nil {
 		log.Println(err)
-		return 0 // TODO handle edge cases
+		return 0
 	} else {
 		return currentLoad
 	}
@@ -207,17 +206,13 @@ func scrapeURL(rfInfo RF_Info, wg *sync.WaitGroup, t *http.Transport, result *Re
 	resp, err := c.Get(rfInfo.url)
 
 	if err != nil {
-		log.Println("Failed request url:", rfInfo.url) //TODO uncomment
 		failedRequests++
-		// TODO collect failed URLs and try NavigaTUM
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.Println("Failed request url:", rfInfo.url) //TODO uncomment
 		failedRequests++
-		// TODO collect failed URLs and try NavigaTUM
 		return
 	}
 
@@ -239,7 +234,6 @@ func scrapeURL(rfInfo RF_Info, wg *sync.WaitGroup, t *http.Transport, result *Re
 		success := Success{rfInfo.ID, lat, long}
 		result.Successes = append(result.Successes, success)
 	} else {
-		// log.Println("Link doesnt exist:", rfInfo.url)
 		failure := Failure{rfInfo.ID, rfInfo.roomNr, rfInfo.buildingNr}
 		result.Failures = append(result.Failures, failure)
 	}

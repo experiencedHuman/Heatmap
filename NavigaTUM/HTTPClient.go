@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	//path to the database
 	heatmapDB = "./data/sqlite/heatmap.db"
 )
 
@@ -38,7 +39,7 @@ func ScrapeNavigaTUM(res RoomFinder.Result) (count int) {
 			roomID = fmt.Sprintf("%s.%s", res.BuildingNr, res.RoomNr)
 		}
 
-		lat, long, found := getRoomCoordinates(roomID) // TODO see line 97
+		lat, long, found := getRoomCoordinates(roomID)
 
 		if found {
 			storeCoordinateOfAP(res, lat, long)
@@ -57,10 +58,9 @@ func ScrapeNavigaTUM(res RoomFinder.Result) (count int) {
 
 // stores the coordinates of the access point in the database
 func storeCoordinateOfAP(result RoomFinder.Failure, lat, long string) {
-	db := DBService.InitDB(heatmapDB) // TODO remove this ?
-	whereStmt := fmt.Sprintf("ID='%s'", result.ID)
-	DBService.UpdateColumn("apstat", "Lat", lat, whereStmt)
-	DBService.UpdateColumn("apstat", "Long", long, whereStmt)
+	db := DBService.InitDB(heatmapDB)
+	DBService.UpdateLatLong("Lat", lat, result.ID)
+	DBService.UpdateLatLong("Long", long, result.ID)
 	db.Close()
 }
 
@@ -94,10 +94,7 @@ func getRoomCoordinates(roomID string) (lat, long string, found bool) {
 
 	lat = fmt.Sprintf("%f", respNavi.Coord.Lat)
 	long = fmt.Sprintf("%f", respNavi.Coord.Long)
-	found = true // TODO ?
-
-	typ := respNavi.Type
-	fmt.Println(typ) // TODO
+	found = true
 
 	return
 }

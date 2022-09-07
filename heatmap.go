@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	// "time"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -46,7 +46,7 @@ func saveAPsToJSON(dst string, totalLoad int) {
 	var jsonData []JsonEntry
 
 	for _, ap := range APs {
-		currTotLoad := 0 // TODO RoomFinder.GetCurrentTotalLoad(ap.Load)
+		currTotLoad := 0
 		var intensity float64 = float64(currTotLoad) / float64(totalLoad)
 		lat, _ := strconv.ParseFloat(ap.Lat, 64)
 		lng, _ := strconv.ParseFloat(ap.Long, 64)
@@ -69,17 +69,13 @@ type server struct {
 	pb.UnimplementedAPServiceServer
 }
 
-// func NewServer() *server {
-// 	return &server{}
-// }
-
 func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.AccessPoint, error) {
 	name := in.Name
 	ts := in.Timestamp
 	log.Printf("Received request for AP with name: %s and timestamp: %s", name, in.Timestamp)
 
 	db := DBService.InitDB(heatmapDB)
-	// ap := DBService.RetrieveAccessPointByName(db, name)
+
 	day, hr := getDayAndHourFromTimestamp(ts)
 	ap := DBService.GetHistoryForSingleAP(name, day, hr)
 	db.Close()
@@ -98,11 +94,9 @@ func (s *server) GetAccessPoint(ctx context.Context, in *pb.APRequest) (*pb.Acce
 
 func getDayAndHourFromTimestamp(timestamp string) (int, int) {
 	ts := strings.Split(timestamp, " ")
-	// log.Println("timestamp:", ts)
 	date := ts[0]
-	// log.Println("date:", ts[0])
-	ymd := strings.Split(date, "-")
-	day, err := strconv.Atoi(ymd[2])
+	yearMonthDay := strings.Split(date, "-")
+	day, err := strconv.Atoi(yearMonthDay[2])
 	if err != nil {
 		day = 0
 	}
@@ -110,19 +104,20 @@ func getDayAndHourFromTimestamp(timestamp string) (int, int) {
 	if err != nil {
 		hr = 0
 	}
+	today := time.Now().Day()
+	day = day - today
 	return day, hr
 }
 
 func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAccessPointsServer) error {
 	ts := in.Timestamp
 	day, hr := getDayAndHourFromTimestamp(ts)
-	log.Println("Requested day and hour:", day, hr)
+
 	apList := DBService.GetHistoryForAllAPs(day, hr)
 
 	log.Printf("Sending %d APs ...", len(apList))
 
 	for _, ap := range apList {
-		// log.Println("Load:", ap.Load)
 		location := locations[ap.Name]
 
 		load, _ := strconv.Atoi(ap.Load)
@@ -131,8 +126,8 @@ func (s *server) ListAccessPoints(in *pb.APRequest, stream pb.APService_ListAcce
 			&pb.APResponse{
 				Accesspoint: &pb.AccessPoint{
 					Name:      ap.Name,
-					Lat:       location.lat,  // TODO handle nil value
-					Long:      location.long, // TODO handle nil value
+					Lat:       location.lat,
+					Long:      location.long,
 					Intensity: int64(load),
 					Max:       int64(ap.Max),
 					Min:       int64(ap.Min),
@@ -167,8 +162,17 @@ var locations map[string]location
 
 func main() {
 
+	// DBService.DeleteOldTables()
+	// DBService.SetupHistoryTable()
 	// DBService.SetupFutureTable()
+	// DBService.UpdateHistory(0,0, 33, "apa08-1w4")
 
+
+	// res := LRZscraper.GetHistoriesFrom(30)
+	// LRZscraper.StoreHistories(res)
+
+	// DBService.TestExample()
+	// DBService.TestQuestionMark()
 	// DBService.UpdateToday()
 
 	// _ = LRZscraper.GetTodaysData()
@@ -191,7 +195,8 @@ func main() {
 }
 
 func startServer() {
-	host := "192.168.0.109"
+	// host := "192.168.0.109"
+	host := "172.20.10.7"
 	port := 50053
 
 	fmt.Println("Starting server...")

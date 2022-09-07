@@ -31,7 +31,6 @@ class ViewController: UIViewController, AzureMapDelegate {
   
   override func loadView() {
     super.loadView()
-    print("erieri")
     azureMap = MapControl.init(frame: CGRect(x: 0, y: 0, width: 500, height: 800),
                                options: [
                                 CameraOption.center(lat: 48.2692083204, lng: 11.6690079838),

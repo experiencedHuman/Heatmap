@@ -1,15 +1,12 @@
 package LRZscraper
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"math"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,9 +15,20 @@ import (
 	"github.com/kvogli/Heatmap/DBService"
 )
 
-const (
-	dstPath = "data/csv/"	
-)
+type NetworkLoad struct {
+	Datapoints [][]float64 `json:"datapoints"`
+	Target     string      `json:"target"`
+}
+
+type history [31][24]int
+
+// History data for an Access Point
+type History struct {
+	name       string
+	historyPtr *history
+	max        int
+	min        int
+}
 
 func getNetworkAlias(apName, network string) string {
 	return fmt.Sprintf("alias(ap.%s.ssid.%s,%%22%s%%22)", apName, network, network)
@@ -30,7 +38,7 @@ func BuildURL(apName string, days int, format string) (url string) {
 	rendererEndpoint := "http://graphite-kom.srv.lrz.de/render/"
 	width := "?width=640"
 	height := "height=240"
-	title := "title=SSIDs%20(weekly)" // TODO remove ?
+	title := "title=SSIDs%20(weekly)"
 	areaMode := "areaMode=stacked"
 	xFormat := "xFormat=%25d.%25m."
 	timezone := "tz=CET"
@@ -61,66 +69,6 @@ func BuildURL(apName string, days int, format string) (url string) {
 	return
 }
 
-// makes a GET request to LRZ's Graphite "/renderer" endpoint
-// and stores the retrieved data in data/csv/{apName}.csv
-func GetGraphiteDataAsCSV(apName string, from int) {
-	if !strings.HasPrefix(apName, "apa") {
-		log.Fatalf("Name of the Access Point must start with \"apa\"!")
-	}
-
-	url := BuildURL(apName, from, "csv")
-	resp, httpError := http.Get(url)
-	if httpError != nil {
-		log.Fatalf("Could not retrieve csv data from URL! %q", httpError)
-	}
-
-	defer resp.Body.Close()
-	csvReader := csv.NewReader(resp.Body)
-	csvReader.Comma = ','
-
-	dst := fmt.Sprintf("%s%s.csv", dstPath, apName)
-	file, osError := os.Create(dst)
-	if osError != nil {
-		log.Fatalf("Could not create file, err: %q", osError)
-	}
-	defer file.Close()
-
-	responseCSV := csv.NewWriter(file)
-	responseCSV.Comma = ';'
-	defer responseCSV.Flush()
-
-	var csvRecord []string
-	for i := 0; ; i++ {
-		csvRecord, httpError = csvReader.Read()
-		if httpError == io.EOF {
-			break
-		} else if httpError != nil {
-			panic(httpError)
-		} else {
-			fmt.Println(csvRecord)
-			fields := strings.Fields(csvRecord[0]) // get substrings separated by whitespaces
-			network := fields[0]
-			current := strings.Split(fields[1], ":")[1]
-			max := strings.Split(fields[2], ":")[1]
-			min := strings.Split(fields[3], ":")[1]
-
-			dateAndTime := csvRecord[1]
-			avg := csvRecord[2]
-
-			responseCSV.Write([]string{
-				network, current, max, min, dateAndTime, avg,
-			})
-		}
-	}
-
-	log.Printf("Data is stored in %s", dst)
-}
-
-type NetworkLoad struct {
-	Datapoints [][]float64 `json:"datapoints"`
-	Target     string      `json:"target"`
-}
-
 func GetGraphiteDataForAP(apName string, from int, t *http.Transport) ([]NetworkLoad, error) {
 	if !strings.HasPrefix(apName, "apa") {
 		log.Fatalf("Name of the Access Point must start with \"apa\"!")
@@ -142,7 +90,7 @@ func GetGraphiteDataForAP(apName string, from int, t *http.Transport) ([]Network
 	var networks []NetworkLoad
 	err := json.NewDecoder(resp.Body).Decode(&networks)
 	if err != nil {
-		// sometimes server sends bad JSON response
+		// sometimes lrz's server sends a bad JSON response
 		log.Printf("Could not decode JSON response: %v", err)
 		return nil, err
 	}
@@ -154,54 +102,37 @@ func getTotalMaxMin(networks []NetworkLoad) (int, int) {
 	totCurr, totMax, totMin := 0.0, 0.0, 0.0
 	for _, network := range networks {
 		curr, max, min := getCurrMaxMin(network.Target)
-		// log.Println("151:", max, min)
 		totCurr += curr
 		totMax += max
 		totMin += min
 	}
 
-	// log.Println("before returniing",totMax, totMin)
 	mx, mn := int(totMax), int(totMin)
-	// log.Println("returning", mx, mn) // TODO ?
 	return mx, mn
 }
 
 func getCurrMaxMin(networkLoad string) (curr, max, min float64) {
 	fields := strings.Fields(networkLoad) //remove whitespaces
 
-	// log.Println("Fields=", fields)
-	// log.Println("Fields=", strings.Split(fields[1], ":"))
-
 	currStr := strings.Split(fields[1], ":")[1]
 	curr, err := strconv.ParseFloat(currStr, 32)
 	if err != nil || math.IsNaN(curr) {
 		curr = 0.0
-		// log.Println("err parsing curr")
 	}
 
 	maxStr := strings.Split(fields[2], ":")[1]
 	max, err = strconv.ParseFloat(maxStr, 32)
 	if err != nil || math.IsNaN(max) {
 		max = 0.0
-		// log.Println("err parsing max")
 	}
 
 	minStr := strings.Split(fields[3], ":")[1]
 	min, err = strconv.ParseFloat(minStr, 32)
 	if err != nil || math.IsNaN(min) {
 		min = 0.0
-		// log.Println("err parsing min")
 	}
 
 	return
-}
-
-// History data for an Access Point
-type History struct {
-	name       string
-	historyPtr *history
-	max        int
-	min        int
 }
 
 func GetHistoriesFrom(from int) []History {
@@ -243,65 +174,35 @@ func GetHistoriesFrom(from int) []History {
 		if history.historyPtr == nil {
 			skippedAPs = append(skippedAPs, history.name)
 		} else {
-			log.Println("Appending ap history to list!", history.name)
 			histories = append(histories, history)
-
-			n := len(histories)
-			if n%100 == 0 {
-				log.Println(n)
-			}
 		}
 	}
 
+	log.Println("Appended total: ", len(histories))
 	log.Println("Started storing in DB:", time.Now())
 	// storeHistories(histories)
 	skipped := len(skippedAPs)
 	fmt.Println("Total nr of skipped APs:", skipped, skippedAPs)
-	saveSkippedToCSV(skippedAPs)
 
 	// storeMaxMins(histories)
-	storeInCSV(histories)
 	return histories
 }
 
 func storeMaxMins(histories []History) {
-	for i, apHistory := range histories {
+	for _, apHistory := range histories {
 		apName := apHistory.name
 		max := apHistory.max
 		min := apHistory.min
-		where := fmt.Sprintf("Name='%s'", apName)
-		DBService.UpdateColumnInt("apstat", "Max", max, where)
-		DBService.UpdateColumnInt("apstat", "Min", min, where)
-		log.Println("finished storing", apName, i)
-	}
-}
-
-// Saves names of skipped Access Points in a csv file.
-func saveSkippedToCSV(skippedAPs []string) {
-	file, err := os.Create("data/csv/skipped2.csv")
-	if err != nil {
-		log.Println("Failed to store skipped APs!", err)
-	}
-	defer file.Close()
-
-	w := csv.NewWriter(file)
-	defer w.Flush()
-
-	for _, skippedAP := range skippedAPs {
-		if err := w.Write([]string{skippedAP}); err != nil {
-			log.Println("Failed to store skipped AP in csv file:", skippedAP)
-		}
+		DBService.UpdateMinMax("Max", apName, max)
+		DBService.UpdateMinMax("Min", apName, min)
 	}
 }
 
 func StoreHistories(histories []History) {
-	for i, apHistory := range histories {
+	for _, apHistory := range histories {
 		apName := apHistory.name
 		history := *apHistory.historyPtr
 		storeHistoryOfAP(apName, history)
-		if i%100 == 0 {
-			log.Println("done storing", i, apName)
-		}
 	}
 }
 
@@ -309,12 +210,12 @@ func storeHistoryOfAP(apName string, history history) {
 	days := len(history)
 	hours := len(history[0])
 	if days != 31 || hours != 24 {
-		log.Printf("FIXME: Days: %d, Hours: %d", days, hours)
+		return
 	}
 	for day := 0; day < days; day++ {
-		for hr := 0; hr < hours; hr++ {
-			avg := history[day][hr]
-			DBService.UpdateHistory(day, hr, avg, apName)
+		for hour := 0; hour < hours; hour++ {
+			avg := history[day][hour]
+			DBService.UpdateHistory(day, hour, avg, apName)
 		}
 	}
 }
@@ -327,28 +228,6 @@ func GetTodaysData() map[string][24]int {
 		fmt.Println("Today", todayAP.name, (*todayAP.historyPtr)[0])
 	}
 	return averages
-}
-
-// TODO delete
-func Last30Days() {
-	// get list of 2400 APs
-	// get json data for each one for the last 30 days
-	// group data by hour of each day
-	// save it in history.csv (or sqlite table)
-	// 2400 aps * 30 days * 24 hr = 1,728,000 entries
-	APs := DBService.RetrieveAPsOfTUM(true)
-	unprocessedAPs := DBService.GetUnprocessedAPs()
-
-	// DBService.PopulateHistory(APs)
-	fmt.Printf("Nr or retrieved APs: %d\n", len(APs))
-
-	for i, ap := range APs {
-		_, ok := unprocessedAPs[ap.Name]
-		if ok {
-			// SaveLast30DaysForAP(ap)
-			log.Printf("%d of %d done.", i, len(APs))
-		}
-	}
 }
 
 func GetLast30DaysForAP(apName string, from int, c chan History, t *http.Transport) {
@@ -369,15 +248,8 @@ func GetLast30DaysForAP(apName string, from int, c chan History, t *http.Transpo
 	gesamt := networks[0].Datapoints
 	n := len(networks)
 	for i := 1; i < n; i++ {
-		printed := false
 		for j := range gesamt {
-			lenGesamt := len(gesamt)
 			lenOtherNetwork := len(networks[i].Datapoints)
-			if lenGesamt != lenOtherNetwork && !printed {
-				log.Printf("Different lengths: %d vs %d", lenGesamt, lenOtherNetwork)
-				printed = true
-			}
-
 			if j < lenOtherNetwork {
 				gesamt[j][0] += networks[i].Datapoints[j][0]
 			}
@@ -387,8 +259,6 @@ func GetLast30DaysForAP(apName string, from int, c chan History, t *http.Transpo
 	history := calcHourlyAvgs(gesamt)
 	c <- History{apName, &history, max, min}
 }
-
-type history [31][24]int
 
 // It calculates hourly averages of network load for the given AP data.
 // Returns a 31x24 matrix, where cell (i,j) holds
@@ -406,18 +276,18 @@ func calcHourlyAvgs(datapoints [][]float64) history {
 		ts := int(datapoint[1])
 
 		t := getTimeFromTimestamp(ts)
-		hr := t.Hour()
+		hour := t.Hour()
 		currDay := t.Day()
 
 		if prevHour == nil || prevDay == nil {
-			prevHour = &hr
+			prevHour = &hour
 			prevDay = &currDay
 		}
 
-		if hr != *prevHour {
-			*prevHour = hr
+		if hour != *prevHour {
+			*prevHour = hour
 			avg = n / cnt
-			history[day-1][hr] = avg
+			history[day-1][hour] = avg
 			cnt = 0
 			n = 0
 		} else {
@@ -444,36 +314,4 @@ func getTimeFromTimestamp(timestamp int) time.Time {
 	}
 	tm := time.Unix(t, 0)
 	return tm
-}
-
-func storeInCSV(histories []History) {
-	f, err := os.Create("./data/csv/today.csv")
-	if err != nil {
-		log.Fatalln("Failed to create ./data/csv/today.csv")
-	}
-	writer := csv.NewWriter(f)
-	defer writer.Flush()
-
-	for i, apHistory := range histories {
-		maxStr, minStr := apHistory.max, apHistory.min
-		max := strconv.Itoa(maxStr)
-		min := strconv.Itoa(minStr)
-		hourlyAvgsStr := ""
-		hourlyAvgs := apHistory.historyPtr
-		for _, hourlyAvg := range hourlyAvgs {
-			hourlyAvgsStr += fmt.Sprint(hourlyAvg[0])
-		}
-		// log.Println("Before conversion: ", maxStr, max)
-		if err := writer.Write(
-			[]string{
-				apHistory.name,
-				max,
-				min,
-				hourlyAvgsStr,
-			}); err != nil {
-			log.Println("Failed to write ap history!", err)
-		} else {
-			log.Println("AP history saved successfully:", apHistory.name, i)
-		}
-	}
 }

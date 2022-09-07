@@ -1,57 +1,9 @@
 package DBService
 
 import (
-	"encoding/csv"
-	"io"
 	"log"
-	"os"
-	"fmt"
 )
 
-func SetupHistoryTable() {
-	tableName := "history"
-	CreateHistoryTable(tableName)
-	apList := RetrieveAPsOfTUM(true)
-	PopulateHistoryTable(apList)
-}
-
-func SetupFutureTable() {
-	tableName := "future"
-	CreateHistoryTable(tableName)
-	apList := RetrieveAPsOfTUM(true)
-	PopulateFutureTable(apList)
-}
-
-func HistoryCSVtoSQLite() {
-	file, err := os.Open("./data/csv/histories2.csv")
-	if err != nil {
-		log.Println("Could not open file!", err)
-	}
-
-	csvReader := csv.NewReader(file)
-	csvReader.Comma = ','
-
-	for {
-		record, err := csvReader.Read()
-
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			log.Println("couldn't read record")
-			continue
-		}
-		
-		apName := record[0]
-		max := record[1]
-		min := record[2]
-
-		where := fmt.Sprintf("Name='%s'", apName)
-		UpdateColumn("apstat","Max",max, where)
-		UpdateColumn("apstat","Min",min, where)
-	}
-}
 
 // JOIN
 func JoinMaxMin() {
@@ -63,4 +15,27 @@ func JoinMaxMin() {
 			FROM apstat WHERE history.AP_Name = Name)
 	`
 	runQuery(query)
+}
+
+func DeleteOldTables() {
+	query := "DROP TABLE history"
+	runQuery(query)
+	query2 := "DROP TABLE future"
+	runQuery(query2)
+}
+
+func TestExample() {
+	for ap := 0; ap < 5; ap++ {
+		for i := 0; i < 31; i++ {
+			for j := 0; j < 24; j++ {
+				UpdateHistory(i,j,100,"apa08-1w4")
+				// log.Println("single update")
+			}
+		}
+		log.Println("updated")
+	}
+}
+
+func TestQuestionMark() {
+	UpdateMinMax("T0","apa08-1w4", 99)
 }

@@ -2,22 +2,15 @@ package DBService
 
 import (
 	"database/sql"
-	"encoding/csv"
 	"fmt"
 	"log"
-	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
-	// database path
+	//path to the database
 	heatmapDB = "./data/sqlite/heatmap.db"
-
-	// tables inside heatmapDB
-	apstatTable   = "apstat"
-	historyTable  = "history"
-	forecastTable = "future"
 )
 
 var DB = InitDB(heatmapDB)
@@ -33,20 +26,19 @@ type AccessPoint struct {
 	Load    string
 	Lat     string
 	Long    string
-	Max			int
-	Min			int
+	Max     int
+	Min     int
 }
 
-// Opens a database at dbPath and
-// returns a pointer to it.
-func InitDB(dbPath string) *sql.DB {
-	db, err := sql.Open("sqlite3", dbPath)
+// Opens the database and returns a non-nil pointer if successfull
+func InitDB(path string) *sql.DB {
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
-		log.Panicf("Could not open SQLite DB! %v", err)
+		log.Panicf("Could not open the database! %v", err)
 	}
 
 	if db == nil {
-		panic("DB is nil")
+		panic("DB pointer is nil!")
 	}
 	return db
 }
@@ -75,9 +67,9 @@ func RetrieveAPsOfTUM(withCoordinate bool) []AccessPoint {
 	return RetrieveAPsFromTUM(query)
 }
 
-// Queries 'apstat' table and
+// Queries the 'apstat' table and
 // returns all rows where 'address' contains "TUM" and
-// Lat, Long are unassigned
+// the columns 'Lat', 'Long' are yet unassigned
 func RetrieveAPsFromTUM(query string) []AccessPoint {
 	db := InitDB(heatmapDB)
 
@@ -102,40 +94,24 @@ func RetrieveAPsFromTUM(query string) []AccessPoint {
 	return result
 }
 
-// Reads data from a csv file and
-// returns it as a string matrix.
-func readFromCSV(csvPath string) [][]string {
-	csvFile, err := os.Open(csvPath)
-	if err != nil {
-		log.Fatal(err)
+func UpdateLatLong(column, newValue, id string) {
+	query := ""
+	if column == "Lat" {
+		query = "UPDATE apstat SET Lat = ? WHERE ID = ?"	
+	} else {
+		query = "UPDATE apstat SET Long = ? WHERE ID = ?"
 	}
-	defer csvFile.Close()
+	runQuery(query, newValue, id)
+}
 
-	csvReader := csv.NewReader(csvFile)
-	csvReader.Comma = ';'
-	csvData, err := csvReader.ReadAll()
-	if err != nil {
-		log.Fatal(err)
+func UpdateMinMax(column, apName string, newValue int) {
+	query := ""
+	if column == "Max" {
+		query = "UPDATE apstat SET Max = ? WHERE Name = ?"	
+	} else {
+		query = "UPDATE apstat SET Min = ? WHERE Name = ?"
 	}
-	return csvData
-}
-
-// Adds a new column of type 'TEXT' to table 'tableName'.
-func AddColumn(tableName, newCol, colType string) {
-	query := fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s %s`, tableName, newCol, colType)
-	var args []interface{}
-	runQuery(query, args...)
-}
-
-// Updates 'column' at rows satisfying the 'where' condition with 'newValue'.
-func UpdateColumn(tableName, column, newValue, where string) {
-	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s`, tableName, column, where)
-	runQuery(query, newValue)
-}
-
-func UpdateColumnInt(tableName, column string, newValue int, where string) {
-	query := fmt.Sprintf(`UPDATE %s SET %s = ? WHERE %s`, tableName, column, where)
-	runQuery(query, newValue)
+	runQuery(query, newValue, apName)
 }
 
 // Updates name of 'currName' column to 'newName'.
